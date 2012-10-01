@@ -593,7 +593,7 @@ static int draw_production_pipe(int x, int y, int recipe_num){
 
 	//draw the grid, in red if selected
 	if (recipe_num==cur_recipe) glColor3f(1.0f,0.0f,0.0f);
-	else glColor3f(0.77f,0.57f,0.39f);
+	else glColor3f(newcol_r, newcol_g, newcol_b);
 	rendergrid(NUM_MIX_SLOTS,1,x, y, SLOT_SIZE, SLOT_SIZE);
 
 	glEnable(GL_TEXTURE_2D);
@@ -610,7 +610,7 @@ static int	display_manufacture_handler(window_info *win)
 	if (recipes_shown) win->opaque=windows_list.window[recipe_win].opaque;
 	else windows_list.window[recipe_win].opaque=win->opaque;
 
-	glColor3f(0.77f,0.57f,0.39f);
+	glColor3f(newcol_r, newcol_g, newcol_b);
 	glEnable(GL_TEXTURE_2D);
 
 	glColor3f(1.0f,1.0f,1.0f);
@@ -645,7 +645,7 @@ static int	display_manufacture_handler(window_info *win)
 	// it such that images are rendered exactly within the boxes on all
 	// cards
 	glDisable(GL_TEXTURE_2D);
-	glColor3f(0.77f,0.57f,0.39f);
+	glColor3f(newcol_r, newcol_g, newcol_b);
 
 	//draw the grid
 	rendergrid(12,3,0,0,SLOT_SIZE,SLOT_SIZE);
@@ -1327,16 +1327,16 @@ void display_manufacture_menu()
 		set_window_handler(manufacture_win, ELW_HANDLER_KEYPRESS, &keypress_manufacture_handler );
 
 		mixone_button_id=button_add_extended(manufacture_win, mixone_button_id,
-			NULL, SLOT_SIZE*NUM_MIX_SLOTS+15+10, manufacture_menu_y_len-36, 43, 0, 0, 1.0f, 0.77f, 0.57f, 0.39f, ">");
+			NULL, SLOT_SIZE*NUM_MIX_SLOTS+15+10, manufacture_menu_y_len-36, 43, 0, 0, 1.0f, newcol_r, newcol_g, newcol_b, ">");
 		widget_set_OnClick(manufacture_win, mixone_button_id, mixone_handler);
 		widget_set_OnMouseover(manufacture_win, mixone_button_id, mouseover_mixone_handler);
 
 		mixall_button_id=button_add_extended(manufacture_win, mixall_button_id,
-			NULL, SLOT_SIZE*8+10, manufacture_menu_y_len-36, 43, 0, 0, 1.0f, 0.77f, 0.57f, 0.39f, ">>");
+			NULL, SLOT_SIZE*8+10, manufacture_menu_y_len-36, 43, 0, 0, 1.0f, newcol_r, newcol_g, newcol_b, ">>");
 		widget_set_OnClick(manufacture_win, mixall_button_id, mixall_handler);
 		widget_set_OnMouseover(manufacture_win, mixall_button_id, mouseover_mixall_handler);
 
-		clear_button_id=button_add_extended(manufacture_win, clear_button_id, NULL, SLOT_SIZE*9+18+10, manufacture_menu_y_len-36, 70, 0, 0, 1.0f, 0.77f, 0.57f, 0.39f, clear_str);
+		clear_button_id=button_add_extended(manufacture_win, clear_button_id, NULL, SLOT_SIZE*9+18+10, manufacture_menu_y_len-36, 70, 0, 0, 1.0f, newcol_r, newcol_g, newcol_b, clear_str);
 		widget_set_OnClick(manufacture_win, clear_button_id, clear_handler);
 
 		if ((manufacture_win > -1) && (manufacture_win < windows_list.num_windows))
@@ -1354,7 +1354,7 @@ void display_manufacture_menu()
 		set_window_handler(recipe_win, ELW_HANDLER_RESIZE, &resize_recipe_handler );
 		set_window_handler(recipe_win, ELW_HANDLER_KEYPRESS, keypress_recipe_handler );
 		recipe_win_scroll_id = vscrollbar_add_extended(recipe_win, 1, NULL, recipe_win_width-ELW_BOX_SIZE, 0, ELW_BOX_SIZE,
-			num_displayed_recipes*SLOT_SIZE - ELW_BOX_SIZE, 0, 1.0, 0.77f, 0.57f, 0.39f, 0, 1, num_recipe_entries-num_displayed_recipes);
+			num_displayed_recipes*SLOT_SIZE - ELW_BOX_SIZE, 0, 1.0, newcol_r, newcol_g, newcol_b, 0, 1, num_recipe_entries-num_displayed_recipes);
 		set_window_min_size(recipe_win, recipe_win_width, 4*SLOT_SIZE);
 
 		// context menu

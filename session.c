@@ -17,6 +17,7 @@
 #include "gl_init.h"
 #endif
 #include "widgets.h"
+#include "gamewin.h"
 
 int session_win = -1;
 static int reconnecting = 0;
@@ -46,7 +47,7 @@ void fill_session_win(void)
 	int reset_button_id = -1;
 	set_window_handler(session_win, ELW_HANDLER_DISPLAY, &display_session_handler);
 
-	reset_button_id=button_add_extended(session_win, reset_button_id, NULL, 450, 3, 0, 0, 0, 1.0f, 0.77f, 0.57f, 0.39f, reset_str);
+	reset_button_id=button_add_extended(session_win, reset_button_id, NULL, 450, 3, 0, 0, 0, 1.0f, newcol_r, newcol_g, newcol_b, reset_str);
 	widget_set_OnClick(session_win, reset_button_id, session_reset_handler);
 	widget_set_OnMouseover(session_win, reset_button_id, mouseover_session_reset_handler);
 	
@@ -69,7 +70,7 @@ int display_session_handler(window_info *win)
 	draw_string_small(x + 200, y, (unsigned char*)"Experience Gain", 1);
 
 	glDisable(GL_TEXTURE_2D);
-	glColor3f(0.77f, 0.57f, 0.39f);
+	glColor3f(newcol_r, newcol_g, newcol_b);
 	glBegin(GL_LINES);
 	glVertex3i(0, 37, 0);
 	glVertex3i(win->len_x, 37, 0);

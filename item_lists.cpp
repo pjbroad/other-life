@@ -857,7 +857,7 @@ namespace ItemLists
 
 			names_scroll_id = vscrollbar_add_extended(win_id, 1, NULL,
 				get_size_x()-ELW_BOX_SIZE, get_grid_size()*num_grid_rows, ELW_BOX_SIZE, get_names_size_y()-ELW_BOX_SIZE, 0,
-				1.0, 0.77f, 0.57f, 0.39f, 0, 1, Vars::lists()->size()-num_show_names_list);
+				1.0, newcol_r, newcol_g, newcol_b, 0, 1, Vars::lists()->size()-num_show_names_list);
 
 			init_ipu(&ipu_item_list_name, -1, -1, -1, 1, 1, NULL, NULL);
 		}
@@ -950,7 +950,7 @@ namespace ItemLists
 		glDisable(GL_TEXTURE_2D);
 
 		// draw the item grid
-		glColor3f(0.77f,0.57f,0.39f);
+		glColor3f(newcol_r, newcol_g, newcol_b);
 		rendergrid(6, num_grid_rows, 0, 0, get_grid_size(), get_grid_size());
 
 		// if an object is selected, draw a green grid around it
@@ -988,7 +988,7 @@ namespace ItemLists
 		if (mouse_over_add_button)
 			glColor3f(0.99f,0.77f,0.55f);
 		else
-			glColor3f(0.77f,0.57f,0.39f);
+			glColor3f(newcol_r, newcol_g, newcol_b);
 		draw_string_zoomed(add_button_x, add_button_y, (unsigned const char*)"+", 1, 2.0);
 
 		// draw the item list names

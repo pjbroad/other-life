@@ -20,12 +20,12 @@ FILETYPE VFT_APP
 		 {
 			 VALUE "CompanyName", ""
 			 VALUE "FileVersion", "1.9.3"
-			 VALUE "FileDescription", "Eternal-Lands Client"
+			 VALUE "FileDescription", "Other-Life Client"
 			 VALUE "InternalName", ""
 			 VALUE "LegalCopyright", ""
 			 VALUE "LegalTrademarks", ""
 			 VALUE "OriginalFilename", ""
-			 VALUE "ProductName", "Eternal-Lands Client"
+			 VALUE "ProductName", "Other-Life Client"
 			 VALUE "ProductVersion", "1.9.3"
 		 }
 	 }

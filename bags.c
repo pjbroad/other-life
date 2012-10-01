@@ -445,7 +445,7 @@ int display_ground_items_handler(window_info *win)
 
 	// write "get all" in the "get all" box :)
 	strap_word(get_all_str,my_str);
-	glColor3f(0.77f,0.57f,0.39f);
+	glColor3f(newcol_r, newcol_g, newcol_b);
 	draw_string_small(win->len_x-(GRIDSIZE-5), ELW_BOX_SIZE+3+yoffset, (unsigned char*)my_str, 2);
 
 	glColor3f(1.0f,1.0f,1.0f);
@@ -498,7 +498,7 @@ int display_ground_items_handler(window_info *win)
 	// cards
 	glDisable(GL_TEXTURE_2D);
 
-	glColor3f(0.77f,0.57f,0.39f);
+	glColor3f(newcol_r, newcol_g, newcol_b);
 	/* if a full grid render in one go */
 	if (ground_items_grid_cols*ground_items_grid_rows == ITEMS_PER_BAG)
 		rendergrid(ground_items_grid_cols,ground_items_grid_rows,0,0,GRIDSIZE,GRIDSIZE);

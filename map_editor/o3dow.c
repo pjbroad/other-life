@@ -63,7 +63,7 @@ int display_o3dow_handler(window_info *win)
 	glBlendFunc(GL_ONE,GL_SRC_ALPHA);
 	glDisable(GL_TEXTURE_2D);
 	glDisable(GL_BLEND);
-	glColor3f(0.77f,0.57f,0.39f);
+	glColor3f(0.77f,0.77f,0.77f);
 	
 	// Checkboxes
 	glBegin(c1 ? GL_QUADS: GL_LINE_LOOP);

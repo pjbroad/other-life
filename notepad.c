@@ -217,25 +217,25 @@ void display_popup_win (INPUT_POPUP *ipu, const char* label)
 
 		// clear the buffer
 		init_text_message (&ipu->popup_text, ipu->maxlen);
-		set_text_message_color (&ipu->popup_text, 0.77f, 0.57f, 0.39f);
+		set_text_message_color (&ipu->popup_text, newcol_r, newcol_g, newcol_b);
 
 		// Label
 		ipu->popup_label = label_add (ipu->popup_win, NULL, label, 5, 5);
-		widget_set_color (ipu->popup_win, ipu->popup_label, 0.77f, 0.57f, 0.39f);
+		widget_set_color (ipu->popup_win, ipu->popup_label, newcol_r, newcol_g, newcol_b);
 
 		// Input
-		ipu->popup_field = text_field_add_extended (ipu->popup_win, 101, NULL, 5, 28, ipu->popup_x_len - 10, 28*ipu->rows, ipu->text_flags, 1.0f, 0.77f, 0.57f, 0.39f, &ipu->popup_text, 1, FILTER_ALL, 5, 5);
-		widget_set_color (ipu->popup_win, ipu->popup_field, 0.77f, 0.57f, 0.39f);
+		ipu->popup_field = text_field_add_extended (ipu->popup_win, 101, NULL, 5, 28, ipu->popup_x_len - 10, 28*ipu->rows, ipu->text_flags, 1.0f, newcol_r, newcol_g, newcol_b, &ipu->popup_text, 1, FILTER_ALL, 5, 5);
+		widget_set_color (ipu->popup_win, ipu->popup_field, newcol_r, newcol_g, newcol_b);
 
 		// Accept
 		ipu->popup_ok = button_add (ipu->popup_win, NULL, button_okay, 0, 0);
 		widget_set_OnClick (ipu->popup_win, ipu->popup_ok, popup_ok_button_handler);
-		widget_set_color (ipu->popup_win, ipu->popup_ok, 0.77f, 0.57f, 0.39f);
+		widget_set_color (ipu->popup_win, ipu->popup_ok, newcol_r, newcol_g, newcol_b);
 
 		// Reject
 		ipu->popup_no = button_add (ipu->popup_win, NULL, button_cancel, 0, 0);
 		widget_set_OnClick (ipu->popup_win, ipu->popup_no, popup_cancel_button_handler);
-		widget_set_color (ipu->popup_win, ipu->popup_no, 0.77f, 0.57f, 0.39f);
+		widget_set_color (ipu->popup_win, ipu->popup_no, newcol_r, newcol_g, newcol_b);
 
 		// align the buttons
 		wok = widget_find(ipu->popup_win, ipu->popup_ok);
@@ -403,7 +403,7 @@ static void init_note (int id, const char* name, const char* content)
 
 	init_text_message (&(note_list[id].text), nsize);
 	set_text_message_data (&(note_list[id].text), content);
-	set_text_message_color (&(note_list[id].text), 0.77f, 0.57f, 0.39f);
+	set_text_message_color (&(note_list[id].text), newcol_r, newcol_g, newcol_b);
 
 	note_list[id].button_id = -1;
 	note_list[id].window = -1;
@@ -628,15 +628,15 @@ static void open_note_tab_continued(int id)
 	int tab;
 
 	note_list[id].window = tab_add (notepad_win, note_tabcollection_id, note_list[id].name, 0, 1, 0);
-	widget_set_color (notepad_win, note_list[id].window, 0.77f, 0.57f, 0.39f);
+	widget_set_color (notepad_win, note_list[id].window, newcol_r, newcol_g, newcol_b);
 
 	// input text field
-	note_list[id].input = text_field_add_extended(note_list[id].window, note_widget_id++, NULL, tf_x, tf_y, tf_width, tf_height, TEXT_FIELD_BORDER|TEXT_FIELD_EDITABLE|TEXT_FIELD_CAN_GROW|TEXT_FIELD_SCROLLBAR, note_zoom, 0.77f, 0.57f, 0.39f, &note_list[id].text, 1, FILTER_ALL, 5, 5);
+	note_list[id].input = text_field_add_extended(note_list[id].window, note_widget_id++, NULL, tf_x, tf_y, tf_width, tf_height, TEXT_FIELD_BORDER|TEXT_FIELD_EDITABLE|TEXT_FIELD_CAN_GROW|TEXT_FIELD_SCROLLBAR, note_zoom, newcol_r, newcol_g, newcol_b, &note_list[id].text, 1, FILTER_ALL, 5, 5);
 
 	// remove button
 	note_list[id].button = button_add (note_list[id].window, NULL, button_remove_category, 20, 8);
 	widget_set_OnClick(note_list[id].window, note_list[id].button, notepad_remove_category);
-	widget_set_color(note_list[id].window, note_list[id].button, 0.77f, 0.57f, 0.39f);
+	widget_set_color(note_list[id].window, note_list[id].button, newcol_r, newcol_g, newcol_b);
 	widget_set_OnMouseover(note_list[id].window, note_list[id].button, mouseover_remove_handler);
 
 	set_window_handler (note_list[id].window, ELW_HANDLER_DESTROY, note_tab_destroy);
@@ -676,7 +676,7 @@ static int open_note_tab(widget_list* UNUSED(w),
 
 static void note_button_add(int nr, int next_id)
 {
-	note_list[nr].button_id = button_add_extended (main_note_tab_id, next_id, NULL, 0, 0, note_button_width, note_button_height, 0, 0.8, 0.77f, 0.57f, 0.39f, note_list[nr].name);
+	note_list[nr].button_id = button_add_extended (main_note_tab_id, next_id, NULL, 0, 0, note_button_width, note_button_height, 0, 0.8, newcol_r, newcol_g, newcol_b, note_list[nr].name);
 	widget_set_OnClick (main_note_tab_id, note_list[nr].button_id, open_note_tab);
 	note_button_set_pos (nr);
 	update_note_button_scrollbar (nr);
@@ -793,20 +793,20 @@ void fill_notepad_window()
 
 	note_tabcollection_id = tab_collection_add (notepad_win, NULL, 0, 5, note_tabs_width, note_tabs_height, 20);
 	widget_set_size (notepad_win, note_tabcollection_id, 0.7);
-	widget_set_color (notepad_win, note_tabcollection_id, 0.77f, 0.57f, 0.39f);
+	widget_set_color (notepad_win, note_tabcollection_id, newcol_r, newcol_g, newcol_b);
 	main_note_tab_id = tab_add (notepad_win, note_tabcollection_id, tab_main, 0, 0, 0);
-	widget_set_color (notepad_win, main_note_tab_id, 0.77f, 0.57f, 0.39f);
+	widget_set_color (notepad_win, main_note_tab_id, newcol_r, newcol_g, newcol_b);
 	set_window_handler(main_note_tab_id, ELW_HANDLER_CLICK, &click_buttonwin_handler);
 
 	// Add Category
 	new_note_button_id = button_add(main_note_tab_id, NULL, button_new_category, 0, 0);
 	widget_set_OnClick(main_note_tab_id, new_note_button_id, notepad_add_category);
-	widget_set_color(main_note_tab_id, new_note_button_id, 0.77f, 0.57f, 0.39f);
+	widget_set_color(main_note_tab_id, new_note_button_id, newcol_r, newcol_g, newcol_b);
 
 	// Save Notes
 	save_notes_button_id = button_add(main_note_tab_id, NULL, button_save_notes, 0, 0);
 	widget_set_OnClick(main_note_tab_id, save_notes_button_id, click_save_handler);
-	widget_set_color(main_note_tab_id, save_notes_button_id, 0.77f, 0.57f, 0.39f);
+	widget_set_color(main_note_tab_id, save_notes_button_id, newcol_r, newcol_g, newcol_b);
 
 	// align the buttons
 	wnew = widget_find(main_note_tab_id, new_note_button_id);

@@ -156,7 +156,7 @@ int display_browser_handler(window_info *win)
    glDisable(GL_TEXTURE_2D);
   
    glDisable(GL_BLEND);
-   glColor3f(0.77f,0.57f,0.39f);
+   glColor3f(0.77f,0.77f,0.77f);
    glBegin(GL_LINES);
 
 		//scroll bar

@@ -1305,8 +1305,8 @@ int display_game_handler (window_info *win)
 #endif	//DEBUG
 		safe_snprintf ((char*)str, sizeof(str), "FPS: %i", fps[0]);
 		draw_string (win->len_x-hud_x-95, 4, str, 1);
-		safe_snprintf((char*)str, sizeof(str), "UVP: %d", use_animation_program);
-		draw_string (win->len_x-hud_x-95, 19, str, 1);
+		//safe_snprintf((char*)str, sizeof(str), "UVP: %d", use_animation_program);
+		//draw_string (win->len_x-hud_x-95, 19, str, 1);
 #ifdef DEBUG
 		//LRNR: stats testing
 		safe_snprintf((char*)str, sizeof(str), "E3D:%3d TOT:%3d", e3d_count, e3d_total);
@@ -2357,7 +2357,7 @@ void create_game_root_window (int width, int height)
 
 		if(input_widget == NULL) {
 			Uint32 id;
-			id = text_field_add_extended(game_root_win, 42, NULL, 0, height-INPUT_HEIGHT-hud_y, width-hud_x, INPUT_HEIGHT, INPUT_DEFAULT_FLAGS, chat_zoom, 0.77f, 0.57f, 0.39f, &input_text_line, 1, FILTER_ALL, INPUT_MARGIN, INPUT_MARGIN);
+			id = text_field_add_extended(game_root_win, 42, NULL, 0, height-INPUT_HEIGHT-hud_y, width-hud_x, INPUT_HEIGHT, INPUT_DEFAULT_FLAGS, chat_zoom, newcol_r, newcol_g, newcol_b, &input_text_line, 1, FILTER_ALL, INPUT_MARGIN, INPUT_MARGIN);
 			input_widget = widget_find(game_root_win, id);
 			input_widget->OnResize = input_field_resize;
 		}

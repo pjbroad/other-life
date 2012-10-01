@@ -376,7 +376,7 @@ int display_particles_window_handler(window_info *win)
 	char *preview_display_handle_strings[]={"Texture","Start position","Constraint","Start velocity","Acceleration","Lights", "Sound"};
 
 	glDisable(GL_TEXTURE_2D);
-	glColor3f(0.77f,0.57f,0.39f);
+	glColor3f(0.77f,0.77f,0.77f);
 
 	glBegin(GL_LINE_LOOP);
 		glVertex2i(blendx,blendy);
@@ -418,7 +418,7 @@ int display_particles_window_handler(window_info *win)
 		glVertex2i(colorx4-2,coloray+38);
 	glEnd();
 
-	glColor3f(0.77f,0.57f,0.39f);
+	glColor3f(0.77f,0.77f,0.77f);
 	glEnable(GL_TEXTURE_2D);
 
 	LOCK_PARTICLES_LIST();

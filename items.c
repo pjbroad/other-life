@@ -519,7 +519,7 @@ int display_items_handler(window_info *win)
 	but_labels[BUT_MIX] = (items_mix_but_all) ?mix_all_str :mix_one_str;
 	for (i=0; i<NUMBUT; i++) {
 		strap_word(but_labels[i],my_str);
-		glColor3f(0.77f,0.57f,0.39f);
+		glColor3f(newcol_r, newcol_g, newcol_b);
 		draw_string_small(win->len_x+gx_adjust-XLENBUT, wear_items_y_offset+but_y_off[i]+2+gy_adjust, (unsigned char*)my_str, 2);
 	}
 
@@ -644,7 +644,7 @@ int display_items_handler(window_info *win)
 		draw_string_small(2, quantity_y_offset-19, (unsigned char*)str, 1);
 	}
 
-	glColor3f(0.57f,0.67f,0.49f);
+	glColor3f(0.77f,0.67f,0.49f);
 	safe_snprintf(str,sizeof(str),equip_str);
 	draw_string_small (wear_items_x_offset + 33 - (8 * strlen(str))/2, wear_items_y_offset-18, (unsigned char*)str, 1);
 	glColor3f(1.0f,1.0f,1.0f);
@@ -661,16 +661,16 @@ int display_items_handler(window_info *win)
 	// it such that images are rendered exactly within the boxes on all 
 	// cards
 	glDisable(GL_TEXTURE_2D);
-	glColor3f(0.77f,0.57f,0.39f);
+	glColor3f(newcol_r, newcol_g, newcol_b);
 
 	//draw the grids
 	rendergrid(6, 6, 0, 0, items_grid_size, items_grid_size);
 	
-	glColor3f(0.57f,0.67f,0.49f);
+	glColor3f(0.77f,0.67f,0.49f);
 	rendergrid(2, 4, wear_items_x_offset, wear_items_y_offset, 33, 33);
 	
 	// draw the button boxes
-	glColor3f(0.77f,0.57f,0.39f);
+	glColor3f(newcol_r, newcol_g, newcol_b);
 	for (i=0; i<NUMBUT; i++) {
 		glBegin(GL_LINE_LOOP);
 			glVertex3i(win->len_x-3, wear_items_y_offset+but_y_off[i],0);

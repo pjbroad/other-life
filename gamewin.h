@@ -34,7 +34,8 @@ extern int cursors_tex;
 extern int cm_banner_disabled;
 extern int logo_click_to_url;
 void draw_special_cursors();
-
+extern float newcol_r, newcol_g, newcol_b;
+   
 /*!
  * \ingroup events
  * \brief Converts a 32-bit key code to an unsigned character

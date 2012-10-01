@@ -73,7 +73,7 @@ int display_trade_handler(window_info *win)
 	
 	draw_string_small(x+6*33-strlen(accept_str)*4, button_y_top+2, (unsigned char*)accept_str, 1);
 	
-	glColor3f(0.77f,0.57f,0.39f);	
+	glColor3f(newcol_r, newcol_g, newcol_b);	
 	
 	//Draw the trade session names
 	draw_string_small(10+2*33-strlen(you_str)*4,11,(unsigned char*)you_str,1);
@@ -189,7 +189,7 @@ int display_trade_handler(window_info *win)
 	
 	glDisable(GL_TEXTURE_2D);
 	
-	glColor3f(0.77f,0.57f,0.39f);	
+	glColor3f(newcol_r, newcol_g, newcol_b);	
 	// grids for goods on trade
 	rendergrid (4, 4, 10, 30, 33, 33);
 	rendergrid (4, 4, 10+5*33, 30, 33, 33);

@@ -32,6 +32,7 @@
 #ifdef	FSAA
 #include "fsaa/fsaa.h"
 #endif	/* FSAA */
+#include "gamewin.h"
 
 #ifdef ELC
 #define DRAW_ORTHO_INGAME_NORMAL(x, y, z, our_string, max_lines)	draw_ortho_ingame_string(x, y, z, (const Uint8*)our_string, max_lines, INGAME_FONT_X_LEN*10.0, INGAME_FONT_Y_LEN*10.0)
@@ -890,7 +891,7 @@ void draw_actor_overtext( actor* actor_ptr )
 
 	//---
 	// Draw text
-	glColor3f(0.77f,0.57f,0.39f);
+	glColor3f(newcol_r, newcol_g, newcol_b);
 
 	DRAW_INGAME_SMALL(x_left+margin, y_bottom+margin,actor_ptr->current_displayed_text,1);
 

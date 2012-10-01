@@ -738,7 +738,7 @@ int show_last_spell_help=0;
 int draw_switcher(window_info *win){
 
 	glDisable(GL_TEXTURE_2D);
-	glColor3f(0.77f,0.57f,0.39f);
+	glColor3f(newcol_r, newcol_g, newcol_b);
 	
 	//Draw switcher spells <-> sigils
 	glBegin(GL_LINES);
@@ -857,7 +857,7 @@ void draw_current_spell(int x, int y, int sigils_too){
 	
 	//draw strings	
 	x=20;
-	glColor3f(0.77f,0.57f,0.39f);
+	glColor3f(newcol_r, newcol_g, newcol_b);
 	if(sigils_too) { 
 		x+=33*2; 
 		draw_string_small(x,y-15,(unsigned char*)"Sigils",1);
@@ -925,7 +925,7 @@ int display_sigils_handler(window_info *win)
 	// it such that images are rendered exactly within the boxes on all
 	// cards
 	glDisable(GL_TEXTURE_2D);
-	glColor3f(0.77f,0.57f,0.39f);
+	glColor3f(newcol_r, newcol_g, newcol_b);
 
 	rendergrid (NUM_SIGILS_LINE, NUM_SIGILS_ROW, 0, 0, 33, 33);
 	rendergrid (6, 1, 5, sigil_y_len-37, 33, 33);
@@ -964,7 +964,7 @@ int display_spells_handler(window_info *win){
 			k++;
 		}
 		glDisable(GL_TEXTURE_2D);
-		glColor3f(0.77f,0.57f,0.39f);
+		glColor3f(newcol_r, newcol_g, newcol_b);
 		rendergrid(SPELLS_ALIGN_X,groups_list[i].spells/(SPELLS_ALIGN_X+1)+1,x,y,33,33);
 	}
 
@@ -1029,7 +1029,7 @@ int display_spells_mini_handler(window_info *win){
 	//draw the current spell
 	draw_current_spell(x,spell_mini_y_len-37,0);
 	glDisable(GL_TEXTURE_2D);
-	glColor3f(0.77f,0.57f,0.39f);
+	glColor3f(newcol_r, newcol_g, newcol_b);
 	rendergrid(SPELLS_ALIGN_X,spell_mini_rows,x,y,33,33);
 	
 	if(we_have_spell>=0&&spells_list[we_have_spell].uncastable){
@@ -2106,10 +2106,10 @@ void display_sigils_menu()
 		set_window_handler(sigils_win, ELW_HANDLER_CLICK, &click_sigils_handler );
 		set_window_handler(sigils_win, ELW_HANDLER_MOUSEOVER, &mouseover_sigils_handler );
 
-		cast_button_id=button_add_extended(sigils_win, cast_button_id, NULL, 0, 0, 0, 0, 0, 1.0f, 0.77f, 0.57f, 0.39f, cast_str);
+		cast_button_id=button_add_extended(sigils_win, cast_button_id, NULL, 0, 0, 0, 0, 0, 1.0f, newcol_r, newcol_g, newcol_b, cast_str);
 		widget_set_OnClick(sigils_win, cast_button_id, cast_handler);
 
-		clear_button_id=button_add_extended(sigils_win, clear_button_id, NULL, 0, 0, 0, 0, 0, 1.0f, 0.77f, 0.57f, 0.39f, clear_str);
+		clear_button_id=button_add_extended(sigils_win, clear_button_id, NULL, 0, 0, 0, 0, 0, 1.0f, newcol_r, newcol_g, newcol_b, clear_str);
 		widget_set_OnClick(sigils_win, clear_button_id, spell_clear_handler);
 
 		w_cast = widget_find(sigils_win, cast_button_id);
@@ -2136,7 +2136,7 @@ void display_sigils_menu()
 		set_window_handler(spell_win, ELW_HANDLER_MOUSEOVER, &mouseover_spells_handler );
 
 		
-		cast2_button_id=button_add_extended(spell_win, cast2_button_id, NULL, 0, 0, 0, 0, 0, 1.0f, 0.77f, 0.57f, 0.39f, cast_str);
+		cast2_button_id=button_add_extended(spell_win, cast2_button_id, NULL, 0, 0, 0, 0, 0, 1.0f, newcol_r, newcol_g, newcol_b, cast_str);
 		widget_set_OnClick(spell_win, cast2_button_id, cast_handler);	
 		w_cast = widget_find(spell_win, cast2_button_id);
 		widget_move(spell_win, cast2_button_id, spell_x_len-20-10-w_cast->len_x , spell_y_len_ext - w_cast->len_y - 4);

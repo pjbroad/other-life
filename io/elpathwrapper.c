@@ -53,11 +53,23 @@ Theoretically safe, unless someone has a HOME that has a really long path. Such 
 #ifdef CONFIGDIR
 const static char* cfgdirname = CONFIGDIR;
 #elif defined(OSX)
-const static char* cfgdirname = "Library/Application\ Support/Eternal\ Lands";
+  #ifdef OTHER_LIFE
+    const static char* cfgdirname = "Library/Application\ Support/Other-Life";
+  #else
+    const static char* cfgdirname = "Library/Application\ Support/Eternal\ Lands";
+  #endif
 #elif defined(WINDOWS)
-const static char* cfgdirname = "Eternal Lands";
+  #ifdef OTHER_LIFE
+    const static char* cfgdirname = "Other-Life";
+  #else
+    const static char* cfgdirname = "Eternal Lands";
+  #endif
 #else /* *nix */
-const static char* cfgdirname = ".elc";
+  #ifdef OTHER_LIFE
+    const static char* cfgdirname = ".olc";
+  #else
+    const static char* cfgdirname = ".elc";
+  #endif
 #endif // platform check
 
 

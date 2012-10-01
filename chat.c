@@ -360,7 +360,7 @@ int add_chat_tab(int nlines, Uint8 channel)
 			set_window_flag (channels[ichan].tab_id, ELW_CLICK_TRANSPARENT);
 				
 			set_window_min_size (channels[ichan].tab_id, 0, 0);
-			channels[ichan].out_id = text_field_add_extended (channels[ichan].tab_id, channels[ichan].out_id, NULL, 0, 0, inout_width, output_height, 0, chat_zoom, 0.77f, 0.57f, 0.39f, display_text_buffer, DISPLAY_TEXT_BUFFER_SIZE, channel, CHAT_WIN_SPACE, CHAT_WIN_SPACE);
+			channels[ichan].out_id = text_field_add_extended (channels[ichan].tab_id, channels[ichan].out_id, NULL, 0, 0, inout_width, output_height, 0, chat_zoom, newcol_r, newcol_g, newcol_b, display_text_buffer, DISPLAY_TEXT_BUFFER_SIZE, channel, CHAT_WIN_SPACE, CHAT_WIN_SPACE);
 
 			set_window_handler (channels[ichan].tab_id, ELW_HANDLER_DESTROY, close_channel);
 				
@@ -967,17 +967,17 @@ void create_chat_window(void)
 	set_window_handler (chat_win, ELW_HANDLER_RESIZE, &resize_chat_handler);
 	set_window_handler (chat_win, ELW_HANDLER_CLOSE, &close_chat_handler);
 
-	chat_scroll_id = vscrollbar_add_extended (chat_win, chat_scroll_id, NULL, chat_win_width - CHAT_WIN_SCROLL_WIDTH, ELW_BOX_SIZE, CHAT_WIN_SCROLL_WIDTH, chat_win_height - 2*ELW_BOX_SIZE, 0, 1.0f, 0.77f, 0.57f, 0.39f, 0, 1, 0);
+	chat_scroll_id = vscrollbar_add_extended (chat_win, chat_scroll_id, NULL, chat_win_width - CHAT_WIN_SCROLL_WIDTH, ELW_BOX_SIZE, CHAT_WIN_SCROLL_WIDTH, chat_win_height - 2*ELW_BOX_SIZE, 0, 1.0f, newcol_r, newcol_g, newcol_b, 0, 1, 0);
 	widget_set_OnDrag (chat_win, chat_scroll_id, chat_scroll_drag);
 	widget_set_OnClick (chat_win, chat_scroll_id, chat_scroll_click);
 	
-	chat_tabcollection_id = tab_collection_add_extended (chat_win, chat_tabcollection_id, NULL, CHAT_WIN_SPACE, CHAT_WIN_SPACE, inout_width, tabcol_height, 0, 0.7, 0.77f, 0.57f, 0.39f, MAX_CHAT_TABS, CHAT_WIN_TAG_HEIGHT);
+	chat_tabcollection_id = tab_collection_add_extended (chat_win, chat_tabcollection_id, NULL, CHAT_WIN_SPACE, CHAT_WIN_SPACE, inout_width, tabcol_height, 0, 0.7, newcol_r, newcol_g, newcol_b, MAX_CHAT_TABS, CHAT_WIN_TAG_HEIGHT);
 	widget_set_OnClick (chat_win, chat_tabcollection_id, chat_tabs_click);
 	
 	channels[0].tab_id = tab_add (chat_win, chat_tabcollection_id, (tab_label(CHAT_ALL))->name, 0, 0, 0);
 	set_window_flag (channels[0].tab_id, ELW_CLICK_TRANSPARENT);
 	set_window_min_size (channels[0].tab_id, 0, 0);
-	channels[0].out_id = text_field_add_extended (channels[0].tab_id, channels[0].out_id, NULL, 0, 0, inout_width, output_height, 0, chat_zoom, 0.77f, 0.57f, 0.39f, display_text_buffer, DISPLAY_TEXT_BUFFER_SIZE, FILTER_ALL, CHAT_WIN_SPACE, CHAT_WIN_SPACE);
+	channels[0].out_id = text_field_add_extended (channels[0].tab_id, channels[0].out_id, NULL, 0, 0, inout_width, output_height, 0, chat_zoom, newcol_r, newcol_g, newcol_b, display_text_buffer, DISPLAY_TEXT_BUFFER_SIZE, FILTER_ALL, CHAT_WIN_SPACE, CHAT_WIN_SPACE);
 	channels[0].chan_nr = CHAT_ALL;
 	channels[0].nr_lines = 0;
 	channels[0].open = 1;
@@ -987,7 +987,7 @@ void create_chat_window(void)
 	if(input_widget == NULL) {
 		Uint32 id;
 		set_text_message_color (&input_text_line, 1.0f, 1.0f, 1.0f);
-		id = text_field_add_extended (chat_win, 19, NULL, CHAT_WIN_SPACE, input_y, inout_width, input_height, TEXT_FIELD_BORDER|TEXT_FIELD_EDITABLE|TEXT_FIELD_NO_KEYPRESS, chat_zoom, 0.77f, 0.57f, 0.39f, &input_text_line, 1, FILTER_ALL, CHAT_WIN_SPACE, CHAT_WIN_SPACE);
+		id = text_field_add_extended (chat_win, 19, NULL, CHAT_WIN_SPACE, input_y, inout_width, input_height, TEXT_FIELD_BORDER|TEXT_FIELD_EDITABLE|TEXT_FIELD_NO_KEYPRESS, chat_zoom, newcol_r, newcol_g, newcol_b, &input_text_line, 1, FILTER_ALL, CHAT_WIN_SPACE, CHAT_WIN_SPACE);
 		widget_set_OnKey (chat_win, id, chat_input_key);
 		input_widget = widget_find(chat_win, id);
 	}
@@ -1056,7 +1056,7 @@ void add_chan_name(int no, char * name, char * desc)
 	queue_push(chan_name_queue, entry);
 	len = chan_name_queue->nodes-CS_MAX_DISPLAY_CHANS;
 	if(len > 0 && chan_sel_scroll_id == -1 && chan_sel_win != -1) {
-		chan_sel_scroll_id = vscrollbar_add_extended (chan_sel_win, 0, NULL, 165, 20, 20, 163, 0, 1.0, 0.77f, 0.57f, 0.39f, 0, 1, len);
+		chan_sel_scroll_id = vscrollbar_add_extended (chan_sel_win, 0, NULL, 165, 20, 20, 163, 0, 1.0, newcol_r, newcol_g, newcol_b, 0, 1, len);
 	}
 }
 
@@ -1371,7 +1371,7 @@ int highlight_tab(const Uint8 channel)
 void switch_to_tab(int id)
 {
 	int i=2;
-	widget_set_color (tab_bar_win, tabs[current_tab].button, 0.77f, 0.57f, 0.39f);
+	widget_set_color (tab_bar_win, tabs[current_tab].button, newcol_r, newcol_g, newcol_b);
 	widget_set_color (tab_bar_win, tabs[0].button,  0.5f, 0.75f, 1.0f);
 	widget_set_color (tab_bar_win, tabs[1].button,  0.5f, 0.75f, 1.0f);
 	for(;i < MAX_CHAT_TABS; ++i) {
@@ -1380,10 +1380,10 @@ void switch_to_tab(int id)
 		} else if(tabs[i].highlighted) {
 			continue;
 		}
-		widget_set_color (tab_bar_win, tabs[i].button, 0.77f, 0.57f, 0.39f);
+		widget_set_color (tab_bar_win, tabs[i].button, newcol_r, newcol_g, newcol_b);
 	}
 	current_tab = id;
-	widget_set_color (tab_bar_win, tabs[current_tab].button, 0.57f, 1.0f, 0.59f);
+	widget_set_color (tab_bar_win, tabs[current_tab].button, 0.77f, 1.0f, 0.59f);
 	current_filter = tabs[current_tab].channel;
 	tabs[current_tab].highlighted = 0;
 	if(tabs[current_tab].channel >= CHAT_CHANNEL1 && tabs[current_tab].channel <= CHAT_CHANNEL3) {
@@ -1589,7 +1589,7 @@ int display_chan_sel_handler(window_info *win)
 		}
 	}
 	glDisable(GL_TEXTURE_2D);
-	glColor3f(0.77f, 0.57f, 0.39f);
+	glColor3f(newcol_r, newcol_g, newcol_b);
 	glBegin(GL_LINES);
 		glVertex2i(1, y-2);
 		glVertex2i(win->len_x, y-2);
@@ -1656,7 +1656,7 @@ int tab_special_click(widget_list *w, int mx, int my, Uint32 flags)
 						set_window_handler (chan_sel_win, ELW_HANDLER_CLICK, &click_chan_sel_handler);
 						if(chan_name_queue->nodes >= CS_MAX_DISPLAY_CHANS && chan_sel_scroll_id == -1) {
 							int len = chan_name_queue->nodes-CS_MAX_DISPLAY_CHANS;
-							chan_sel_scroll_id = vscrollbar_add_extended (chan_sel_win, 0, NULL, 165, 20, 20, 163, 0, 1.0, 0.77f, 0.57f, 0.39f, 0, 1, len);
+							chan_sel_scroll_id = vscrollbar_add_extended (chan_sel_win, 0, NULL, 165, 20, 20, 163, 0, 1.0, newcol_r, newcol_g, newcol_b, 0, 1, len);
 						}
 					}
 					do_click_sound();
@@ -1679,7 +1679,7 @@ static int draw_tab_details (widget_list *W)
 	int y = W->pos_y+5;
 	int itab;
 
-	glColor3f(0.77f,0.57f,0.39f);
+	glColor3f(newcol_r, newcol_g, newcol_b);
 
 	glDisable(GL_TEXTURE_2D);
 	
@@ -1754,7 +1754,7 @@ int add_tab_button (Uint8 channel)
 	label = chan->name;
 	tabs[tabs_in_use].description = chan->description;
 
-	tabs[tabs_in_use].button = button_add_extended (tab_bar_win, cur_button_id++, NULL, tab_bar_width, 0, 0, tab_bar_height, 0, 0.75, 0.77f, 0.57f, 0.39f, label);
+	tabs[tabs_in_use].button = button_add_extended (tab_bar_win, cur_button_id++, NULL, tab_bar_width, 0, 0, tab_bar_height, 0, 0.75, newcol_r, newcol_g, newcol_b, label);
 	if(channel == CHAT_HIST || channel == CHAT_LIST) {
 		//a couple of special cases
 		widget_set_OnClick (tab_bar_win, tabs[itab].button, tab_special_click);
@@ -1860,7 +1860,7 @@ void create_tab_bar(void)
 	add_tab_button (CHAT_ALL);
 	//add_tab_button (CHAT_NONE);
 	current_tab = 2;
-	widget_set_color (tab_bar_win, tabs[current_tab].button, 0.57f, 1.0f, 0.59f);
+	widget_set_color (tab_bar_win, tabs[current_tab].button, 0.77f, 1.0f, 0.59f);
 	current_filter = tabs[current_tab].channel;
 }
 

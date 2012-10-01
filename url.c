@@ -596,7 +596,7 @@ CHECK_GL_ERRORS();
 	} /* end if have url */
 	
 	/* draw a line below the list of url, above the current url full text */
-	glColor3f(0.77f,0.59f,0.39f);
+	glColor3f(newcol_r,newcol_g,newcol_b);
 	glDisable(GL_TEXTURE_2D);
 	glBegin(GL_LINES);
 	glVertex2i(0, url_win_url_y_start);
@@ -774,7 +774,7 @@ void fill_url_window(void)
 
 	/* create the clear all button */
 	clear_all_button = button_add_extended (url_win, clear_all_button, NULL,
-		url_win_sep, url_win_sep, 0, 0, 0, 0.75, 0.77f, 0.57f, 0.39f, "CLEAR ALL ");
+		url_win_sep, url_win_sep, 0, 0, 0, 0.75, newcol_r, newcol_g, newcol_b, "CLEAR ALL ");
 	widget_set_OnClick(url_win, clear_all_button, url_win_click_clear_all);
 	widget = widget_find(url_win, clear_all_button);
 	widget_set_OnMouseover(url_win, clear_all_button, url_win_mouseover_clear_all);
@@ -792,7 +792,7 @@ void fill_url_window(void)
 	/* create the scroll bar */
 	url_scroll_id = vscrollbar_add_extended(url_win, url_scroll_id, NULL, 
 		url_win_x_len - scroll_width, url_win_text_start_y, scroll_width,
-		url_win_text_len_y, 0, 1.0, 0.77f, 0.57f, 0.39f, 0, 1, have_url_count);
+		url_win_text_len_y, 0, 1.0, newcol_r, newcol_g, newcol_b, 0, 1, have_url_count);
 	widget_set_OnDrag(url_win, url_scroll_id, url_win_scroll_drag);
 	widget_set_OnClick(url_win, url_scroll_id, url_win_scroll_click);
 }

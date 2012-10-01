@@ -784,7 +784,11 @@ void init_stuff()
 #ifdef MAP_EDITOR2
 	SDL_WM_SetCaption( "Map Editor", "mapeditor" );
 #else
-	SDL_WM_SetCaption( win_principal, "eternallands" );
+   #ifdef OTHER_LIFE
+	SDL_WM_SetCaption( win_principal, "other-life" );
+   #else
+	SDL_WM_SetCaption( win_principal, "eternallands" );   
+   #endif
 #endif
 
 #ifdef OSX

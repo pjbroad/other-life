@@ -836,21 +836,21 @@ void login_from_new_char()
 #ifndef NEW_NEW_CHAR_WINDOW
 int display_namepass_handler (window_info * win)
 {
-	glColor3f(0.77f,0.57f,0.39f);
+	glColor3f(newcol_r, newcol_g, newcol_b);
 	
 	draw_string_small(20, 20, (unsigned char*)login_username_str, 1);
 	draw_string_small(20, 60, (unsigned char*)login_password_str, 1);
 	draw_string_small(20, 90, (unsigned char*)confirm_password, 1);
-	draw_smooth_button(inputs[0].str, DEFAULT_SMALL_RATIO, 100, 16, 120, 1, 0.77f, 0.57f ,0.39f, active == 0, 0.32f, 0.23f, 0.15f, 0.5f);
-	draw_smooth_button(hidden?get_pass_str(inputs[1].pos):inputs[1].str, DEFAULT_SMALL_RATIO, 100, 56, 120, 1, 0.77f, 0.57f ,0.39f, active == 1, 0.32f, 0.23f, 0.15f, 0.5f);
-	draw_smooth_button(hidden?get_pass_str(inputs[2].pos):inputs[2].str, DEFAULT_SMALL_RATIO, 100, 86, 120, 1, 0.77f, 0.57f ,0.39f, active == 2, 0.32f, 0.23f, 0.15f, 0.5f);
+	draw_smooth_button(inputs[0].str, DEFAULT_SMALL_RATIO, 100, 16, 120, 1, newcol_r, newcol_g, newcol_b, active == 0, 0.32f, 0.23f, 0.15f, 0.5f);
+	draw_smooth_button(hidden?get_pass_str(inputs[1].pos):inputs[1].str, DEFAULT_SMALL_RATIO, 100, 56, 120, 1, newcol_r, newcol_g, newcol_b, active == 1, 0.32f, 0.23f, 0.15f, 0.5f);
+	draw_smooth_button(hidden?get_pass_str(inputs[2].pos):inputs[2].str, DEFAULT_SMALL_RATIO, 100, 86, 120, 1, newcol_r, newcol_g, newcol_b, active == 2, 0.32f, 0.23f, 0.15f, 0.5f);
 	
-	draw_smooth_button(hidden?show_password:hide_password, DEFAULT_SMALL_RATIO, 20, 120, 200, 1, 0.77f, 0.57f ,0.39f, hidden, 0.32f, 0.23f, 0.15f, 0.5f);
+	draw_smooth_button(hidden?show_password:hide_password, DEFAULT_SMALL_RATIO, 20, 120, 200, 1, newcol_r, newcol_g, newcol_b, hidden, 0.32f, 0.23f, 0.15f, 0.5f);
 
 	draw_box(NULL, 20, 160, 220, textboxy, 0);
 	
-	draw_smooth_button(char_done, DEFAULT_SMALL_RATIO, 20, 170+textboxy, 60, 1, 0.77f, 0.57f ,0.39f, are_you_sure, 0.32f, 0.23f, 0.15f, 0.5f);
-	draw_smooth_button(char_back, DEFAULT_SMALL_RATIO, 160, 170+textboxy, 60, 1, 0.77f, 0.57f ,0.39f, 0, 0.32f, 0.23f, 0.15f, 0.5f);
+	draw_smooth_button(char_done, DEFAULT_SMALL_RATIO, 20, 170+textboxy, 60, 1, newcol_r, newcol_g, newcol_b, are_you_sure, 0.32f, 0.23f, 0.15f, 0.5f);
+	draw_smooth_button(char_back, DEFAULT_SMALL_RATIO, 160, 170+textboxy, 60, 1, newcol_r, newcol_g, newcol_b, 0, 0.32f, 0.23f, 0.15f, 0.5f);
 
 	//why remove the massage after a time delay, I may have missed it
 	//debate and remove the code if really not wanted - pjbroad/bluap
@@ -1027,21 +1027,21 @@ int display_color_race_handler (window_info *win)
 	// the red box around P2P races
 	draw_box("P2P", 135, 70, 120, 88 , 0);
 
-	glColor3f(0.77f,0.57f,0.39f);
+	glColor3f(newcol_r, newcol_g, newcol_b);
 
 	//Gender
 	draw_box(gender_str, 10, 10, 250, 45, 0);
-	draw_smooth_button(male_str, DEFAULT_SMALL_RATIO, 40, 22, 60, 1, 0.77f, 0.57f ,0.39f, our_actor.male, 0.32f, 0.23f, 0.15f, 0.5f);
-	draw_smooth_button(female_str, DEFAULT_SMALL_RATIO, 150, 22, 60, 1, 0.77f, 0.57f ,0.39f, !our_actor.male, 0.32f, 0.23f, 0.15f, 0.5f);
+	draw_smooth_button(male_str, DEFAULT_SMALL_RATIO, 40, 22, 60, 1, newcol_r, newcol_g, newcol_b, our_actor.male, 0.32f, 0.23f, 0.15f, 0.5f);
+	draw_smooth_button(female_str, DEFAULT_SMALL_RATIO, 150, 22, 60, 1, newcol_r, newcol_g, newcol_b, !our_actor.male, 0.32f, 0.23f, 0.15f, 0.5f);
 
 	//Race
 	draw_box(race_str, 10, 65, 250, 98, 0);
-	draw_smooth_button(human_str, DEFAULT_SMALL_RATIO, 20, 75, 60, 1, 0.77f, 0.57f ,0.39f, our_actor.race==human_female||our_actor.race==human_male, 0.32f, 0.23f, 0.15f, 0.5f);
-	draw_smooth_button(elf_str, DEFAULT_SMALL_RATIO, 20, 103, 60, 1, 0.77f, 0.57f ,0.39f, our_actor.race==elf_female||our_actor.race==elf_male, 0.32f, 0.23f, 0.15f, 0.5f);
-	draw_smooth_button(dwarf_str, DEFAULT_SMALL_RATIO, 20, 131, 60, 1, 0.77f, 0.57f ,0.39f, our_actor.race==dwarf_female||our_actor.race==dwarf_male, 0.32f, 0.23f, 0.15f, 0.5f);
-	draw_smooth_button(gnome_str, DEFAULT_SMALL_RATIO, 140, 75, 60, 1, 0.77f, 0.57f ,0.39f, our_actor.race==gnome_female||our_actor.race==gnome_male, 0.32f, 0.23f, 0.15f, 0.5f);
-	draw_smooth_button(orchan_str, DEFAULT_SMALL_RATIO, 140, 103, 60, 1, 0.77f, 0.57f ,0.39f, our_actor.race==orchan_female||our_actor.race==orchan_male, 0.32f, 0.23f, 0.15f, 0.5f);
-	draw_smooth_button(draegoni_str, DEFAULT_SMALL_RATIO, 140, 131, 60, 1, 0.77f, 0.57f ,0.39f, our_actor.race==draegoni_female||our_actor.race==draegoni_male, 0.32f, 0.23f, 0.15f, 0.5f);
+	draw_smooth_button(human_str, DEFAULT_SMALL_RATIO, 20, 75, 60, 1, newcol_r, newcol_g, newcol_b, our_actor.race==human_female||our_actor.race==human_male, 0.32f, 0.23f, 0.15f, 0.5f);
+	draw_smooth_button(elf_str, DEFAULT_SMALL_RATIO, 20, 103, 60, 1, newcol_r, newcol_g, newcol_b, our_actor.race==elf_female||our_actor.race==elf_male, 0.32f, 0.23f, 0.15f, 0.5f);
+	draw_smooth_button(dwarf_str, DEFAULT_SMALL_RATIO, 20, 131, 60, 1, newcol_r, newcol_g, newcol_b, our_actor.race==dwarf_female||our_actor.race==dwarf_male, 0.32f, 0.23f, 0.15f, 0.5f);
+	draw_smooth_button(gnome_str, DEFAULT_SMALL_RATIO, 140, 75, 60, 1, newcol_r, newcol_g, newcol_b, our_actor.race==gnome_female||our_actor.race==gnome_male, 0.32f, 0.23f, 0.15f, 0.5f);
+	draw_smooth_button(orchan_str, DEFAULT_SMALL_RATIO, 140, 103, 60, 1, newcol_r, newcol_g, newcol_b, our_actor.race==orchan_female||our_actor.race==orchan_male, 0.32f, 0.23f, 0.15f, 0.5f);
+	draw_smooth_button(draegoni_str, DEFAULT_SMALL_RATIO, 140, 131, 60, 1, newcol_r, newcol_g, newcol_b, our_actor.race==draegoni_female||our_actor.race==draegoni_male, 0.32f, 0.23f, 0.15f, 0.5f);
 	
 	//Appearance
 	draw_box(appearance_str, 270, 10, 120, win->len_y-17, 0);
@@ -1569,7 +1569,7 @@ int specs[3] = {0, 1, 2};
 
 int init_namepass_handler(window_info * win)
 {
-	float r = 0.77f, g = 0.57f, b = 0.39f; //widget color
+	float r = newcol_r, g = newcol_g, b = newcol_b; //widget color
 	float very_small = DEFAULT_SMALL_RATIO; //font sizes
 	float bit_small = 0.9f;
 	float normal = 1.0f;
@@ -1957,7 +1957,7 @@ const struct WIDGET_TYPE box_type = {NULL, &box_draw, NULL, NULL, NULL, NULL, NU
 
 int init_color_race_handler(window_info * win)
 {
-	float r = 0.77f, g = 0.57f, b = 0.39f; //widget color
+	float r = newcol_r, g = newcol_g, b = newcol_b; //widget color
 	float rh = 0.32f, gh = 0.23f, bh = 0.15f; //highlighted color
 	float very_small = DEFAULT_SMALL_RATIO; //font sizes
 	float bit_small = 0.9f;
@@ -2064,7 +2064,7 @@ int display_newchar_hud_handler(window_info * win)
 	glVertex2i(win->len_x, win->len_y);
 	glVertex2i(win->len_x, 0);
 	glEnd();
-	glColor3f(0.77f, 0.57f, 0.39f);
+	glColor3f(newcol_r, newcol_g, newcol_b);
 #ifdef OPENGL_TRACE
 CHECK_GL_ERRORS();
 #endif //OPENGL_TRACE

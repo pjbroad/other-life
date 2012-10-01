@@ -20,6 +20,7 @@
 #include "trade.h"
 #include "widgets.h"
 #include "sound.h"
+#include "gamewin.h"
 
 /* NOTE: This file contains implementations of the following, currently unused, and commented functions:
  *          Look at the end of the file.
@@ -738,13 +739,13 @@ int	create_window(const char *name, int pos_id, Uint32 pos_loc, int pos_x, int p
 		win->back_color[1] = 0.0f;
 		win->back_color[2] = 0.0f;
 		win->back_color[3] = 0.4f;
-		win->border_color[0] = 0.77f;
-		win->border_color[1] = 0.57f;
-		win->border_color[2] = 0.39f;
+		win->border_color[0] = newcol_r;
+		win->border_color[1] = newcol_g;
+		win->border_color[2] = newcol_b;
 		win->border_color[3] = 0.0f;
-		win->line_color[0] = 0.77f;
-		win->line_color[1] = 0.57f;
-		win->line_color[2] = 0.39f;
+		win->line_color[0] = newcol_r;
+		win->line_color[1] = newcol_g;
+		win->line_color[2] = newcol_b;
 		win->line_color[3] = 0.0f;
 
 		win->init_handler = NULL;

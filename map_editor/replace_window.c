@@ -85,7 +85,7 @@ int display_replace_window_handler(window_info *win)
 
 	glDisable(GL_BLEND);
 
-	glColor3f(0.77f,0.57f,0.39f);
+	glColor3f(0.77f,0.77f,0.77f);
 
 	
 

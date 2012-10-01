@@ -80,6 +80,14 @@ int	client_version_patch=VER_BUILD;
 int version_first_digit=10;	//protocol/game version sent to server
 int version_second_digit=26;
 
+// Change rgb of menus etc
+#ifdef OTHER_LIFE
+  float newcol_r = 0x95 / 255.0f, newcol_g = 0x89 / 255.0f, newcol_b = 0x7b / 255.0f;
+#else
+  float newcol_r = 0.77f, newcol_g = 0.57f, newcol_b = 0.39f;
+#endif
+// note that langselwin.c is a special case and needs altering manually
+
 int gargc;
 char **  gargv;
 /**********************************************************************/

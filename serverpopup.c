@@ -261,7 +261,7 @@ static int resize_handler(window_info *win, int width, int height)
 	{
 		scroll_id = vscrollbar_add_extended( server_popup_win, scroll_id, NULL,
 		width - (scroll_width + sep), sep, scroll_width, text_widget_height,
-		0, 1, 0.77f, 0.57f, 0.39f, scroll_line, 1, num_text_lines);
+		0, 1, newcol_r, newcol_g, newcol_b, scroll_line, 1, num_text_lines);
 		widget_set_OnDrag(server_popup_win, scroll_id, scroll_drag);
 		widget_set_OnClick(server_popup_win, scroll_id, scroll_click);
 		set_text_line();
@@ -350,7 +350,7 @@ void display_server_popup_win(const char * const message)
 	
 		/* create the OK button, setup its click handler and get its structure */
 		buttonId = button_add_extended (server_popup_win, buttonId, NULL, 0,
-			 0, 0, 0, 0, chat_zoom, 0.77f, 0.57f, 0.39f, "OK");
+			 0, 0, 0, 0, chat_zoom, newcol_r, newcol_g, newcol_b, "OK");
 		widget_set_OnClick(server_popup_win, buttonId, close_handler);
 	}
 
@@ -416,7 +416,7 @@ void display_server_popup_win(const char * const message)
 	if ((!text_message_is_empty (&widget_text)) && (widget_find(server_popup_win, textId) == NULL)) {
 		textId = text_field_add_extended( server_popup_win, textId, NULL, sep, sep,
 			text_widget_width, text_widget_height, TEXT_FIELD_NO_KEYPRESS,
-			chat_zoom, 0.77f, 0.57f, 0.39f, &widget_text, 1, FILTER_NONE, sep, sep);
+			chat_zoom, newcol_r, newcol_g, newcol_b, &widget_text, 1, FILTER_NONE, sep, sep);
 	}
 
 	/* resize the window now we have the required size */

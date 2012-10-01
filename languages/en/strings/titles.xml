@@ -25,7 +25,7 @@
     <w_buddy>Buddy</w_buddy>
     <w_config>Options</w_config>
     <w_manu>Manufacture</w_manu>
-    <w_principal>Eternal Lands</w_principal>
+    <w_principal>Other-Life</w_principal>
     <w_storage>Storage</w_storage>
     <w_trade>Trade</w_trade>
     <w_rules>Rules</w_rules>
@@ -45,7 +45,7 @@
     <tab_lod>Detail</tab_lod>
     <tab_ec>Eye Candy</tab_ec>
     <tab_font>Font</tab_font>
-    <game_version>Eternal Lands Version %d.%d.%d%s</game_version>
+    <game_version>Other-Life Version %d.%d.%d%s</game_version>
     <t_kills>Counters</t_kills>
     <t_session>Session</t_session>
   </titles>

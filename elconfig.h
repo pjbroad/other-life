@@ -33,7 +33,7 @@ extern int write_ini_on_exit; /*< variable that determines if el.ini file is rew
 
 extern int gx_adjust;
 extern int gy_adjust;
-
+   
 /*!
  * The different kinds of options
  */

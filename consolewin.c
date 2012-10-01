@@ -275,7 +275,7 @@ static void create_console_scrollbar(void)
 	console_scrollbar_id = vscrollbar_add_extended(console_root_win, console_scrollbar_id, NULL,
 		console_active_width - ELW_BOX_SIZE, CONSOLE_Y_OFFSET,
 		ELW_BOX_SIZE, console_active_height - CONSOLE_SEP_HEIGHT - CONSOLE_TEXT_Y_BORDER - input_widget->len_y,
-		0, 1.0, 0.77f, 0.57f, 0.39f, 0, 1, total_nr_lines-nr_console_lines);
+		0, 1.0, newcol_r, newcol_g, newcol_b, 0, 1, total_nr_lines-nr_console_lines);
 	widget_set_OnDrag(console_root_win, console_scrollbar_id, console_scroll_drag);
 	widget_set_OnClick(console_root_win, console_scrollbar_id, console_scroll_click);
 }
@@ -423,7 +423,7 @@ void create_console_root_window (int width, int height)
 			id = text_field_add_extended(console_root_win, console_in_id, NULL,
 				0, console_active_height - INPUT_HEIGHT, console_active_width, INPUT_HEIGHT,
 				(INPUT_DEFAULT_FLAGS|TEXT_FIELD_BORDER)^WIDGET_CLICK_TRANSPARENT,
-				chat_zoom, 0.77f, 0.57f, 0.39f, &input_text_line, 1, FILTER_ALL, INPUT_MARGIN, INPUT_MARGIN);
+				chat_zoom, newcol_r, newcol_g, newcol_b, &input_text_line, 1, FILTER_ALL, INPUT_MARGIN, INPUT_MARGIN);
 			input_widget = widget_find(console_root_win, id);
 			input_widget->OnResize = input_field_resize;
 		}

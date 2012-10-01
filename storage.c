@@ -360,7 +360,7 @@ int display_storage_handler(window_info * win)
 
 	have_storage_list = 0;	//We visited storage, so we may have changed something
 
-	glColor3f(0.77f, 0.57f, 0.39f);
+	glColor3f(newcol_r, newcol_g, newcol_b);
 	glEnable(GL_TEXTURE_2D);
 	
 	for(i=pos=vscrollbar_get_pos(storage_win,STORAGE_SCROLLBAR_CATEGORIES); i<no_storage_categories && storage_categories[i].id!=-1 && i<pos+STORAGE_CATEGORIES_DISPLAY; i++,n++){
@@ -426,7 +426,7 @@ int display_storage_handler(window_info * win)
 	// cards
 	glDisable(GL_TEXTURE_2D);
 	
-	glColor3f(0.77f, 0.57f, 0.39f);
+	glColor3f(newcol_r, newcol_g, newcol_b);
 	
 	glBegin(GL_LINE_LOOP);
 		glVertex2i(10,  10);
@@ -450,7 +450,7 @@ int display_storage_handler(window_info * win)
 		if ((currentticktime - drop_fail_time) < 250)
 			glColor3f(0.8f,0.2f,0.2f);			/* flash red if tried to drop into */
 		else
-			glColor3f(0.37f, 0.37f, 0.39f);		/* otherwise draw greyed out */
+			glColor3f(0.37f, 0.37f, 0.77f);		/* otherwise draw greyed out */
 	}
 
 	rendergrid(6, 6, 160, 10, 32, 32);
@@ -643,9 +643,9 @@ void display_storage_menu()
 		set_window_handler(storage_win, ELW_HANDLER_CLICK, &click_storage_handler);
 		set_window_handler(storage_win, ELW_HANDLER_MOUSEOVER, &mouseover_storage_handler);
 
-		vscrollbar_add_extended(storage_win, STORAGE_SCROLLBAR_CATEGORIES, NULL, 130, 10, 20, 192, 0, 1.0, 0.77f, 0.57f, 0.39f, 0, 1, 
+		vscrollbar_add_extended(storage_win, STORAGE_SCROLLBAR_CATEGORIES, NULL, 130, 10, 20, 192, 0, 1.0, newcol_r, newcol_g, newcol_b, 0, 1, 
 				max2i(no_storage_categories - STORAGE_CATEGORIES_DISPLAY, 0));
-		vscrollbar_add_extended(storage_win, STORAGE_SCROLLBAR_ITEMS, NULL, 352, 10, 20, 192, 0, 1.0, 0.77f, 0.57f, 0.39f, 0, 1, 28);
+		vscrollbar_add_extended(storage_win, STORAGE_SCROLLBAR_ITEMS, NULL, 352, 10, 20, 192, 0, 1.0, newcol_r, newcol_g, newcol_b, 0, 1, 28);
 		
 		cm_add(windows_list.window[storage_win].cm_id, cm_storage_menu_str, context_storage_handler);
 		cm_add(windows_list.window[storage_win].cm_id, cm_dialog_options_str, context_storage_handler);

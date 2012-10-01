@@ -609,7 +609,7 @@ static int achievements_child_display_handler(window_info *win)
 	{
 		int title_x = (win->len_x - achievement->get_title().size() * static_cast<int>(SMALL_FONT_X_LEN)) / 2;
 		
-		glColor3f(0.77f, 0.57f, 0.39f);
+		glColor3f(newcol_r, newcol_g, newcol_b);
 		draw_string_small(title_x + gx_adjust, as->get_border() + gy_adjust,
 			reinterpret_cast<const unsigned char *>(achievement->get_title().c_str()), 1);
 		
@@ -620,7 +620,7 @@ static int achievements_child_display_handler(window_info *win)
 	}
 	else
 	{
-		glColor3f(0.77f, 0.57f, 0.39f);
+		glColor3f(newcol_r, newcol_g, newcol_b);
 		std::ostringstream buf;
 		buf << "Undefined " << index;
 		int title_x = (win->len_x - buf.str().size() * static_cast<int>(SMALL_FONT_X_LEN)) / 2;

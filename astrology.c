@@ -301,7 +301,7 @@ void display_astrology_window(const char * raw_text)
 		set_window_handler(astrology_win, ELW_HANDLER_DISPLAY, &display_astrology_handler );
 
 		ok_button_id=button_add_extended(astrology_win, ok_button_id,
-			NULL, (astrology_win_x_len >>1) - 40, astrology_win_y_len-36, 80, 0, 0, 1.0f, 0.77f, 0.57f, 0.39f, "Ok");
+			NULL, (astrology_win_x_len >>1) - 40, astrology_win_y_len-36, 80, 0, 0, 1.0f, newcol_r, newcol_g, newcol_b, "Ok");
 		widget_set_OnClick(astrology_win, ok_button_id, ok_handler);
 
 		cm_add(windows_list.window[astrology_win].cm_id, cm_astro_menu_str, cm_astro_handler);
@@ -367,7 +367,7 @@ int display_astrology_handler(window_info *win)
 	GLfloat right_colors[6];
 	int i;
 
-	glColor3f(0.77f,0.57f,0.39f);
+	glColor3f(newcol_r, newcol_g, newcol_b);
 	
 	switch(astrology_display_type)
 	{
@@ -507,7 +507,7 @@ int display_astrology_handler(window_info *win)
 	}
 
 	glDisable(GL_TEXTURE_2D);
-//	glColor3f(0.77f,0.57f,0.39f);
+//	glColor3f(newcol_r, newcol_g, newcol_b);
 
 	//draw progress borders
 	glLineWidth (2.0f);

@@ -181,7 +181,7 @@ int display_knowledge_handler(window_info *win)
 	points_pos = (rx - lx - strlen(points_string)*SMALL_FONT_X_LEN) / 2;
 
 	glDisable(GL_TEXTURE_2D);
-	glColor3f(0.77f,0.57f,0.39f);
+	glColor3f(newcol_r, newcol_g, newcol_b);
 	glBegin(GL_LINES);
 	// window separators
 	glVertex3i(0,200,0);
@@ -209,7 +209,7 @@ int display_knowledge_handler(window_info *win)
 		glColor3f(0.10f,0.10f,0.80f);
 		glVertex3i(lx+1+progress+gx_adjust,334+gy_adjust,0);
 		glVertex3i(lx+1+gx_adjust,334+gy_adjust,0);
-		glColor3f(0.77f,0.57f,0.39f);
+		glColor3f(newcol_r, newcol_g, newcol_b);
 		glEnd();
 	}
 	glEnable(GL_TEXTURE_2D);
@@ -435,7 +435,7 @@ void fill_knowledge_win ()
 	set_window_handler(knowledge_win, ELW_HANDLER_CLICK, &click_knowledge_handler );
 	set_window_handler(knowledge_win, ELW_HANDLER_MOUSEOVER, &mouseover_knowledge_handler );
 	
-	knowledge_scroll_id = vscrollbar_add_extended (knowledge_win, knowledge_scroll_id, NULL, knowledge_menu_x_len - 20,  0, 20, 200, 0, 1.0, 0.77f, 0.57f, 0.39f, 0, 1, (knowledge_count+2)/2-19);
+	knowledge_scroll_id = vscrollbar_add_extended (knowledge_win, knowledge_scroll_id, NULL, knowledge_menu_x_len - 20,  0, 20, 200, 0, 1.0, newcol_r, newcol_g, newcol_b, 0, 1, (knowledge_count+2)/2-19);
 	knowledge_book_image_id = add_knowledge_book_image();
 	widget_set_OnClick(knowledge_win, knowledge_book_image_id, &handle_knowledge_book);
 	knowledge_book_label_id = label_add_extended(knowledge_win, knowledge_book_image_id + 1, NULL, 485, 265, WIDGET_DISABLED, 0.8, 1.0, 1.0, 1.0, knowledge_read_book);

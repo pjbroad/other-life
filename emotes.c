@@ -175,7 +175,7 @@ int display_emotes_handler(window_info *win){
 		if(selectables[i])
 			draw_string_small(23, 30+emotes_rect_y+20+1+13*i, (unsigned char*)selectables[i]->name,1);
 	}
-	glColor3f(0.77f, 0.57f, 0.39f);
+	glColor3f(newcol_r, newcol_g, newcol_b);
 	//do grids
 	glDisable(GL_TEXTURE_2D);
 		
@@ -255,9 +255,9 @@ void display_emotes_menu()
 		emotes_win= create_window("Emotes", our_root_win, 0, emotes_menu_x, emotes_menu_y, emotes_menu_x_len, emotes_menu_y_len, ELW_WIN_DEFAULT);
 		set_window_handler(emotes_win, ELW_HANDLER_DISPLAY, &display_emotes_handler );
 		set_window_handler(emotes_win, ELW_HANDLER_CLICK, &click_emotes_handler );
-		vscrollbar_add_extended(emotes_win, EMOTES_SCROLLBAR_ITEMS, NULL, emotes_rect_x2+20, 30+emotes_rect_y+20, 20, emotes_rect_y2, 0, 1.0, 0.77f, 0.57f, 0.39f, 0, 1, 20);
+		vscrollbar_add_extended(emotes_win, EMOTES_SCROLLBAR_ITEMS, NULL, emotes_rect_x2+20, 30+emotes_rect_y+20, 20, emotes_rect_y2, 0, 1.0, newcol_r, newcol_g, newcol_b, 0, 1, 20);
 
-		//do_button_id=button_add_extended(emotes_win, do_button_id, NULL, 33*9+18+10, emotes_menu_y_len-36, 70, 0, 0, 1.0f, 0.77f, 0.57f, 0.39f, "Do!");
+		//do_button_id=button_add_extended(emotes_win, do_button_id, NULL, 33*9+18+10, emotes_menu_y_len-36, 70, 0, 0, 1.0f, newcol_r, newcol_g, newcol_b, "Do!");
 		//widget_set_OnClick(emotes_win, do_button_id, do_handler);
 		update_selectables();
 

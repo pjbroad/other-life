@@ -777,8 +777,11 @@ void process_message_from_server (const Uint8 *in_data, int data_length)
 					show_window (game_root_win);
 
 				safe_snprintf(str,sizeof(str),"(%s on %s) %s",username_str,get_server_name(),win_principal);
-				SDL_WM_SetCaption(str, "eternallands" );
-
+#ifdef OTHER_LIFE
+			        SDL_WM_SetCaption(str, "other-life" );
+#else
+			        SDL_WM_SetCaption(str, "eternallands" );
+#endif
 #if defined NEW_SOUND
 				// Try to turn on the music as it isn't needed up until now
 				if (music_on)

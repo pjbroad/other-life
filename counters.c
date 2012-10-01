@@ -19,6 +19,7 @@
 #include "gl_init.h"
 #endif
 #include "translate.h"
+#include "gamewin.h"
 
 #define NUM_COUNTERS 14
 #define NUM_LINES 18
@@ -520,7 +521,7 @@ void fill_counters_win()
 			counters_scroll_id, NULL,
 			STATS_TAB_WIDTH - 20, 25, 20,
 			STATS_TAB_HEIGHT - 50, 0,
-			1.0f, 0.77f, 0.57f, 0.39f,
+			1.0f, newcol_r, newcol_g, newcol_b,
 			0, 1, MAX(0, entries[idx] - NUM_LINES));
 
 	if (cm_counters == CM_INIT_VALUE)
@@ -552,7 +553,7 @@ int display_counters_handler(window_info *win)
 	y = 8;
 	
 	glDisable(GL_TEXTURE_2D);
-	glColor3f(0.77f, 0.57f, 0.39f);
+	glColor3f(newcol_r, newcol_g, newcol_b);
 	glBegin(GL_LINES);
 	
 	glVertex3i(x, 0, 0);
@@ -596,7 +597,7 @@ int display_counters_handler(window_info *win)
 		}
 
 		if (cm_selected_entry == j)
-			glColor3f(0.77f, 0.57f, 0.39f);
+			glColor3f(newcol_r, newcol_g, newcol_b);
 		else if ((selected_counter_id == KILLS || selected_counter_id == DEATHS) && counters[i][j].extra) {
 			glColor3f(0.8f, 0.2f, 0.2f);
 		} else {

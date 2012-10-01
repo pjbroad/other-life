@@ -691,7 +691,7 @@ static int popup_display_object( popup_t *this_popup, window_info *win )
 		}
 	}
 
-	glColor3f(0.77f,0.57f,0.39f);
+	glColor3f(newcol_r, newcol_g, newcol_b);
     POPUP_FUNC_LEAVE;
 	return 1;
 }
@@ -893,7 +893,7 @@ static void popup_create_window(popup_t *this_popup)
 															  POPUP_TEXTENTRY_HEIGHT,
 															  P_TEXT,
 															  popup_font_zoom,
-															  0.77f, 0.57f, 0.39f,
+															  newcol_r, newcol_g, newcol_b,
 															  (unsigned char*)option->value.str,
 															  256
 															 );

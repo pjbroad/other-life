@@ -379,12 +379,12 @@ int	create_window(const char *name, int pos_id, Uint32 pos_loc, int pos_x, int p
 			windows_list.window[win_id].back_color[2]= 0.0f;
 			windows_list.window[win_id].back_color[3]= 0.5f;
 			windows_list.window[win_id].border_color[0]= 0.77f;
-			windows_list.window[win_id].border_color[1]= 0.57f;
-			windows_list.window[win_id].border_color[2]= 0.39f;
+			windows_list.window[win_id].border_color[1]= 0.77f;
+			windows_list.window[win_id].border_color[2]= 0.77f;
 			windows_list.window[win_id].border_color[3]= 0.0f;
 			windows_list.window[win_id].line_color[0]= 0.77f;
-			windows_list.window[win_id].line_color[1]= 0.57f;
-			windows_list.window[win_id].line_color[2]= 0.39f;
+			windows_list.window[win_id].line_color[1]= 0.77f;
+			windows_list.window[win_id].line_color[2]= 0.77f;
 			windows_list.window[win_id].line_color[3]= 0.0f;
 
 			windows_list.window[win_id].init_handler= NULL;

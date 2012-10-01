@@ -830,7 +830,7 @@ CHECK_GL_ERRORS();
 //
 void draw_highlight(int topleftx, int toplefty, int widthx, int widthy, size_t col)
 {
-	float colours[2][2][3] = { { {0.11f, 0.11f, 0.11f }, {0.77f, 0.57f, 0.39f} },
+	float colours[2][2][3] = { { {0.11f, 0.11f, 0.11f }, {newcol_r, newcol_g, newcol_b} },
 							  { {0.11, 0.11f, 0.11f}, {0.33, 0.42f, 0.70f} } };
 	if (col > 1)
 		col = 0;
@@ -1115,7 +1115,7 @@ static int display_questlist_handler(window_info *win)
 		if ((active_filter == QLFLT_QUEST) && (thequest->get_id() == questlist.get_selected()))
 			draw_highlight(questlist.get_spacer(), posy-questlist.get_spacer(), hl_x, questlist.get_linesep(), 1);
 		if (questlist.cm_active() && (questlist.get_highlighted() == thequest->get_id()))
-			glColor3f(0.77f, 0.57f, 0.39f);
+			glColor3f(newcol_r, newcol_g, newcol_b);
 		// display comleted quests less prominently
 		else if (thequest->get_completed())
 			glColor3f(0.6f,0.6f,0.6f);
@@ -1228,7 +1228,7 @@ void Quest_List::open_window(void)
 		set_window_handler(win_id, ELW_HANDLER_RESIZE, (int (*)())&resize_questlist_handler );
 		scroll_id = vscrollbar_add_extended(win_id, scroll_id, NULL, 
 			size_x-ELW_BOX_SIZE, ELW_BOX_SIZE, ELW_BOX_SIZE, size_y-2*ELW_BOX_SIZE, 0,
-			1.0, 0.77f, 0.57f, 0.39f, 0, 1, quests.size()-1);
+			1.0, newcol_r, newcol_g, newcol_b, 0, 1, quests.size()-1);
 		set_window_min_size(win_id, size_x, size_y);
 
 		cm_id = cm_create(cm_questlist_menu_str, cm_questlist_handler);
@@ -1581,7 +1581,7 @@ static int display_questlog_handler(window_info *win)
 		glColor3f(0.7f, 0.7f, 1.0f);
 		if ((cm_questlog_over_entry < active_entries.size()) && (entry == cm_questlog_over_entry))
 		{
-			glColor3f(0.77f, 0.57f, 0.39f);
+			glColor3f(newcol_r, newcol_g, newcol_b);
 			draw_string_small(qlborder+gx_adjust, start_y+gy_adjust,
 				reinterpret_cast<const unsigned char *>(quest_entries[active_entries[entry]].get_disp_npc().c_str()), 1);
 		}
@@ -1784,7 +1784,7 @@ extern "C" void fill_questlog_win ()
 	set_window_handler(questlog_win, ELW_HANDLER_SHOW, (int (*)())&show_questlog_handler );
 
 	size_t last_entry = active_entries.size()-1;
-	quest_scroll_id = vscrollbar_add_extended (questlog_win, quest_scroll_id, NULL, qlwinwidth - 20, ELW_BOX_SIZE, 20, qlwinheight - ELW_BOX_SIZE, 0, 1.0, 0.77f, 0.57f, 0.39f, last_entry, 1, last_entry);
+	quest_scroll_id = vscrollbar_add_extended (questlog_win, quest_scroll_id, NULL, qlwinwidth - 20, ELW_BOX_SIZE, 20, qlwinheight - ELW_BOX_SIZE, 0, 1.0, newcol_r, newcol_g, newcol_b, last_entry, 1, last_entry);
 	goto_questlog_entry(last_entry);
 	
 	widget_set_OnClick (questlog_win, quest_scroll_id, (int (*)())questlog_scroll_click);

@@ -924,13 +924,13 @@ int progressbar_draw(widget_list *W)
 			glVertex3i(W->pos_x + pixels, W->pos_y + W->len_y, 0);
 			if (have_bar_colors) glColor3fv(&b->colors[9]);
 			glVertex3i(W->pos_x, W->pos_y + W->len_y, 0);//LabRat: fix unfilled pixels in progress bar
-			glColor3f(0.77f,0.57f,0.39f);
+			glColor3f(newcol_r, newcol_g, newcol_b);
 		glEnd();
 	}
 	if(W->r != -1.0)
 		glColor3f(W->r,W->g,W->b);
 	else
-		glColor3f(0.77f,0.57f,0.39f);
+		glColor3f(newcol_r, newcol_g, newcol_b);
 
 	//LabRat: Draw bounding box after progress bar
 	glBegin(GL_LINE_LOOP);
@@ -3299,9 +3299,9 @@ int multiselect_draw(widget_list *widget)
 		int top_but = (M->scrollbar != -1) ?vscrollbar_get_pos(M->win_id, M->scrollbar) :0;
 		int start_y = M->buttons[top_but].y;
 
-		r = widget->r != -1 ? widget->r : 0.77f;
-		g = widget->g != -1 ? widget->g : 0.59f;
-		b = widget->b != -1 ? widget->b : 0.39f;
+		r = widget->r != -1 ? widget->r : newcol_r;
+		g = widget->g != -1 ? widget->g : newcol_g;
+		b = widget->b != -1 ? widget->b : newcol_b;
 		
 		hr = M->highlighted_red != -1 ? M->highlighted_red : 0.32f;
 		hg = M->highlighted_green != -1 ? M->highlighted_green : 0.23f;
@@ -3662,7 +3662,7 @@ const struct WIDGET_TYPE spinbutton_type = { NULL,
 	};
 int spinbutton_add_extended(int window_id, Uint32 wid, int (*OnInit)(), Uint16 x, Uint16 y, Uint16 lx, Uint16 ly, Uint8 data_type, void *data, float min, float max, float interval, float size, float r, float g, float b)
 {
-	float wr = r >= 0 ? r : 0.77, wg = g >= 0 ? g : 0.59, wb = b >= 0 ? b : 0.39;
+	float wr = r >= 0 ? r : newcol_r, wg = g >= 0 ? g : newcol_g, wb = b >= 0 ? b : newcol_b;
 
 	spinbutton *T = calloc (1, sizeof (spinbutton));
 	// Filling the widget info
