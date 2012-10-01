@@ -63,7 +63,7 @@ int icons_no=0;
 #ifdef OTHER_LIFE
 Uint64 exp_lev[MAX_EXP_LEVEL];
 #else
-Uint32 exp_lev[200];
+Uint32 exp_lev[MAX_EXP_LEVEL];
 #endif
 # ifdef NEW_NEW_CHAR_WINDOW
 hud_interface last_interface = HUD_INTERFACE_NEW_CHAR; //Current interface (game or new character)
@@ -2731,8 +2731,8 @@ void reset_quickbar()
 void build_levels_table()
 {
 	int i;
-	Uint64 exp=100;
 #ifdef OTHER_LIFE
+	Uint64 exp=100;
 	exp_lev[0]=0;
 	for(i=1;i<MAX_EXP_LEVEL;i++)
 	{
@@ -2742,6 +2742,7 @@ void build_levels_table()
 	       exp_lev[i]=(Uint64)exp;
 	}
 #else
+	Uint32 exp=100;
         for(i=1;i<180;i++)
         {
                if(i<=10)exp+=exp*40/100;
