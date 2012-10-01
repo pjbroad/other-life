@@ -666,7 +666,7 @@ int display_items_handler(window_info *win)
 	//draw the grids
 	rendergrid(6, 6, 0, 0, items_grid_size, items_grid_size);
 	
-	glColor3f(0.77f,0.67f,0.49f);
+	glColor3f((newcol_r + 0.1f) % 1.0f, (newcol_g + 0.1f) % 1.0f, (newcol_b + 0.1f) % 1.0f);
 	rendergrid(2, 4, wear_items_x_offset, wear_items_y_offset, 33, 33);
 	
 	// draw the button boxes

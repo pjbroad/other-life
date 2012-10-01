@@ -456,7 +456,7 @@ int create_buddy_interface_win(const char *title, void *argument)
 		extra_space = 2+ceilf((buddy_change_x_len-string_width*2 - (20 + get_string_width((unsigned char*)buddy_delete_str)*0.9f))/2.0);
 		checkbox_add(buddy_change_win, NULL, x+extra_space, y, 15, 15, &buddy_delete);
 		x += 20;
-		label_add_extended(buddy_change_win, label_id, NULL, extra_space+x, y, 0, 0.9f, 0.77f, 0.59f, 0.77f, buddy_delete_str);
+		label_add_extended(buddy_change_win, label_id, NULL, extra_space+x, y, 0, 0.9f, newcol_r, newcol_g, newcol_b, buddy_delete_str);
 		widget_set_OnClick(buddy_change_win, label_id, click_delete_checkbox_label);
 		widget_set_OnMouseover(buddy_change_win, label_id, delete_onmouseover_handler);
 		label_id++;
