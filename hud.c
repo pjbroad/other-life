@@ -61,7 +61,7 @@
 icon_struct * icon_list[30]={NULL};
 int icons_no=0;
 #ifdef OTHER_LIFE
-Uint32 exp_lev[MAX_EXP_LEVEL];
+Uint64 exp_lev[MAX_EXP_LEVEL];
 #else
 Uint32 exp_lev[200];
 #endif
@@ -2739,7 +2739,7 @@ void build_levels_table()
                if(i<50) exp+=exp*(40.0-i/1.5)/100.0;
                else if(i<90) exp+=exp*10.0/100.0;
                else exp += exp*25.0/100.0;
-	       exp_lev[i]=(Uint32)exp;
+	       exp_lev[i]=(Uint64)exp;
 	}
 #else
         for(i=1;i<180;i++)

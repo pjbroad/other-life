@@ -5,8 +5,11 @@
 
 -include make.conf
 
+#Make the flag for Other-Life
+OTHER_LIFE = -DOTHER_LIFE
+
 # basic compiling and linking - rarely changed
-OPTIONS = -DWINDOWS -DOTHER_LIFE -DELC -DWINVER=0x500 -mwindows $(foreach FEATURE, $(FEATURES), -D$(FEATURE)) -D_7ZIP_ST
+OPTIONS = -DWINDOWS $(OTHER_LIFE) -DELC -DWINVER=0x500 -mwindows $(foreach FEATURE, $(FEATURES), -D$(FEATURE)) -D_7ZIP_ST
 CFLAGS=$(PLATFORM) $(CWARN) -O0 -ggdb -pipe $(OPTIONS) -fno-strict-aliasing $(EXTRA_INCLUDES)
 _CFLAGS=$(PLATFORM) -O2 -fomit-frame-pointer -ffast-math -pipe -fno-strict-aliasing $(EXTRA_INCLUDES)
 CXXFLAGS=$(PLATFORM) $(CXXWARN) -O0 -ggdb -pipe $(OPTIONS) -fno-strict-aliasing $(EXTRA_INCLUDES)
@@ -82,7 +85,11 @@ CXXOBJS=actor_init.o cal3d_wrapper.o context_menu.o optimizer.o sendvideoinfo.o	
 OBJS=$(COBJS) $(CXXOBJS)
 HEADER_DIRS = . books eye_candy io pawn fsaa
 
+ifdef OTHER_LIFE
 EXE=ol.exe
+else
+EXE=el.exe
+endif
 
 ifndef CC
 CC=gcc.exe

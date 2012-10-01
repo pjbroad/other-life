@@ -376,6 +376,9 @@ int show_exp(char *text, int len);
 } // extern "C"
 #endif
 
+#ifdef OTHER_LIFE
+extern Uint64 exp_lev[200];
+#else
 extern Uint32 exp_lev[200];
-
+#endif
 #endif	//__HUD_H
