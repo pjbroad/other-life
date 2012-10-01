@@ -82,7 +82,7 @@ CXXOBJS=actor_init.o cal3d_wrapper.o context_menu.o optimizer.o sendvideoinfo.o	
 OBJS=$(COBJS) $(CXXOBJS)
 HEADER_DIRS = . books eye_candy io pawn fsaa
 
-EXE=el.exe
+EXE=ol.exe
 
 ifndef CC
 CC=gcc.exe

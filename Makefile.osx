@@ -83,7 +83,7 @@ CXXOBJS=cal3d_wrapper.o eye_candy_wrapper.o \
 
 OBJS=$(COBJS) $(CXXOBJS)
 
-EXE=el_osx.exe
+EXE=ol_osx.exe
 
 CC=gcc
 CXX=g++
