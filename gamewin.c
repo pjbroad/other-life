@@ -77,7 +77,11 @@ int use_old_clicker=0;
 float fps_average = 100.0;
 int include_use_cursor_on_animals = 0;
 int logo_click_to_url = 1;
+#ifdef OTHER_LIFE
+char LOGO_URL_LINK[128] = "http://www.other-life.com";
+#else
 char LOGO_URL_LINK[128] = "http://www.eternal-lands.com";
+#endif
 int have_mouse = 0;
 int just_released_mouse = 0;
 int keep_grabbing_mouse = 0;
