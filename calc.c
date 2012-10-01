@@ -55,7 +55,7 @@ double last_res=0;
 
 //XP table
 //using exp_lev from hud.c
-#define XPT_MAX 179
+//#define XPT_MAX 179
 #define XPLDIFF(a,b) (exp_lev[b]-exp_lev[a])
 #define XPL(a) (exp_lev[a])
 
@@ -117,7 +117,7 @@ int reduce_stack(CalcStack* cs){
 	if(t1==CALCTOK_NUM&&t2==CALCTOK_LOP){
 		int lvl;
 		calcpop(cs);calcpop(cs);
-		if(cs1->value>=0&&cs1->value<=XPT_MAX){
+		if(cs1->value>=0&&cs1->value<=MAX_EXP_LEVEL){
 			nt=(CalcTok*)malloc(sizeof(CalcTok));
 			nt->type=CALCTOK_NUM;
 			lvl=(int)trunc(cs1->value);
@@ -131,10 +131,10 @@ int reduce_stack(CalcStack* cs){
 	if(t1==CALCTOK_NUM&&t2==CALCTOK_XOP){
 		int i;
 		calcpop(cs);calcpop(cs);
-		if(cs1->value>=0&&cs1->value<=XPL(XPT_MAX)){
+		if(cs1->value>=0&&cs1->value<=XPL(MAX_EXP_LEVEL)){
 			nt=(CalcTok*)malloc(sizeof(CalcTok));
 			nt->type=CALCTOK_NUM;
-			for(i=0;i<=XPT_MAX;i++) {
+			for(i=0;i<=MAX_EXP_LEVEL;i++) {
 				if(XPL(i)>=cs1->value) break;
 			}
 			i--;
