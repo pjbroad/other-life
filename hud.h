@@ -20,6 +20,8 @@ extern "C" {
 #define VERTICAL 1
 /*! @} */
 
+#define MAX_EXP_LEVEL 200
+
 /*!
  * \name Quickbar defines
  */

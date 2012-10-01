@@ -60,8 +60,12 @@
 
 icon_struct * icon_list[30]={NULL};
 int icons_no=0;
+#ifdef OTHER_LIFE
+Uint32 exp_lev[MAX_EXP_LEVEL];
+#else
 Uint32 exp_lev[200];
-#ifdef NEW_NEW_CHAR_WINDOW
+#endif
+# ifdef NEW_NEW_CHAR_WINDOW
 hud_interface last_interface = HUD_INTERFACE_NEW_CHAR; //Current interface (game or new character)
 #endif
 
@@ -2728,22 +2732,35 @@ void build_levels_table()
 {
 	int i;
 	Uint64 exp=100;
-
+#ifdef OTHER_LIFE
 	exp_lev[0]=0;
-	for(i=1;i<180;i++)
+	for(i=1;i<MAX_EXP_LEVEL;i++)
 	{
-		if(i<=10)exp+=exp*40/100;
-		else
-		if(i<=20)exp+=exp*30/100;
-		else
-		if(i<=30)exp+=exp*20/100;
-		else
-		if(i<=40)exp+=exp*14/100;
-		else 
-		if(i<=90)exp+=exp*7/100;
-		else exp+=exp*5/100;
-		exp_lev[i]=(Uint32)exp;
+               if(i<50) exp+=exp*(40.0-i/1.5)/100.0;
+               else if(i<90) exp+=exp*10.0/100.0;
+               else exp += exp*25.0/100.0;
+	       exp_lev[i]=(Uint32)exp;
 	}
+#else
+        for(i=1;i<180;i++)
+        {
+               if(i<=10)exp+=exp*40/100;
+               else
+               if(i<=20)exp+=exp*30/100;
+               else
+               if(i<=30)exp+=exp*20/100;
+               else
+               if(i<=40)exp+=exp*14/100;
+               else
+               if(i<=90)exp+=exp*7/100;
+               else exp+=exp*5/100;
+               exp_lev[i]=(Uint32)exp;
+               if(i<50) exp+=exp*(40.0-i/1.5)/100.0;
+               else if(i<90) exp+=exp*10.0/100.0;
+               else exp += exp*25.0/100.0;
+               exp_lev[i]=(Uint32)exp;
+	}
+#endif
 }
 
 void draw_exp_display()
