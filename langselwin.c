@@ -1,8 +1,8 @@
 /*
-	langselwin.c - Shows a language selection window if no language specified in el.ini
+	langselwin.c - Shows a language selection window if no language specified in ini
 
 	Each available language is displayed from languages/langsel.xml.  The user can click on
-	their preferred language and then press save which will save the value in el.ini.
+	their preferred language and then press save which will save the value in ini.
 	Beside the save button a note can be displayed explaining a bit about languages in EL. 
 	If the language "en" is chosen the client will continue to open the login/new
 	character/rules screen.   Otherwise, the client will be restarted.  All the text and

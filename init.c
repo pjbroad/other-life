@@ -89,7 +89,7 @@
 #include "custom_update.h"
 #endif  //CUSTOM_UPDATE
 
-#define	CFG_VERSION 7	// change this when critical changes to el.cfg are made that will break it
+#define	CFG_VERSION 7	// change this when critical changes to cfg are made that will break it
 
 int ini_file_size=0;
 
@@ -224,13 +224,15 @@ void read_config()
 {
 	// Set our configdir
 	const char * tcfg = get_path_config();
+        char str[128];
 
 	my_strncp (configdir, tcfg , sizeof(configdir));
 
 	if ( !read_el_ini () )
 	{
 		// oops, the file doesn't exist, give up
-		LOG_ERROR("Failure reading el.ini");
+		safe_snprintf(str, sizeof(str), "Failure reading %s", INIFILE);
+		LOG_ERROR(str);
 		SDL_Quit ();
 		exit (1);
 	}
@@ -270,7 +272,7 @@ void read_bin_cfg()
 	FILE *f = NULL;
 	bin_cfg cfg_mem;
 	int i;
-	const char *fname = "el.cfg";
+	const char *fname = CFGFILE;
 	size_t ret;
 
 	f=open_file_config_no_local(fname,"rb");
@@ -355,7 +357,7 @@ void read_bin_cfg()
 		}
 
 #if MAX_WATCH_STATS != 5
-#error You cannot just go around changing MAX_WATCH_STATS as its used by the el.cfg file!
+#error You cannot just go around changing MAX_WATCH_STATS as its used by the cfg file!
 #endif
 	for(i=0;i<MAX_WATCH_STATS;i++){
 		watch_this_stats[i]=cfg_mem.watch_this_stats[i];
@@ -433,9 +435,9 @@ void save_bin_cfg()
 	bin_cfg cfg_mem;
 	int i;
 
-	f=open_file_config("el.cfg","wb");
+	f=open_file_config(CFGFILE,"wb");
 	if(f == NULL){
-		LOG_ERROR("%s: %s \"el.cfg\": %s\n", reg_error_str, cant_open_file, strerror(errno));
+		LOG_ERROR("%s: %s \"%s\": %s\n", reg_error_str, cant_open_file, CFGFILE, strerror(errno));
 		return;//blah, whatever
 	}
 	memset(&cfg_mem, 0, sizeof(cfg_mem));	// make sure its clean

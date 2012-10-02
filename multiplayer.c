@@ -484,6 +484,7 @@ void connect_to_server()
 	if(!my_socket)
 		{
 			LOG_TO_CONSOLE(c_red1,failed_connect);
+		        LOG_TO_CONSOLE(c_red1,server_address);
 			LOG_TO_CONSOLE(c_red1,reconnect_str);
 			LOG_TO_CONSOLE(c_red1,alt_x_quit);
 			do_disconnect_sound();

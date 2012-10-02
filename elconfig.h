@@ -6,6 +6,16 @@
 #ifndef __ELCONFIG_H__
 #define __ELCONFIG_H__
 
+#ifndef INIFILE
+  #ifdef OTHER_LIFE
+    #define INIFILE "ol.ini"
+    #define CFGFILE "ol.cfg"
+  #else
+    #define INIFILE "el.ini"
+    #define CFGFILE "el.cfg"
+  #endif
+#endif
+
 #include "queue.h"
 #include "translate.h"
 
@@ -29,7 +39,7 @@ extern float pointer_size;
 extern Uint32 max_actor_texture_handles;
 #endif	/* NEW_TEXTURES */
 
-extern int write_ini_on_exit; /*< variable that determines if el.ini file is rewritten on exit of the program */
+extern int write_ini_on_exit; /*< variable that determines if ini file is rewritten on exit of the program */
 
 extern int gx_adjust;
 extern int gy_adjust;
@@ -60,7 +70,7 @@ typedef enum
 {
 	COMMAND_LINE_SHORT_VAR,	/*!< for abbreviated variable names from the command line */
 	COMMAND_LINE_LONG_VAR,	/*!< for full variable names from the command line */
-	INI_FILE_VAR,		/*!< for variables names from el.ini */
+	INI_FILE_VAR,		/*!< for variables names from ini */
 	IN_GAME_VAR		/*!< for names of variables changed in the games */
 } var_name_type;
 
@@ -107,9 +117,9 @@ void free_vars();
 
 /*!
  * \ingroup config
- * \brief   Reads the el.ini configuration file
+ * \brief   Reads the ini configuration file
  *
- *     Reads the el.ini configuration file
+ *     Reads the ini configuration file
  *
  * \retval int      0 if reading fails, 1 if successful
  *
@@ -118,9 +128,9 @@ int read_el_ini ();
 
 /*!
  * \ingroup config
- * \brief   Writes the el.ini configuration file
+ * \brief   Writes the ini configuration file
  *
- *     Writes the current configuration to the el.ini file
+ *     Writes the current configuration to the ini file
  *
  * \retval int      0 if writing fails, 1 if successful
  *

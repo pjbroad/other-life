@@ -29,6 +29,7 @@
  #include "counters.h"
  #include "draw_scene.h"
  #include "errors.h"
+ #include "elconfig.h"
  #include "elwindows.h"
  #include "filter.h"
  #include "gamewin.h"
@@ -464,10 +465,10 @@ void change_string(char * var, char * str, int len)
 
 /*
  * The chat logs are created very early on in the client start up, before the
- * el.ini file is read at least. Because of this, a simple el.ini file variable
+ * ini file is read at least. Because of this, a simple ini file variable
  * can not be used to enabled/disable rotating chat log files. I suppose the init
  * code could be changed but rather do that and unleash all kinds of grief, use a
- * simple flag file when the chat logs are opened.  The el.ini file setting now
+ * simple flag file when the chat logs are opened.  The ini file setting now
  * becomes the creater/remover of that file.
  */
 static int rotate_chat_log_config_var = 0;
@@ -482,7 +483,7 @@ int get_rotate_chat_log(void)
 	return rotate_chat_log;
 }
 
-/* create or delete the flag file to reflect the el.ini file rotate chat log value */
+/* create or delete the flag file to reflect the ini file rotate chat log value */
 static void change_rotate_chat_log(int *value)
 {
 	*value = !*value;
@@ -522,7 +523,7 @@ static void change_rotate_chat_log(int *value)
 /* called after the el.in file has been read, so we can consolidate the rotate chat log status */
 static void consolidate_rotate_chat_log_status(void)
 {
-	/* it is too late to use a newly set rotate log value, but we can set the el.ini flag if rotating is on */
+	/* it is too late to use a newly set rotate log value, but we can set the ini flag if rotating is on */
 	if ((rotate_chat_log==1) && !rotate_chat_log_config_var)
 	{
 		rotate_chat_log_config_var = 1;
@@ -1626,7 +1627,7 @@ int check_var (char *str, var_name_type type)
 	if (type == INI_FILE_VAR)
 		our_vars.var[i]->saved= 1;
 	else if (type == IN_GAME_VAR)
-		// make sure in-game changes are stored in el.ini
+		// make sure in-game changes are stored in ini
 		our_vars.var[i]->saved= 0;
 	switch (our_vars.var[i]->type)
 	{
@@ -2219,11 +2220,11 @@ int read_el_ini ()
 #ifdef MAP_EDITOR
 	FILE *fin= open_file_config("mapedit.ini", "r");
 #else
-	FILE *fin= open_file_config("el.ini", "r");
+	FILE *fin= open_file_config(INIFILE, "r");
 #endif //MAP_EDITOR
 
 	if (fin == NULL){
-		LOG_ERROR("%s: %s \"el.ini\": %s\n", reg_error_str, cant_open_file, strerror(errno));
+		LOG_ERROR("%s: %s \"%s\": %s\n", reg_error_str, cant_open_file, INIFILE, strerror(errno));
 		return 0;
 	}
 
@@ -2255,7 +2256,7 @@ int write_el_ini ()
 
 	// first check if we need to change anything
 	//
-	// The advantage of skipping this check is that a new el.ini would be
+	// The advantage of skipping this check is that a new ini would be
 	// created in the users $HOME/.elc for Unix users, even if nothing
 	// changed. However, most of the time it's pointless to update an
 	// unchanged file.
@@ -2281,9 +2282,9 @@ int write_el_ini ()
 	}
 
 	// read the ini file
-	file = open_file_config("el.ini", "r");
+	file = open_file_config(INIFILE, "r");
 	if(file == NULL){
-		LOG_ERROR("%s: %s \"el.ini\": %s\n", reg_error_str, cant_open_file, strerror(errno));
+		LOG_ERROR("%s: %s \"%s\": %s\n", reg_error_str, cant_open_file, INIFILE, strerror(errno));
 	} else {
 		maxlines= 300;
 	 	cont= malloc (maxlines * sizeof (input_line));
@@ -2299,9 +2300,9 @@ int write_el_ini ()
 	}
 
 	// Now write the contents of the file, updating those variables that have been changed
-	file = open_file_config("el.ini", "w");
+	file = open_file_config(INIFILE, "w");
 	if(file == NULL){
-		LOG_ERROR("%s: %s \"el.ini\": %s\n", reg_error_str, cant_open_file, strerror(errno));
+		LOG_ERROR("%s: %s \"%s\": %s\n", reg_error_str, cant_open_file, INIFILE, strerror(errno));
 		return 0;
 	}
 

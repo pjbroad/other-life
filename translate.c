@@ -8,6 +8,7 @@
 #include "asc.h"
 #include "errors.h"
 #include "init.h"
+#include "elconfig.h"
 
 #define GROUP 0
 #define DIGROUP 1
@@ -1018,6 +1019,7 @@ void init_console()
 
 void init_errors()
 {
+   char str[128];
 #ifdef ELC
 	group_id * actors=&(errors[0]);
 	group_id * load=&(errors[1]);
@@ -1054,7 +1056,8 @@ void init_errors()
 	add_xml_identifier(load,"font",cant_load_font,"Unable to load font",sizeof(cant_load_font));
 	add_xml_identifier(load,"fatal",fatal_error_str,"Fatal",sizeof(fatal_error_str));
 	add_xml_identifier(load,"noe3d",no_e3d_list,"Couldn't read e3dlist.txt",sizeof(no_e3d_list));
-	add_xml_identifier(load,"elini",cant_read_elini,"Couldn't read configuration file el.ini",sizeof(cant_read_elini));
+        safe_snprintf(str, sizeof(str), "Couldn't read configuration file %s", INIFILE);
+	add_xml_identifier(load,"elini",cant_read_elini,str,sizeof(cant_read_elini));
 	add_xml_identifier(load,"invmap",invalid_map,"%s is an invalid map!",sizeof(invalid_map));
 	add_xml_identifier(load,"parsenotes",cant_parse_notes,"Unable to parse xml notepad. It will be overwritten.",sizeof(cant_parse_notes));
 	add_xml_identifier(load,"noteswrong",notes_wrong,"Document of the wrong type. It will be overwritten.",sizeof(notes_wrong));

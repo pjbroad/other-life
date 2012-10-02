@@ -70,7 +70,7 @@ extern int qb_action_mode; /*!< flag indicating whether we are in quickbar actio
 
 extern int show_stats_in_hud;
 extern int show_statbars_in_hud;
-extern int show_action_bar; /*!< saved in the el.ini file, the action points stats bar is display when true */
+extern int show_action_bar; /*!< saved in the ini file, the action points stats bar is display when true */
 extern int stats_bar_win; /*!< the window id for the stats bar of the bottom HUD */
 extern int watch_this_stats[]; /*!< used for displaying more than 1 stat in the hud */
 extern int max_food_level; /*!< normally 45 but can be set from options for people with diffent values (big belly) */

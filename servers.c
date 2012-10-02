@@ -1,4 +1,5 @@
 #include <string.h>
+#include "elconfig.h"
 #include "servers.h"
 #include "asc.h"
 #include "errors.h"
@@ -83,12 +84,12 @@ void set_server_details()
 		
 		mkdir_tree(get_path_config(), 0);
 		// First, try to copy the ini file out of $CONF/main
-		safe_snprintf(src, sizeof(src), "%smain/el.ini", get_path_config_base());
-		safe_snprintf(dest, sizeof(dest), "%sel.ini", get_path_config());
+		safe_snprintf(src, sizeof(src), "%smain/%s", get_path_config_base(),INIFILE);
+		safe_snprintf(dest, sizeof(dest), "%s%s", get_path_config(),INIFILE);
 		copy_file(src, dest);
 		// Secondly, try to copy the ini file out of $CONF (this will fail without harm if above succeeds)
-		safe_snprintf(src, sizeof(src), "%s/el.ini", get_path_config_base());
-		safe_snprintf(dest, sizeof(dest), "%sel.ini", get_path_config());
+		safe_snprintf(src, sizeof(src), "%s/%s", get_path_config_base(),INIFILE);
+		safe_snprintf(dest, sizeof(dest), "%s%s", get_path_config(),INIFILE);
 		copy_file(src, dest);
 	}
 }

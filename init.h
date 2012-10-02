@@ -267,11 +267,11 @@ extern int video_mode_set;
 
 /*!
  * \ingroup loadsave
- * \brief   Stores the window layout in the binary el.cfg file.
+ * \brief   Stores the window layout in the binary cfg file.
  *
- *		Stores the window layout and related information in the binary el.cfg file.
+ *		Stores the window layout and related information in the binary cfg file.
  *
- * \pre If el.cfg could be opened for writing, the function returns without performing any actions.
+ * \pre If cfg could be opened for writing, the function returns without performing any actions.
  */
 void save_bin_cfg();
 
