@@ -49,24 +49,34 @@ int find_server_from_id (const char* id)
 
 void set_server_details()
 {
-	char id[20];
+	char id[20], idtmp[20];
 	int num;
 	safe_strncpy(id, check_server_id_on_command_line(), sizeof(id));
+#ifdef OTHER_LIFE
+	safe_strncpy(idtmp, "other-life", sizeof(idtmp));
+#else
+	safe_strncpy(idtmp, "main", sizeof(idtmp));
+#endif
 	if (!strcmp(id, ""))
 	{
-		safe_strncpy(id, "main", sizeof(id));
+#ifdef OTHER_LIFE
+	        safe_strncpy(id, "other-life", sizeof(id));
+#else
+	        safe_strncpy(id, "main", sizeof(id));
+#endif
 	}
 	num = find_server_from_id(id);
 	if (num == -1)
 	{
-		// Oops... what they they specify on the command line?
-		LOG_ERROR("Server profile not found in servers.lst for server: %s. Failover to server: main.", id);
+		// Oops... what did they specify on the command line?
+		LOG_ERROR("Server profile not found in servers.lst for server: %s. Failover to server: %s.", id, idtmp);
 		// Failover to the main server
-		num = find_server_from_id("main");
+		safe_strncpy(id, idtmp, sizeof(id));
+		num = find_server_from_id(id);
 		if (num == -1)
 		{
 			// Error, this is a problem!
-			LOG_ERROR("Fatal error: Server profile not found in servers.lst for server: main");
+			LOG_ERROR("Fatal error: Server profile not found in servers.lst for server: %s", id);
 			exit(1);
 		}
 	}
