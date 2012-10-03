@@ -717,7 +717,7 @@ void init_2d_obj_cache()
 void init_stuff()
 {
 	int seed;
-	char file_name[250];
+	char file_name[250], texture_name[250];
 	int i;
 	char config_location[300];
 	const char * cfgdir;
@@ -909,41 +909,108 @@ void init_stuff()
 
 	update_loading_win(load_icons_str, 4);
 	//load the necesary textures
-#ifdef	NEW_TEXTURES
-	icons_text = load_texture_cached("textures/gamebuttons.dds", tt_gui);
-	hud_text = load_texture_cached("textures/gamebuttons2.dds", tt_gui);
+#ifdef  NEW_TEXTURES
+        safe_snprintf(texture_name, sizeof(texture_name),
+#ifdef OTHER_LIFE
+                      "./%sol_%s"
+#else
+                      "./%s%s"
+#endif
+                      , "textures/","gamebuttons.dds");
+        icons_text = load_texture_cached(texture_name, tt_gui);
+        safe_snprintf(texture_name, sizeof(texture_name),
+#ifdef OTHER_LIFE
+                      "./%sol_%s"
+#else
+                      "./%s%s"
+#endif
+                      , "textures/","gamebuttons2.dds");
+	hud_text = load_texture_cached(texture_name, tt_gui);
 #else	/* NEW_TEXTURES */
 #ifdef	NEW_ALPHA
-	icons_text= load_texture_cache("./textures/gamebuttons.bmp", -1);
-	hud_text= load_texture_cache("./textures/gamebuttons2.bmp", -1);
+        safe_snprintf(texture_name, sizeof(texture_name),
+#ifdef OTHER_LIFE
+                      "./%sol_%s"
+#else
+                      "./%s%s"
+#endif
+                      , "textures/","gamebuttons.bmp");
+	icons_text= load_texture_cache(texture_name, -1);
+        safe_snprintf(texture_name, sizeof(texture_name),
+#ifdef OTHER_LIFE
+                      "./%sol_%s"
+#else
+                      "./%s%s"
+#endif
+                      , "textures/","gamebuttons2.bmp");
+	hud_text= load_texture_cache(texture_name, -1);
 #else	//NEW_ALPHA
-	icons_text= load_texture_cache("./textures/gamebuttons.bmp",0);
-	hud_text= load_texture_cache("./textures/gamebuttons2.bmp",0);
+        safe_snprintf(texture_name, sizeof(texture_name),
+#ifdef OTHER_LIFE
+                      "./%sol_%s"
+#else
+                      "./%s%s"
+#endif
+                      , "textures/","gamebuttons.bmp");
+	icons_text= load_texture_cache(texture_name,0);
+        safe_snprintf(texture_name, sizeof(texture_name),
+#ifdef OTHER_LIFE
+                      "./%sol_%s"
+#else
+                      "./%s%s"
+#endif
+                      , "textures/","gamebuttons2.bmp");
+	hud_text= load_texture_cache(texture_name,0);
 #endif	//NEW_ALPHA
 #endif	/* NEW_TEXTURES */
 	update_loading_win(load_textures_str, 4);
 #ifdef	NEW_TEXTURES
-	cons_text = load_texture_cached("textures/console.dds", tt_gui);
+        safe_snprintf(texture_name, sizeof(texture_name),
+#ifdef OTHER_LIFE
+                      "./%sol_%s"
+#else
+                      "./%s%s"
+#endif
+                      , "textures/","console.dds");
+	cons_text = load_texture_cached(texture_name, tt_gui);
 #else	/* NEW_TEXTURES */
-	cons_text= load_texture_cache("./textures/console.bmp",255);
+        safe_snprintf(texture_name, sizeof(texture_name),
+#ifdef OTHER_LIFE
+                      "./%sol_%s"
+#else
+                      "./%s%s"
+#endif
+                      , "textures/","console.bmp");
+	cons_text= load_texture_cache(texture_name,255);
 #endif	/* NEW_TEXTURES */
 
 
 	update_loading_win("init item textures", 5);
 
 	for(i=0; i<MAX_ITEMS_TEXTURES; i++){
-		char	buffer[256];
+		//char	buffer[256];
 
 #ifdef	NEW_TEXTURES
-		safe_snprintf(buffer, sizeof(buffer), "textures/items%d.dds", i+1);
-
-		if (check_image_name(buffer, sizeof(buffer), buffer) != 0)
+		safe_snprintf(texture_name, sizeof(texture_name),
+#ifdef OTHER_LIFE
+                      "./textures/ol_items%d.dds"
+#else
+                      "./textures/items%d.dds"
+#endif
+		      , i+1);
+		if (check_image_name(texture_name, sizeof(texture_name), texture_name) != 0)
 		{
-			items_text[i] = load_texture_cached(buffer, tt_gui);
+			items_text[i] = load_texture_cached(texture_name, tt_gui);
 #else	/* NEW_TEXTURES */
-		safe_snprintf(buffer, sizeof(buffer), "./textures/items%d.bmp", i+1);
-		if(el_custom_file_exists(buffer)){
-			items_text[i]= load_texture_cache(buffer, 0);
+		safe_snprintf(texture_name, sizeof(texture_name),
+#ifdef OTHER_LIFE
+                      "./textures/ol_items%d.bmp"
+#else
+                      "./textures/items%d.bmp"
+#endif
+		      , i+1);
+		if(el_custom_file_exists(texture_name)){
+			items_text[i]= load_texture_cache(texture_name, 0);
 #endif	/* NEW_TEXTURES */
 		}
 	}
@@ -953,13 +1020,25 @@ void init_stuff()
 		char	buffer[256];
 
 #ifdef	NEW_TEXTURES
-		safe_snprintf(buffer, sizeof(buffer), "textures/portraits%d.dds", i+1);
+		safe_snprintf(texture_name, sizeof(texture_name),
+#ifdef OTHER_LIFE
+                      "./textures/ol_portraits%d.dds"
+#else
+                      "./textures/portraits%d.dds"
+#endif
+		      , i+1);
 
 		if (check_image_name(buffer, sizeof(buffer), buffer) != 0)
 		{
 			portraits_tex[i] = load_texture_cached(buffer, tt_gui);
 #else	/* NEW_TEXTURES */
-		safe_snprintf(buffer, sizeof(buffer), "./textures/portraits%d.bmp", i+1);
+		safe_snprintf(texture_name, sizeof(texture_name),
+#ifdef OTHER_LIFE
+                      "./textures/ol_portraits%d.bmp"
+#else
+                      "./textures/portraits%d.bmp"
+#endif
+		      , i+1);
 		if(el_custom_file_exists(buffer)){
 			portraits_tex[i]= load_texture_cache_deferred(buffer, 0);
 #endif	/* NEW_TEXTURES */
@@ -969,10 +1048,24 @@ void init_stuff()
 
 #ifdef NEW_CURSOR
 #ifdef	NEW_TEXTURES
-	cursors_tex = load_texture_cached("textures/cursors2.dds", tt_gui);
+		safe_snprintf(texture_name, sizeof(texture_name),
+#ifdef OTHER_LIFE
+                      "./textures/ol_cursors2%d.dds"
+#else
+                      "./textures/cursors2%d.dds"
+#endif
+		      , i+1);
+	cursors_tex = load_texture_cached(buffer, tt_gui);
 #else	/* NEW_TEXTURES */
 	disable_compression();
-	cursors_tex = load_texture_cache("./textures/cursors2.bmp",0);
+		safe_snprintf(texture_name, sizeof(texture_name),
+#ifdef OTHER_LIFE
+                      "./textures/ol_cursors2%d.bmp"
+#else
+                      "./textures/cursors2%d.bmp"
+#endif
+		      , i+1);
+	cursors_tex = load_texture_cache(buffer,0);
 	enable_compression();
 #endif	/* NEW_TEXTURES */
 
@@ -982,15 +1075,43 @@ void init_stuff()
 
 	//Load the map legend and continent map
 #ifdef	NEW_TEXTURES
-	legend_text = load_texture_cached("maps/legend.dds", tt_gui);
+		safe_snprintf(texture_name, sizeof(texture_name),
+#ifdef OTHER_LIFE
+                      "./maps/ol_legend.dds"
+#else
+                      "./maps/legend.dds"
+#endif
+		      );
+	legend_text = load_texture_cached(texture_name, tt_gui);
 #else	/* NEW_TEXTURES */
-	legend_text= load_texture_cache("./maps/legend.bmp",0);
+		safe_snprintf(texture_name, sizeof(texture_name),
+#ifdef OTHER_LIFE
+                      "./maps/ol_legend.bmp"
+#else
+                      "./maps/legend.bmp"
+#endif
+		      );
+	legend_text= load_texture_cache(texture_name,0);
 #endif	/* NEW_TEXTURES */
 
 #ifdef	NEW_TEXTURES
-	ground_detail_text = load_texture_cached("textures/ground_detail.dds", tt_gui);
+		safe_snprintf(texture_name, sizeof(texture_name),
+#ifdef OTHER_LIFE
+                      "./textures/ol_ground_detail.dds"
+#else
+                      "./textures/ground_detail.dds"
+#endif
+		      );
+	ground_detail_text = load_texture_cached(texture_name, tt_gui);
 #else	/* NEW_TEXTURES */
-	ground_detail_text=load_texture_cache("./textures/ground_detail.bmp",255);
+		safe_snprintf(texture_name, sizeof(texture_name),
+#ifdef OTHER_LIFE
+                      "./textures/ol_ground_detail.bmp"
+#else
+                      "./textures/ground_detail.bmp"
+#endif
+		      );
+	ground_detail_text=load_texture_cache(texture_name,255);
 #endif	/* NEW_TEXTURES */
 	CHECK_GL_ERRORS();
 	init_login_screen ();
