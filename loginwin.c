@@ -27,6 +27,9 @@ int login_text = -1;
 static int login_screen_menus;
 
 static char log_in_error_str[520] = {0};
+#ifdef OTHER_LIFE
+const char * license_str = "Under license from Eternal-Lands www.eternal-lands.com";
+#endif
 
 int username_text_x;
 int username_text_y;
@@ -242,7 +245,9 @@ int display_login_handler (window_info *win)
 #endif	/* NEW_TEXTURES */
 
 	draw_console_pic(login_text);
-
+#ifdef OTHER_LIFE
+        draw_string_shadowed((int)((window_width / 2) - (strlen(license_str) * 6)), window_height - 32, (unsigned char *)license_str, 1, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f);
+#endif
 	// ok, start drawing the interface...
 	draw_string (username_text_x, username_text_y, (unsigned char*)login_username_str, 1);
 	draw_string (password_text_x, password_text_y, (unsigned char*)login_password_str, 1);

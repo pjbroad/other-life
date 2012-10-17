@@ -303,7 +303,10 @@ static int langsel_display_root_handler(window_info *win)
 {
 	if (login_text > 0)
 		draw_console_pic(login_text);
-	return 1;
+#ifdef OTHER_LIFE
+        draw_string_shadowed((int)((window_width / 2) - (strlen(license_str) * 6)), window_height - 32, (unsigned char *)license_str, 1, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f);
+#endif
+     return 1;
 }
 
 

@@ -13,7 +13,11 @@ extern "C" {
 extern int login_root_win; /*!< ID for the login root window */
 extern int login_text; /*!< ID for the background texture */
 
-/*!
+#ifdef OTHER_LIFE
+    extern const char * license_str;
+#endif
+
+ /*!
  * \ingroup interface_login
  * \brief   Loads the textures for the opening interface.
  *
