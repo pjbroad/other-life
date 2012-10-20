@@ -532,7 +532,15 @@ int filter_or_ignore_text (char *text_to_add, int len, int size, Uint8 channel)
 	}
 
 	if (channel == CHAT_SERVER) {
-		if (my_strncompare(text_to_add+1, "You started to harvest ", 23)) {
+		if (my_strncompare(text_to_add+1, "Today is a special day:", 23) ||
+		    my_strncompare(text_to_add+1, "Day ends:", 9) ||
+		    my_strncompare(text_to_add+1, "Just an ordinary day", 21)) {
+		        is_acid_rain_day = 0;
+		}
+		if (my_strncompare(text_to_add+1, "Today is a special day:\nAcid Rain Day", 37)) {
+		        is_acid_rain_day = 1;
+		}
+		else if (my_strncompare(text_to_add+1, "You started to harvest ", 23)) {
 			strncpy(harvest_name, text_to_add+1+23, len-1-23-1);
 			harvest_name[len-1-23-1] = '\0';
 			harvesting = 1;

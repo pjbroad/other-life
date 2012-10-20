@@ -45,6 +45,9 @@ extern int log_conn_data; /*!< indicates whether we should log connection data o
 extern char inventory_item_string[300]; /*!< the last inventory text string */
 extern size_t inventory_item_string_id; /*!< incremented each time we get a new string so users notice */
 
+extern int is_acid_rain_day;
+extern int is_raining;
+
 /*!
  * \ingroup network_actors
  *

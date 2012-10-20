@@ -912,13 +912,16 @@ void init_stuff()
 #ifdef	NEW_TEXTURES
 	icons_text = load_texture_cached("textures/gamebuttons.dds", tt_gui);
 	hud_text = load_texture_cached("textures/gamebuttons2.dds", tt_gui);
+        weather_text = load_texture_cached("textures/weather.dds", tt_gui);
 #else	/* NEW_TEXTURES */
 #ifdef	NEW_ALPHA
 	icons_text= load_texture_cache("./textures/gamebuttons.bmp", -1);
 	hud_text= load_texture_cache("./textures/gamebuttons2.bmp", -1);
+        weather_text = load_texture_cache("./textures/weather.bmp", -1);
 #else	//NEW_ALPHA
 	icons_text= load_texture_cache("./textures/gamebuttons.bmp",0);
 	hud_text= load_texture_cache("./textures/gamebuttons2.bmp",0);
+        weather_text = load_texture_cache("./textures/weather.bmp", 0);
 #endif	//NEW_ALPHA
 #endif	/* NEW_TEXTURES */
 	update_loading_win(load_textures_str, 4);

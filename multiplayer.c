@@ -100,7 +100,7 @@ int last_turn_around = 0;
 Uint32 next_second_time = 0;
 short real_game_minute = 0;
 short real_game_second = 0;
-
+int is_acid_rain_day = 0, is_raining = 0;
 
 /*
  *	Date handling code:
@@ -1187,6 +1187,13 @@ void process_message_from_server (const Uint8 *in_data, int data_length)
 				} else {
 					severity= 1.0f;
 				}
+			        is_raining = 1;
+			        //if(is_acid_rain_day)
+			        //{
+			        //        severity = 1.0f; // rain hard on acid rain days! To be discussed with devs
+			        //}
+			   
+		   
 				weather_set_area(0, tile_map_size_x*1.5, tile_map_size_y*1.5, 100000.0, 1, severity, in_data[3]);
 			}
 			break;
@@ -1201,7 +1208,7 @@ void process_message_from_server (const Uint8 *in_data, int data_length)
 					LOG_WARNING("CAUTION: Possibly forged STOP_RAIN packet received.\n");
 					break;
 				}
-
+			        is_raining = 0;
 				weather_set_area(0, tile_map_size_x*1.5, tile_map_size_y*1.5, 100000.0, 1, 0.0, in_data[3]);
 			}
 			break;

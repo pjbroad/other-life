@@ -561,7 +561,6 @@ void draw_spell_icon_strings(void)
 		/* other strings on spell icons, timers perhaps .....*/
 		x_start += 33;
 	}
-
 }
 
 //ACTIVE SPELLS
@@ -690,13 +689,15 @@ void display_spells_we_have()
 	cur_time = SDL_GetTicks();
 
 	//ok, now let's draw the objects...
+	int cur_spell,cur_pos;
+	int x_start = -1,y_start;
+   
+        y_start = window_height-hud_y-64;
+
 	for (i = 0; i < NUM_ACTIVE_SPELLS; i++)
 	{
 		if (active_spells[i].spell != -1)
 		{
-			int cur_spell,cur_pos;
-			int x_start,y_start;
-
 			//get the UV coordinates.
 			cur_spell = active_spells[i].spell + 32;	//the first 32 icons are the sigils
 
@@ -704,7 +705,6 @@ void display_spells_we_have()
 			cur_pos=i;
 
 			x_start=33*cur_pos;
-			y_start=window_height-hud_y-64;
 
 			duration = active_spells[i].duration;
 
@@ -724,6 +724,16 @@ void display_spells_we_have()
 			glDisable(GL_BLEND);
 		}
 	}
+        if(is_raining && is_acid_rain_day)
+        {
+	        if(x_start == -1)
+	                x_start = 0;
+	        else
+	                x_start += 33;
+               //draw_string_small_shadowed(x_start,y_start,"ACID\nRAIN",2,1.0f,1.0f,1.0f,0.0f,0.0f,0.0f);
+	        draw_weather_icon(0, x_start, y_start, 32, 1, 0);
+	}
+
 #ifdef OPENGL_TRACE
 	CHECK_GL_ERRORS();
 #endif //OPENGL_TRACE
@@ -778,6 +788,44 @@ int draw_switcher(window_info *win){
 	}
 	glEnable(GL_TEXTURE_2D);
 	return 1;
+}
+
+void draw_weather_icon(int id, int x_start, int y_start, int gridsize, int alpha, int grayed)
+{
+	// Each icon is 32x32 and stored in weather.dds|bmp
+	// Acid Rain is the first icon @ 0,0-31,31
+	float u_start,v_start,u_end,v_end;
+
+#ifdef	NEW_TEXTURES
+	u_start = 0.25f * (id % 8);
+	v_start = 0.25f * (id / 8);
+	u_end = u_start + 0.25f;
+	v_end = v_start + 0.5f;
+
+	bind_texture(weather_text);
+#else	/* NEW_TEXTURES */
+	u_start = 0.25f * (id % 8);
+	v_start = 1.0f - ((float)32 / 256 * (id / 8));
+	u_end = u_start + 0.25f;
+	v_end = v_start - 0.25f;
+
+	get_and_set_texture_id(weather_text);
+#endif	/* NEW_TEXTURES */
+	if(alpha) {
+		glEnable(GL_ALPHA_TEST);
+		glAlphaFunc(GL_GREATER, 0.05f);
+		glBegin(GL_QUADS);
+			draw_2d_thing(u_start,v_start,u_end,v_end, x_start,y_start,x_start+gridsize,y_start+gridsize);
+		glEnd();
+		glDisable(GL_ALPHA_TEST);
+	} else {
+		glBegin(GL_QUADS);
+			draw_2d_thing(u_start,v_start,u_end,v_end, x_start,y_start,x_start+gridsize,y_start+gridsize);
+		glEnd();
+	}
+
+	if(grayed) gray_out(x_start,y_start,gridsize);
+	
 }
 
 void draw_spell_icon(int id,int x_start, int y_start, int gridsize, int alpha, int grayed){
