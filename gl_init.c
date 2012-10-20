@@ -326,8 +326,12 @@ void init_video()
 #endif	/* FSAA */
 	check_gl_mode();
 
+#ifdef OTHER_LIFE
+	SDL_WM_SetIcon(SDL_LoadBMP("ol_icon.bmp"), NULL);   
+#else
 	SDL_WM_SetIcon(SDL_LoadBMP("icon.bmp"), NULL);
-	/* Set the window manager title bar */
+#endif
+        /* Set the window manager title bar */
 
 #ifdef	FSAA
 	if (fsaa > 1)
