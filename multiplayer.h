@@ -12,6 +12,13 @@
 extern "C" {
 #endif
 
+//version flags
+#define VERFLAGS_NONE       0x0000
+#define VERFLAGS_WINDOWS    0x0001
+#define VERFLAGS_LINUX      0x0002
+#define VERFLAGS_OSX        0x0003
+#define VERFLAGS_PLATFORM_MASK  0x0007
+#define VERFLAGS_OTHERLIFE  0x8000
 
 extern int port; /*!< the server port we use */
 extern unsigned char server_address[60]; /*!< the server address we use */

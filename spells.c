@@ -680,6 +680,8 @@ void display_spells_we_have()
 {
 	Uint32 i;
 	float scale, duration, cur_time;
+	int cur_spell,cur_pos;
+	int x_start = -1,y_start;
 
 #ifdef OPENGL_TRACE
 	CHECK_GL_ERRORS();
@@ -689,8 +691,6 @@ void display_spells_we_have()
 	cur_time = SDL_GetTicks();
 
 	//ok, now let's draw the objects...
-	int cur_spell,cur_pos;
-	int x_start = -1,y_start;
    
         y_start = window_height-hud_y-64;
 

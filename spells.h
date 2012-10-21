@@ -58,6 +58,7 @@ extern Uint8 last_spell_str[20];
 extern int last_spell_len;
 
 
+void draw_weather_icon(int id, int x_start, int y_start, int gridsize, int alpha, int grayed);
 
 /*!
  * \ingroup spells_window

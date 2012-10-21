@@ -962,10 +962,50 @@ typedef enum
 #define CHAT_GM		2
 #define CHAT_SERVER	3
 #define CHAT_MOD	4
-#define CHAT_CHANNEL1	5
-#define CHAT_CHANNEL2	6
-#define CHAT_CHANNEL3	7
 #define CHAT_MODPM	8
+#if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
+// channels 9-31 reserved for future use
+  #define ORIG_CHAT_CHANNEL1	5
+  #define ORIG_CHAT_CHANNEL2	6
+  #define ORIG_CHAT_CHANNEL3	7
+
+  #define CHAT_CHANNEL1		32
+  #define CHAT_CHANNEL2		33
+  #define CHAT_CHANNEL3		34
+  #define CHAT_CHANNEL4		35
+  #define CHAT_CHANNEL5		36
+  #define CHAT_CHANNEL6		37
+  #define CHAT_CHANNEL7		38
+  #define CHAT_CHANNEL8		39
+  #define CHAT_CHANNEL9		40
+  #define CHAT_CHANNEL10	41
+  #define CHAT_CHANNEL11	42
+  #define CHAT_CHANNEL12	43
+  #define CHAT_CHANNEL13	44
+  #define CHAT_CHANNEL14	45
+  #define CHAT_CHANNEL15	46
+  #define CHAT_CHANNEL16	47
+  #define CHAT_CHANNEL17	48
+  #define CHAT_CHANNEL18	49
+  #define CHAT_CHANNEL19	50
+  #define CHAT_CHANNEL20	51
+  #define CHAT_CHANNEL21	52
+  #define CHAT_CHANNEL22	53
+  #define CHAT_CHANNEL23	54
+  #define CHAT_CHANNEL24	55
+  #define CHAT_CHANNEL25	56
+  #define CHAT_CHANNEL26	57
+  #define CHAT_CHANNEL27	58
+  #define CHAT_CHANNEL28	59
+  #define CHAT_CHANNEL29	60
+  #define CHAT_CHANNEL30	61
+  #define CHAT_CHANNEL31	62
+  #define CHAT_CHANNEL32	63
+#else // either OTHER_LIFE or standard client
+  #define CHAT_CHANNEL1	5
+  #define CHAT_CHANNEL2	6
+  #define CHAT_CHANNEL3	7
+#endif // if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
 #define CHAT_POPUP 0xFF
 /*! @} */
 

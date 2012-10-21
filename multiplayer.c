@@ -102,6 +102,10 @@ short real_game_minute = 0;
 short real_game_second = 0;
 int is_acid_rain_day = 0, is_raining = 0;
 
+#if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
+  int loadsofchannels = 0; // default to only 3 channels
+#endif // if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
+
 /*
  *	Date handling code:
  * 
@@ -436,9 +440,31 @@ void send_version_to_server(IPaddress *ip)
 #endif	//EL_BIG_ENDIAN
 	len= 15;
 
-#ifdef	OLC
-	len+= olc_version(str+len);
-#endif	//OLC
+#if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
+        /*
+	  str[15][3..0] OS Version
+	  str[16] currently unused
+	  str[17] low byte of VERFLAGS_OTHERLIFE
+	  str[18] high byte of VERFLAGS_OTHERLIFE
+	*/
+        str[15] = 0;
+        str[16] = 0;
+        str[17] = 0;
+        str[18] = 0;
+	len+=4;
+        str[18] |= ((VERFLAGS_OTHERLIFE >> 8) & 0xFF);
+        str[17] |= ((VERFLAGS_OTHERLIFE) & 0xFF);
+        
+        #ifdef WINDOWS
+        str[15] |= VERFLAGS_WINDOWS;
+        #endif // WINDOWS
+        #ifdef LINUX
+        str[15] |= VERFLAGS_LINUX;
+        #endif // LINUX
+        #ifdef OSX
+        str[15] |= VERFLAGS_OSX;
+        #endif // OSX
+#endif	// if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
 	my_tcp_send(my_socket, str, len);
 }
 
@@ -1861,6 +1887,9 @@ void process_message_from_server (const Uint8 *in_data, int data_length)
 			  LOG_WARNING("CAUTION: Possibly forged GET_ACTIVE_CHANNELS packet received.\n");
 			  break;
 			}
+#if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
+			loadsofchannels = ((data_length-2)/4 == 3 ? 0 : 1);
+#endif
 			set_active_channels (in_data[3], (Uint32*)(in_data+4), (data_length-2)/4);
 			break;
 

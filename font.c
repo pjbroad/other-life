@@ -245,7 +245,19 @@ int	draw_char_scaled(unsigned char cur_char, int cur_x, int cur_y, float display
 
 #ifndef MAP_EDITOR2
 void recolour_message(text_message *msg){
-	if (msg->chan_idx >= CHAT_CHANNEL1 && msg->chan_idx <= CHAT_CHANNEL3 && msg->len > 0 && msg->data[0] && !msg->deleted){
+	if (msg->chan_idx >=
+#if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
+		(loadsofchannels ? CHAT_CHANNEL1 : ORIG_CHAT_CHANNEL1)
+#else
+		CHAT_CHANNEL1
+#endif // if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
+	  && msg->chan_idx <=
+#if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
+		(loadsofchannels ? CHAT_CHANNEL32 : ORIG_CHAT_CHANNEL3)
+#else
+		CHAT_CHANNEL3
+#endif // if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
+	  && msg->len > 0 && msg->data[0] && !msg->deleted){
 		if (active_channels[current_channel] != msg->channel){
 			msg->data[0] = to_color_char (c_grey2);
 		} else {

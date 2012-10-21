@@ -15,6 +15,11 @@
 extern "C" {
 #endif
 
+#if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
+  extern int loadsofchannels; // extended channels. I put this var in this file as it is the only common .h
+			      // file in the .c files using OTHER_LIFE_EXTENDED_CHAT functionality
+#endif
+
 /*!
  * Check if a character is a color character
  */
