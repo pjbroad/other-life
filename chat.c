@@ -1182,12 +1182,12 @@ void generic_chans(void)
 	add_spec_chan_name(1, "Guild", "Your guild's chat channel");
 	add_spec_chan_name(2, "All", "Display chat in all channels");
 	add_spec_chan_name(3, "None", "Messages not on any channel");
-	add_spec_chan_name(4, "Options", "Select which channels to join");
-	add_spec_chan_name(5, "History", "View all previous chat in all channels you have been on");
+	add_spec_chan_name(4, "Opts", "Select which channels to join");
+	add_spec_chan_name(5, "Hist", "View all previous chat in all channels you have been on");
 	add_spec_chan_name(6, "Local", "Chat in your local area");
-	add_spec_chan_name(7, "PMs", "Private messages");
-	add_spec_chan_name(8, "GMs", "Guild Messages");
-	add_spec_chan_name(9, "Server", "Messages from the server");
+	add_spec_chan_name(7, "PM", "Private messages");
+	add_spec_chan_name(8, "GM", "Guild Messages");
+	add_spec_chan_name(9, "Srvr", "Messages from the server");
 	add_spec_chan_name(10, "Mod", "Mod chat");
 	add_chan_name(1, "Nwb", "Newbie Q&A about the game");
 	add_chan_name(3, "Mrkt", "Trading, hiring, and price checks");
