@@ -1178,7 +1178,7 @@ void generic_chans(void)
 	//remake the queue, just in case we got half way through the file
 	queue_destroy(chan_name_queue);
 	queue_initialise(&chan_name_queue);
-	add_spec_chan_name(0, "Channel %d", "Channel %d");
+	add_spec_chan_name(0, "%d", "Channel %d");
 	add_spec_chan_name(1, "Guild", "Your guild's chat channel");
 	add_spec_chan_name(2, "All", "Display chat in all channels");
 	add_spec_chan_name(3, "None", "Messages not on any channel");
@@ -1189,11 +1189,11 @@ void generic_chans(void)
 	add_spec_chan_name(8, "GMs", "Guild Messages");
 	add_spec_chan_name(9, "Server", "Messages from the server");
 	add_spec_chan_name(10, "Mod", "Mod chat");
-	add_chan_name(1, "Newbie", "Newbie Q&A about the game");
-	add_chan_name(3, "Market", "Trading, hiring, and price checks");
-	add_chan_name(4, "EL Gen Chat", "Chat about EL topics");
-	add_chan_name(5, "Roleplay", "Discussion about, and Roleplaying");
-	add_chan_name(6, "Contests", "Contest information and sometimes chat");
+	add_chan_name(1, "Nwb", "Newbie Q&A about the game");
+	add_chan_name(3, "Mrkt", "Trading, hiring, and price checks");
+	add_chan_name(4, "Gen", "Chat about OL topics");
+	add_chan_name(5, "RP", "Discussion about, and Roleplaying");
+	add_chan_name(6, "PK", "PK information and offtopic chat");
 }
 
 void init_channel_names(void)
