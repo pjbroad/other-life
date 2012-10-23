@@ -103,7 +103,7 @@ short real_game_second = 0;
 int is_acid_rain_day = 0, is_raining = 0;
 
 #if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
-  int loadsofchannels = 0; // default to only 3 channels
+  int loadsofchannels = 3; // default to only 3 channels
 #endif // if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
 
 /*
@@ -1888,7 +1888,16 @@ void process_message_from_server (const Uint8 *in_data, int data_length)
 			  break;
 			}
 #if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
-			loadsofchannels = ((data_length-2)/4 == 3 ? 0 : 1);
+			if(loadsofchannels != (data_length-2)/4)
+			{
+				char str[256];
+				loadsofchannels = (data_length-2)/4;
+				safe_snprintf(str, sizeof(str), "You have %d chat channels available", loadsofchannels);
+				LOG_TO_CONSOLE(c_purple3, str);
+				safe_snprintf(str, sizeof(str), "%c#expire", RAW_TEXT);
+				my_tcp_send(my_socket, (Uint8*)str, strlen(str+1)+1);
+			}
+			
 #endif
 			set_active_channels (in_data[3], (Uint32*)(in_data+4), (data_length-2)/4);
 			break;

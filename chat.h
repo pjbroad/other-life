@@ -17,8 +17,8 @@ extern "C" {
 #define MAX_TEXT_MESSAGE_LENGTH 160 /*!< The server will disconnect us when we send longer messages */
 
 #if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
-  #define MAX_CHAT_TABS		40	/*!< Size of the \see channels array */
-  #define MAX_ACTIVE_CHANNELS	32	/*!< Maximum number of channels in use */
+  #define MAX_CHAT_TABS		44	/*!< Size of the \see channels array */
+  #define MAX_ACTIVE_CHANNELS	42	/*!< Maximum number of channels in use */
 #else
   #define MAX_CHAT_TABS		12	/*!< Size of the \see channels array */
   #define MAX_ACTIVE_CHANNELS	10	/*!< Maximum number of channels in use */

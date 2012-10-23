@@ -104,25 +104,12 @@ void update_tab_idx (Uint8 old_idx, Uint8 new_idx)
 void set_channel_tabs (const Uint32 *chans)
 {
 #if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
-	int nmax = 
-#if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
-		(loadsofchannels ? CHAT_CHANNEL32 : ORIG_CHAT_CHANNEL3)
-#else
-		CHAT_CHANNEL3
-#endif // if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
-		- 
-#if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
-		(loadsofchannels ? CHAT_CHANNEL1 : ORIG_CHAT_CHANNEL1)
-#else
-		CHAT_CHANNEL1
-#endif // if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
-		+ 1;
+	int nmax = loadsofchannels;
 #else // Either OTHER_LIFE or standard client
 	int nmax = CHAT_CHANNEL3 - CHAT_CHANNEL1 + 1;
 #endif  // if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
 	Uint32 chan;
 	Uint8 chan_nr, chan_nrp;
-	
 	for (chan_nr = 0; chan_nr < nmax; chan_nr++)
 	{
 		chan = chans[chan_nr];
@@ -138,23 +125,24 @@ void set_channel_tabs (const Uint32 *chans)
 			// we left this channel
 			remove_tab (chan_nr + 
 #if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
-			(loadsofchannels ? CHAT_CHANNEL1 : ORIG_CHAT_CHANNEL1)
+			((loadsofchannels != 3) ? CHAT_CHANNEL1 : ORIG_CHAT_CHANNEL1)
 #else
 			CHAT_CHANNEL1
 #endif // if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
 			);
+			continue;
 		}
 		else
 		{
 			update_tab_idx (chan_nr+
 #if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
-			(loadsofchannels ? CHAT_CHANNEL1 : ORIG_CHAT_CHANNEL1)
+			((loadsofchannels != 3) ? CHAT_CHANNEL1 : ORIG_CHAT_CHANNEL1)
 #else
 			CHAT_CHANNEL1
 #endif // if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
 			, chan_nrp+
 #if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
-			(loadsofchannels ? CHAT_CHANNEL1 : ORIG_CHAT_CHANNEL1)
+			((loadsofchannels != 3) ? CHAT_CHANNEL1 : ORIG_CHAT_CHANNEL1)
 #else
 			CHAT_CHANNEL1
 #endif // if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
@@ -178,7 +166,7 @@ void set_channel_tabs (const Uint32 *chans)
 			// we have a new channel
 			add_tab (chan_nrp+
 #if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
-			(loadsofchannels ? CHAT_CHANNEL1 : ORIG_CHAT_CHANNEL1)
+			((loadsofchannels != 3) ? CHAT_CHANNEL1 : ORIG_CHAT_CHANNEL1)
 #else
 			CHAT_CHANNEL1
 #endif // if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
@@ -199,7 +187,6 @@ void set_active_channels (Uint8 active, const Uint32 *channels, int nchan)
 		active_channels[i] = SDL_SwapLE32(channels[i]);
 	for ( ; i < MAX_ACTIVE_CHANNELS; i++)
 		active_channels[i] = 0;
-
 	set_channel_tabs (tmp);
 
 	current_channel = active;
@@ -210,13 +197,13 @@ void send_active_channel (Uint8 chan)
 	Uint8 msg[2];
 	if (chan >= 
 #if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
-		(loadsofchannels ? CHAT_CHANNEL1 : ORIG_CHAT_CHANNEL1)
+		((loadsofchannels != 3) ? CHAT_CHANNEL1 : ORIG_CHAT_CHANNEL1)
 #else
 		CHAT_CHANNEL1
 #endif // if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
 	  && chan <=
 #if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
-		(loadsofchannels ? CHAT_CHANNEL32 : ORIG_CHAT_CHANNEL3)
+		((loadsofchannels != 3) ? CHAT_CHANNEL32 : ORIG_CHAT_CHANNEL3)
 #else
 		CHAT_CHANNEL3
 #endif // if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
@@ -227,7 +214,7 @@ void send_active_channel (Uint8 chan)
 		my_tcp_send (my_socket, msg, 2);
 		current_channel = chan - 
 #if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
-			(loadsofchannels ? CHAT_CHANNEL1 : ORIG_CHAT_CHANNEL1)
+			((loadsofchannels != 3) ? CHAT_CHANNEL1 : ORIG_CHAT_CHANNEL1)
 #else
 			CHAT_CHANNEL1
 #endif // if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
@@ -239,20 +226,20 @@ Uint32 get_active_channel (Uint8 idx)
 {
 	if (idx >= 
 #if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
-		(loadsofchannels ? CHAT_CHANNEL1 : ORIG_CHAT_CHANNEL1)
+		((loadsofchannels != 3) ? CHAT_CHANNEL1 : ORIG_CHAT_CHANNEL1)
 #else
 		CHAT_CHANNEL1
 #endif // if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
 	  && idx <=
 #if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
-		(loadsofchannels ? CHAT_CHANNEL32 : ORIG_CHAT_CHANNEL3)
+		((loadsofchannels != 3) ? CHAT_CHANNEL32 : ORIG_CHAT_CHANNEL3)
 #else
 		CHAT_CHANNEL3
 #endif // if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
 	)
 		return active_channels[idx-
 #if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
-			(loadsofchannels ? CHAT_CHANNEL1 : ORIG_CHAT_CHANNEL1)
+			((loadsofchannels != 3) ? CHAT_CHANNEL1 : ORIG_CHAT_CHANNEL1)
 #else
 			CHAT_CHANNEL1
 #endif // if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
@@ -360,14 +347,15 @@ int close_channel (window_info *win)
 {
 	int id = win->window_id;
 	int ichan;
-
+	char str[256];
+	
 	for (ichan = 0; ichan < MAX_CHAT_TABS; ichan++)
 	{
 		if (channels[ichan].tab_id == id)
 		{
 			int idx = channels[ichan].chan_nr - 
 #if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
-			(loadsofchannels ? CHAT_CHANNEL1 : ORIG_CHAT_CHANNEL1)
+			((loadsofchannels != 3) ? CHAT_CHANNEL1 : ORIG_CHAT_CHANNEL1)
 #else
 			CHAT_CHANNEL1
 #endif // if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
@@ -375,18 +363,16 @@ int close_channel (window_info *win)
 			
 			if (idx >= 0 && idx < MAX_ACTIVE_CHANNELS)
 			{
-				char str[256];
 				safe_snprintf(str, sizeof(str), "%c#lc %d", RAW_TEXT, active_channels[idx]);
 				my_tcp_send(my_socket, (Uint8*)str, strlen(str+1)+1);
 			}
 
 			// Safe to remove?
 			if (tab_bar_win != -1) remove_tab_button(channels[ichan].chan_nr);
-
 			return 1;
 		}
 	}
-	
+
 	// we shouldn't get here
 	LOG_ERROR ("Trying to close non-existant channel\n");
 	return 0;
@@ -418,7 +404,7 @@ void remove_chat_tab (Uint8 channel)
 int add_chat_tab(int nlines, Uint8 channel)
 {
 	int ichan;
-
+	
 	for (ichan = 0; ichan < MAX_CHAT_TABS; ichan++)
 	{
 		if (!channels[ichan].open)
@@ -660,13 +646,13 @@ void switch_to_chat_tab(int id, char click)
 
 	if (channels[active_tab].chan_nr >= 
 #if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
-		(loadsofchannels ? CHAT_CHANNEL1 : ORIG_CHAT_CHANNEL1)
+		((loadsofchannels != 3) ? CHAT_CHANNEL1 : ORIG_CHAT_CHANNEL1)
 #else
 		CHAT_CHANNEL1
 #endif // if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
 	  && channels[active_tab].chan_nr <=
 #if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
-		(loadsofchannels ? CHAT_CHANNEL32 : ORIG_CHAT_CHANNEL3)
+		((loadsofchannels != 3) ? CHAT_CHANNEL32 : ORIG_CHAT_CHANNEL3)
 #else
 		CHAT_CHANNEL3
 #endif // if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
@@ -686,7 +672,7 @@ void change_to_current_chat_tab(const char *input)
 	{
 	        channel = 
 #if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
-		(loadsofchannels ? CHAT_CHANNEL1 : ORIG_CHAT_CHANNEL1)
+		((loadsofchannels != 3) ? CHAT_CHANNEL1 : ORIG_CHAT_CHANNEL1)
 #else
 		CHAT_CHANNEL1
 #endif // if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
@@ -1486,13 +1472,13 @@ void switch_to_tab(int id)
 	tabs[current_tab].highlighted = 0;
 	if(tabs[current_tab].channel >= 
 #if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
-		(loadsofchannels ? CHAT_CHANNEL1 : ORIG_CHAT_CHANNEL1)
+		((loadsofchannels != 3) ? CHAT_CHANNEL1 : ORIG_CHAT_CHANNEL1)
 #else
 		CHAT_CHANNEL1
 #endif // if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
 	  && tabs[current_tab].channel <= 
 #if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
-		(loadsofchannels ? CHAT_CHANNEL32 : ORIG_CHAT_CHANNEL3)
+		((loadsofchannels != 3) ? CHAT_CHANNEL32 : ORIG_CHAT_CHANNEL3)
 #else
 		CHAT_CHANNEL3
 #endif // if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
@@ -1523,13 +1509,13 @@ int tab_bar_button_click (widget_list *w, int mx, int my, Uint32 flags)
 	// Detect clicking on 'x'
 	if(tabs[itab].channel >= 
 #if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
-		(loadsofchannels ? CHAT_CHANNEL1 : ORIG_CHAT_CHANNEL1)
+		((loadsofchannels != 3) ? CHAT_CHANNEL1 : ORIG_CHAT_CHANNEL1)
 #else
 		CHAT_CHANNEL1
 #endif // if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
 	  && 	   tabs[itab].channel <= 
 #if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
-		(loadsofchannels ? CHAT_CHANNEL32 : ORIG_CHAT_CHANNEL3)
+		((loadsofchannels != 3) ? CHAT_CHANNEL32 : ORIG_CHAT_CHANNEL3)
 #else
 		CHAT_CHANNEL3
 #endif // if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
@@ -1545,7 +1531,7 @@ int tab_bar_button_click (widget_list *w, int mx, int my, Uint32 flags)
 			// Drop this channel via #lc
 			safe_snprintf(str, sizeof(str), "%c#lc %d", RAW_TEXT, active_channels[tabs[itab].channel-
 #if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
-			  (loadsofchannels ? CHAT_CHANNEL1 : ORIG_CHAT_CHANNEL1)
+			  ((loadsofchannels != 3) ? CHAT_CHANNEL1 : ORIG_CHAT_CHANNEL1)
 #else
 			  CHAT_CHANNEL1
 #endif // if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
@@ -1604,13 +1590,13 @@ chan_name *tab_label (Uint8 chan)
 	}
 	if(chan < 
 #if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
-		(loadsofchannels ? CHAT_CHANNEL1 : ORIG_CHAT_CHANNEL1)
+		((loadsofchannels != 3) ? CHAT_CHANNEL1 : ORIG_CHAT_CHANNEL1)
 #else
 		CHAT_CHANNEL1
 #endif // if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
 	  || chan > 
 #if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
-		(loadsofchannels ? CHAT_CHANNEL32 : ORIG_CHAT_CHANNEL3)
+		((loadsofchannels != 3) ? CHAT_CHANNEL32 : ORIG_CHAT_CHANNEL3)
 #else
 		CHAT_CHANNEL3
 #endif // if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
@@ -1621,7 +1607,7 @@ chan_name *tab_label (Uint8 chan)
 	}
 	cnr = active_channels[chan-
 #if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
-		(loadsofchannels ? CHAT_CHANNEL1 : ORIG_CHAT_CHANNEL1)
+		((loadsofchannels != 3) ? CHAT_CHANNEL1 : ORIG_CHAT_CHANNEL1)
 #else
 		CHAT_CHANNEL1
 #endif // if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
@@ -1834,7 +1820,7 @@ static int draw_tab_details (widget_list *W)
 	for (itab = 0; itab < tabs_in_use; itab++)
 		if ((tabs[itab].button == W->id) && (tabs[itab].channel == 
 #if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
-		  (loadsofchannels ? CHAT_CHANNEL1 : ORIG_CHAT_CHANNEL1)
+		  ((loadsofchannels != 3) ? CHAT_CHANNEL1 : ORIG_CHAT_CHANNEL1)
 #else
 		  CHAT_CHANNEL1
 #endif // if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
@@ -1922,14 +1908,14 @@ int add_tab_button (Uint8 channel)
  	// Make sure it's a CHANNEL first
  	if(tabs[itab].channel >= 
 #if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
-		(loadsofchannels ? CHAT_CHANNEL1 : ORIG_CHAT_CHANNEL1)
+		((loadsofchannels != 3) ? CHAT_CHANNEL1 : ORIG_CHAT_CHANNEL1)
 #else
 		CHAT_CHANNEL1
 #endif // if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
-	  && tabs[itab].channel ==
+	  && tabs[itab].channel <=
 
 #if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
-		(loadsofchannels ? CHAT_CHANNEL32 : ORIG_CHAT_CHANNEL3)
+		((loadsofchannels != 3) ? CHAT_CHANNEL32 : ORIG_CHAT_CHANNEL3)
 #else
 		CHAT_CHANNEL3
 #endif // if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
@@ -2052,7 +2038,7 @@ void change_to_current_tab(const char *input)
 	{
 		channel = 
 #if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
-		(loadsofchannels ? CHAT_CHANNEL1 : ORIG_CHAT_CHANNEL1)
+		((loadsofchannels != 3) ? CHAT_CHANNEL1 : ORIG_CHAT_CHANNEL1)
 #else
 		CHAT_CHANNEL1
 #endif // if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
