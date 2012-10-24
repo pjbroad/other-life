@@ -232,57 +232,78 @@ int pre_check_if_ignored (const char *input_text, int len, Uint8 channel)
 				get_name_from_text(input_text, len, 0, offset, name);		// Type 0 = ":" or " "
 			}
 			break;
-#if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
-		case ORIG_CHAT_CHANNEL1:
-#endif // if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
-		case CHAT_CHANNEL1:
-#if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
-		case ORIG_CHAT_CHANNEL2:
-#endif // if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
-		case CHAT_CHANNEL2:
-#if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
-		case ORIG_CHAT_CHANNEL3:
-#endif // if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
-		case CHAT_CHANNEL3:
-#if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
-		case CHAT_CHANNEL4:
-		case CHAT_CHANNEL5:
-		case CHAT_CHANNEL6:
-		case CHAT_CHANNEL7:
-		case CHAT_CHANNEL8:
-		case CHAT_CHANNEL9:
-		case CHAT_CHANNEL10:
-		case CHAT_CHANNEL11:
-		case CHAT_CHANNEL12:
-		case CHAT_CHANNEL13:
-		case CHAT_CHANNEL14:
-		case CHAT_CHANNEL15:
-		case CHAT_CHANNEL16:
-		case CHAT_CHANNEL17:
-		case CHAT_CHANNEL18:
-		case CHAT_CHANNEL19:
-		case CHAT_CHANNEL20:
-		case CHAT_CHANNEL21:
-		case CHAT_CHANNEL22:
-		case CHAT_CHANNEL23:
-		case CHAT_CHANNEL24:
-		case CHAT_CHANNEL25:
-		case CHAT_CHANNEL26:
-		case CHAT_CHANNEL27:
-		case CHAT_CHANNEL28:
-		case CHAT_CHANNEL29:
-		case CHAT_CHANNEL30:
-		case CHAT_CHANNEL31:
-		case CHAT_CHANNEL32:
-#endif // if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
-			for (offset = 0; is_color (input_text[offset]); offset++);		// Ignore colours
-			if (input_text[offset] == '[')
-			{
-				offset++;
-			}
-			get_name_from_text(input_text, len, 3, offset, name);		// Type 3 = ":", " " or "]"
-			break;
 	}
+	#if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
+		if(loadsofchannels == 3)
+		{
+			switch(channel) {
+				case ORIG_CHAT_CHANNEL1:
+				case ORIG_CHAT_CHANNEL2:
+				case ORIG_CHAT_CHANNEL3:
+					for (offset = 0; is_color (input_text[offset]); offset++);		// Ignore colours
+					if (input_text[offset] == '[')
+					{
+						offset++;
+					}
+					get_name_from_text(input_text, len, 3, offset, name);		// Type 3 = ":", " " or "]"
+			}
+		}
+		else
+		{
+			switch(channel) {
+				case CHAT_CHANNEL1:
+				case CHAT_CHANNEL2:
+				case CHAT_CHANNEL3:
+				case CHAT_CHANNEL4:
+				case CHAT_CHANNEL5:
+				case CHAT_CHANNEL6:
+				case CHAT_CHANNEL7:
+				case CHAT_CHANNEL8:
+				case CHAT_CHANNEL9:
+				case CHAT_CHANNEL10:
+				case CHAT_CHANNEL11:
+				case CHAT_CHANNEL12:
+				case CHAT_CHANNEL13:
+				case CHAT_CHANNEL14:
+				case CHAT_CHANNEL15:
+				case CHAT_CHANNEL16:
+				case CHAT_CHANNEL17:
+				case CHAT_CHANNEL18:
+				case CHAT_CHANNEL19:
+				case CHAT_CHANNEL20:
+				case CHAT_CHANNEL21:
+				case CHAT_CHANNEL22:
+				case CHAT_CHANNEL23:
+				case CHAT_CHANNEL24:
+				case CHAT_CHANNEL25:
+				case CHAT_CHANNEL26:
+				case CHAT_CHANNEL27:
+				case CHAT_CHANNEL28:
+				case CHAT_CHANNEL29:
+				case CHAT_CHANNEL30:
+				case CHAT_CHANNEL31:
+				case CHAT_CHANNEL32:
+					for (offset = 0; is_color (input_text[offset]); offset++);		// Ignore colours
+					if (input_text[offset] == '[')
+					{
+						offset++;
+					}
+					get_name_from_text(input_text, len, 3, offset, name);		// Type 3 = ":", " " or "]"
+			}
+		}
+	#else
+		switch (channel) {
+			case CHAT_CHANNEL1:
+			case CHAT_CHANNEL2:
+			case CHAT_CHANNEL3:
+				for (offset = 0; is_color (input_text[offset]); offset++);		// Ignore colours
+				if (input_text[offset] == '[')
+				{
+					offset++;
+				}
+				get_name_from_text(input_text, len, 3, offset, name);		// Type 3 = ":", " " or "]"
+		}
+	#endif // if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
 	if (*name && name_is_valid(name))
 	{
 		add_name_to_tablist(name);

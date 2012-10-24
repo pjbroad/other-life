@@ -26,6 +26,7 @@ extern "C" {
 
 extern Uint32 active_channels[MAX_ACTIVE_CHANNELS];
 extern Uint8 current_channel;
+extern int firstchannel, lastchannel, loadsofchannels;
 
 #define INPUT_MARGIN 4
 #define INPUT_HEIGHT (DEFAULT_FONT_Y_LEN + 2*INPUT_MARGIN) /* 1 line, 2 margins at 4px*/

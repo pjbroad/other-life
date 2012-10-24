@@ -102,9 +102,9 @@ short real_game_minute = 0;
 short real_game_second = 0;
 int is_acid_rain_day = 0, is_raining = 0;
 
-#if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
-  int loadsofchannels = 3; // default to only 3 channels
-#endif // if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
+int loadsofchannels = 3; // default to only 3 channels
+int firstchannel;
+int lastchannel;
 
 /*
  *	Date handling code:
@@ -1887,18 +1887,34 @@ void process_message_from_server (const Uint8 *in_data, int data_length)
 			  LOG_WARNING("CAUTION: Possibly forged GET_ACTIVE_CHANNELS packet received.\n");
 			  break;
 			}
-#if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
-			if(loadsofchannels != (data_length-2)/4)
-			{
-				char str[256];
-				loadsofchannels = (data_length-2)/4;
-				safe_snprintf(str, sizeof(str), "You have %d chat channels available", loadsofchannels);
-				LOG_TO_CONSOLE(c_purple3, str);
-				safe_snprintf(str, sizeof(str), "%c#expire", RAW_TEXT);
-				my_tcp_send(my_socket, (Uint8*)str, strlen(str+1)+1);
-			}
 			
-#endif
+			#if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
+				int i, j;
+				char str[256];
+
+				if(loadsofchannels != (data_length-2)/4)
+				{
+					loadsofchannels = (data_length-2)/4;
+					safe_snprintf(str, sizeof(str), "You have %d chat channels available", loadsofchannels);
+					LOG_TO_CONSOLE(c_purple3, str);
+					safe_snprintf(str, sizeof(str), "%c#expire", RAW_TEXT);
+					my_tcp_send(my_socket, (Uint8*)str, strlen(str+1)+1);
+				}
+			#endif
+			firstchannel =
+			#if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
+			(loadsofchannels == 3 ? ORIG_CHAT_CHANNEL1 : CHAT_CHANNEL1)
+			#else
+			CHAT_CHANNEL1
+			#endif // if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
+			;
+			lastchannel =
+			#if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
+			(loadsofchannels == 3 ? ORIG_CHAT_CHANNEL3 : CHAT_CHANNEL32)
+			#else
+			CHAT_CHANNEL3
+			#endif // if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
+			;
 			set_active_channels (in_data[3], (Uint32*)(in_data+4), (data_length-2)/4);
 			break;
 
