@@ -2092,6 +2092,10 @@ void add_command_to_actor(int actor_id, unsigned char command)
 		case run_n:
 			act->async_y_tile_pos++;
 			act->async_z_rot= 0;
+			if (isme)
+			{
+				increment_movement_counter();
+			}
 			if(isme && pf_follow_path)
 			{
                 if(checkvisitedlist(act->async_x_tile_pos,act->async_y_tile_pos))
@@ -2103,6 +2107,10 @@ void add_command_to_actor(int actor_id, unsigned char command)
 			act->async_x_tile_pos++;
 			act->async_y_tile_pos++;
 			act->async_z_rot= 45;
+			if (isme)
+			{
+				increment_movement_counter();
+			}
 			if(isme && pf_follow_path)
 			{
                 if(checkvisitedlist(act->async_x_tile_pos,act->async_y_tile_pos))
@@ -2113,6 +2121,10 @@ void add_command_to_actor(int actor_id, unsigned char command)
 		case run_e:
 			act->async_x_tile_pos++;
 			act->async_z_rot= 90;
+			if (isme)
+			{
+				increment_movement_counter();
+			}
 			if(isme && pf_follow_path)
 			{
                 if(checkvisitedlist(act->async_x_tile_pos,act->async_y_tile_pos))
@@ -2124,6 +2136,10 @@ void add_command_to_actor(int actor_id, unsigned char command)
 			act->async_x_tile_pos++;
 			act->async_y_tile_pos--;
 			act->async_z_rot= 135;
+			if (isme)
+			{
+				increment_movement_counter();
+			}
 			if(isme && pf_follow_path)
 			{
                 if(checkvisitedlist(act->async_x_tile_pos,act->async_y_tile_pos))
@@ -2134,6 +2150,10 @@ void add_command_to_actor(int actor_id, unsigned char command)
 		case run_s:
 			act->async_y_tile_pos--;
 			act->async_z_rot= 180;
+			if (isme)
+			{
+				increment_movement_counter();
+			}
 			if(isme && pf_follow_path)
 			{
                 if(checkvisitedlist(act->async_x_tile_pos,act->async_y_tile_pos))
@@ -2145,6 +2165,10 @@ void add_command_to_actor(int actor_id, unsigned char command)
 			act->async_x_tile_pos--;
 			act->async_y_tile_pos--;
 			act->async_z_rot= 225;
+			if (isme)
+			{
+				increment_movement_counter();
+			}
 			if(isme && pf_follow_path)
 			{
                 if(checkvisitedlist(act->async_x_tile_pos,act->async_y_tile_pos))
@@ -2155,6 +2179,10 @@ void add_command_to_actor(int actor_id, unsigned char command)
 		case run_w:
 			act->async_x_tile_pos--;
 			act->async_z_rot= 270;
+			if (isme)
+			{
+				increment_movement_counter();
+			}
 			if(isme && pf_follow_path)
 			{
                 if(checkvisitedlist(act->async_x_tile_pos,act->async_y_tile_pos))
@@ -2166,6 +2194,10 @@ void add_command_to_actor(int actor_id, unsigned char command)
 			act->async_x_tile_pos--;
 			act->async_y_tile_pos++;
 			act->async_z_rot= 315;
+			if (isme)
+			{
+				increment_movement_counter();
+			}
 			if(isme && pf_follow_path)
 			{
                 if(checkvisitedlist(act->async_x_tile_pos,act->async_y_tile_pos))
@@ -2350,7 +2382,6 @@ void get_actor_damage(int actor_id, int damage)
 
 void get_actor_heal(int actor_id, int quantity)
 {
-	//int i=0;
 	actor *act;
 #ifdef EXTRA_DEBUG
 	ERR();
@@ -2369,10 +2400,10 @@ void get_actor_heal(int actor_id, int quantity)
 			act->damage_ms=2000;
 			act->last_health_loss=cur_time;
 		}
-	        if((unsigned int)act->max_health >= (unsigned int)(act->cur_health + quantity))
+	        //if((unsigned int)act->max_health >= (unsigned int)(act->cur_health + quantity))
 		        act->cur_health+=quantity;
-	        else
-	                act->cur_health = act->max_health;
+	        //else
+	        //        act->cur_health = act->max_health;
 	}
 	//if we got here, it means we don't have this actor, so get it from the server...
 }

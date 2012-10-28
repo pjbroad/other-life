@@ -1889,7 +1889,8 @@ void process_message_from_server (const Uint8 *in_data, int data_length)
 			}
 			
 			#if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
-				int i, j;
+			if(1)
+			{
 				char str[256];
 
 				if(loadsofchannels != (data_length-2)/4)
@@ -1900,6 +1901,7 @@ void process_message_from_server (const Uint8 *in_data, int data_length)
 					safe_snprintf(str, sizeof(str), "%c#expire", RAW_TEXT);
 					my_tcp_send(my_socket, (Uint8*)str, strlen(str+1)+1);
 				}
+			}
 			#endif
 			firstchannel =
 			#if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)

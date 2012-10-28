@@ -35,6 +35,7 @@ void increment_manufacturing_counter();
 void increment_spell_counter(int spell_id);
 void increment_summon_manu_counter();
 void increment_summon_counter(char *string);
+void increment_movement_counter();
 int chat_to_counters_command(const char *text, int len);
 void catch_counters_text(const char* text);
 

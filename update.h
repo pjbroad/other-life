@@ -26,6 +26,7 @@ struct http_get_struct {
 
 extern int update_root_win;			/* Handle for the update window */
 extern int update_countdown;		/* Counter until the client restarts after an update */
+extern int autoupdate_delay;		/* Initial value of update_countdown, -1 to disable restart */
 
 /*!
  * \ingroup	update

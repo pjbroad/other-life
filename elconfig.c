@@ -57,6 +57,7 @@
  #include "storage.h"
  #include "tabs.h"
  #include "trade.h"
+ #include "update.h"
  #include "weather.h"
  #include "minimap.h"
  #ifdef NEW_ALPHA
@@ -1958,6 +1959,7 @@ static void init_ELC_vars(void)
 	add_var(OPT_BOOL,"serverpopup","spu",&use_server_pop_win,change_var,1,"Use Special Text Window","Toggles whether server messages from channel 255 are displayed in a pop up window.",SERVER);
 	/* Note: We don't take any action on the already-running thread, as that wouldn't necessarily be good. */
 	add_var(OPT_BOOL,"autoupdate","aup",&auto_update,change_var,1,"Automatic Updates","Toggles whether updates are automatically downloaded.",SERVER);
+	add_var(OPT_INT, "update_delay","aud", &autoupdate_delay, change_signed_int, 10, "Automatic Updates Restart Delay","If set to -1, the client won't restart after an update. Otherwise, the client will restart after this many seconds.",SERVER, -1,30);
 #ifdef CUSTOM_UPDATE
 	add_var(OPT_BOOL,"customupdate","cup",&custom_update,change_custom_update,1,"Custom Looks Updates","Toggles whether custom look updates are automatically downloaded.",SERVER);
 	add_var(OPT_BOOL,"showcustomclothing","scc",&custom_clothing,change_custom_clothing,1,"Show Custom clothing","Toggles whether custom clothing is shown.",SERVER);

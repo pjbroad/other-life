@@ -35,6 +35,7 @@ void create_update_root_window (int width, int height, int time);		// Pre-declar
 int update_attempt_count;   // count how many update attempts have been tried (hopefully diff servers)
 int temp_counter;           // collision prevention during downloads just incase more then one ever starts
 int update_busy;            // state & lockout control to prevent two updates running at the same time
+int autoupdate_delay = 10;  // seconds until the client restarts after an update, -1 to disable restarts
 char    update_server[128]; // the current server we are getting updates from
 unsigned int num_update_servers;
 char *update_servers[32];	// we cant handle more then 32 different servers
@@ -378,6 +379,10 @@ void    handle_file_download(struct http_get_struct *get)
 			// TODO: make the restart more intelligent
 			if(allow_restart){
 				restart_required++;
+				if(restart_required == 1)
+				{
+					LOG_TO_CONSOLE(c_red1, "Downloading Updates...");
+				}
 			}
 		} else {
 			LOG_ERROR("Unable to finish processing of %s (%d)", download_cur_file, errno);
@@ -437,8 +442,13 @@ void    handle_file_download(struct http_get_struct *get)
 		// yes, now trigger a restart
 		LOG_INFO("Restart required because of update");
 		// Display something on the screen for a little bit before restarting
-		create_update_root_window (window_width, window_height, 10);
+		if(autoupdate_delay >= 0)
+		{
+			create_update_root_window (window_width, window_height, autoupdate_delay);
 		show_window (update_root_win);
+		} else {
+			LOG_TO_CONSOLE(c_red2, "You need to restart the client to activate the updates!");
+		}
 	}
 
 	// unlock mutex

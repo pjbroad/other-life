@@ -1017,6 +1017,11 @@ void increment_summon_counter(char *string)
 	check_for_recipe_name(string);
 }
 
+void increment_movement_counter()
+{
+	increment_counter(MISC_EVENTS, "Movement Steps", 1, 0);
+}
+
 
 void reset_session_counters()
 {

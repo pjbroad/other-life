@@ -1893,7 +1893,8 @@ CHECK_GL_ERRORS();
 		if (show_game_seconds)
 		{
 			safe_snprintf(str, sizeof(str), "%1d:%02d:%02d", real_game_minute/60, real_game_minute%60, real_game_second);
-			draw_string_shadowed_width(5, 4 + base_y_start, (unsigned char*)str, win->len_x-5, 1, newcol_r, newcol_g, newcol_b, 0.0f, 0.0f, 0.0f);
+			//draw_string_shadowed_width(5, 4 + base_y_start, (unsigned char*)str, win->len_x-5, 1, newcol_r, newcol_g, newcol_b, 0.0f, 0.0f, 0.0f);
+			draw_string_shadowed_width(5, 4 + base_y_start, (unsigned char*)str, win->len_x-5, 1, 0.99f, 0.99f, 0.0f, 0.0f, 0.0f, 0.0f);
 		}
 		else
 		{
@@ -2011,7 +2012,8 @@ CHECK_GL_ERRORS();
 				statsinfo[thestat].skillnames->shortname,
 				statsinfo[thestat].skillattr->base );
 			if (statsinfo[thestat].is_selected == 1)
-				draw_string_small_shadowed(x+gx_adjust, y+gy_adjust, (unsigned char*)str, 1,newcol_r, newcol_g, newcol_b,0.0f,0.0f,0.0f);
+				//draw_string_small_shadowed(x+gx_adjust, y+gy_adjust, (unsigned char*)str, 1,newcol_r, newcol_g, newcol_b,0.0f,0.0f,0.0f);
+				draw_string_small_shadowed(x+gx_adjust, y+gy_adjust, (unsigned char*)str, 1, 0.99f, 0.99f, 0.0f,0.0f,0.0f,0.0f);
 			else
 				draw_string_small_shadowed(x+gx_adjust, y+gy_adjust, (unsigned char*)str, 1,1.0f,1.0f,1.0f,0.0f,0.0f,0.0f);
 			
