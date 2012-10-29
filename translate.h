@@ -453,6 +453,7 @@ extern char
 		client_restart_countdown_str[40],
 		client_restarting_str[20],
 		restart_now_label[20],
+		abort_restart_label[20],
 		/* context menu strings */
 		cm_quickspell_menu_str[50],
 		cm_textedit_menu_str[100],

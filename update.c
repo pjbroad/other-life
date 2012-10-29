@@ -30,7 +30,7 @@
 #include "io/elpathwrapper.h"
 #include "threads.h"
 
-void create_update_root_window (int width, int height, int time);		// Pre-declare this
+void create_update_root_window (int width, int height, int time, int next_window);		// Pre-declare this
 
 int update_attempt_count;   // count how many update attempts have been tried (hopefully diff servers)
 int temp_counter;           // collision prevention during downloads just incase more then one ever starts
@@ -444,8 +444,14 @@ void    handle_file_download(struct http_get_struct *get)
 		// Display something on the screen for a little bit before restarting
 		if(autoupdate_delay >= 0)
 		{
-			create_update_root_window (window_width, window_height, autoupdate_delay);
-		show_window (update_root_win);
+			int i;
+			for (i=0; i < windows_list.num_windows;i++)
+			{
+				if(get_show_window(i))
+					break;
+			}
+			create_update_root_window (window_width, window_height, autoupdate_delay, i);
+			show_window (update_root_win);
 		} else {
 			LOG_TO_CONSOLE(c_red2, "You need to restart the client to activate the updates!");
 		}
@@ -621,12 +627,15 @@ int http_get_file(char *server, char *path, FILE *fp)
 
 /* Update window code */
 int update_root_win = -1;
-int update_root_restart_id = 0;
+int update_root_restart_id = 101;
+int update_root_abort_id = 102;
+int window_to_show = 0;
 int update_countdown = 0;
 
-void init_update_interface(float text_size, int count, int len_x, int len_y)
+void init_update_interface(float text_size, int count, int len_x, int len_y, int next_window)
 {
 	update_countdown = count;
+	window_to_show = next_window;
 }
 
 void draw_update_interface (int len_x, int len_y)
@@ -689,6 +698,15 @@ int click_update_root_restart ()
 	return 1;
 }
 
+int click_update_root_abort ()
+{
+	update_countdown = -1;
+	hide_window(update_root_win);
+	show_window(window_to_show);
+	LOG_TO_CONSOLE(c_red2, "You need to restart the client to activate the updates!");
+	return 1;
+}
+
 int click_update_root_handler (window_info *win, int mx, int my, Uint32 flags)
 {
 	return 0;
@@ -708,6 +726,14 @@ int keypress_update_root_handler (window_info *win, int mx, int my, Uint32 key, 
 		exit_now = 1;
 		return 1;
 	}
+	else if (keysym == SDLK_ESCAPE)
+	{
+		update_countdown = -1;
+		hide_window(update_root_win);
+		show_window(window_to_show);
+		LOG_TO_CONSOLE(c_red2, "You need to restart the client to activate the updates!");
+		return 1;
+	}
 	
 	return 1;
 }
@@ -717,24 +743,28 @@ int show_update_handler (window_info *win) {
 	return 1;
 }
 
-void create_update_root_window (int width, int height, int time)
+void create_update_root_window (int width, int height, int time, int next_window)
 {
 	if (update_root_win < 0)
 	{
 		float window_ratio = (float) height / 480.0f;
 		int restart_width = (strlen(restart_now_label) * 11) + 40;
+		int abort_width = (strlen(abort_restart_label) * 11) + 40;
+		int restart_x = (width - restart_width - abort_width - 50) /2;
 		int restart_height = 32;
 		
 		update_root_win = create_window ("Update", -1, -1, 0, 0, width, height, ELW_TITLE_NONE|ELW_SHOW_LAST);
 
-		update_root_restart_id = button_add_extended (update_root_win, update_root_restart_id, NULL, (width - restart_width) /2, height - (160 * window_ratio), restart_width, restart_height, 0, 1.0f, 1.0f, 1.0f, 1.0f, restart_now_label);
+		update_root_restart_id = button_add_extended (update_root_win, update_root_restart_id, NULL, restart_x, height - (160 * window_ratio), restart_width, restart_height, 0, 1.0f, 1.0f, 1.0f, 1.0f, restart_now_label);
+		update_root_abort_id = button_add_extended (update_root_win, update_root_abort_id, NULL, restart_x + restart_width + 50, height - (160 * window_ratio), abort_width, restart_height, 0, 1.0f, 1.0f, 1.0f, 1.0f, abort_restart_label);
 
 		set_window_handler (update_root_win, ELW_HANDLER_DISPLAY, &display_update_root_handler);
 		set_window_handler (update_root_win, ELW_HANDLER_CLICK, &click_update_root_handler);
 		set_window_handler (update_root_win, ELW_HANDLER_KEYPRESS, &keypress_update_root_handler);
 		set_window_handler (update_root_win, ELW_HANDLER_SHOW, &show_update_handler);
 		widget_set_OnClick(update_root_win, update_root_restart_id, &click_update_root_restart);
+		widget_set_OnClick(update_root_win, update_root_abort_id, &click_update_root_abort);
 	}
 	
-	init_update_interface (1.0, time, width, height);
+	init_update_interface (1.0, time, width, height, next_window);
 }

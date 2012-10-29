@@ -304,6 +304,7 @@ char
 	client_restart_countdown_str[40],
 	client_restarting_str[20],
 	restart_now_label[20],
+	abort_restart_label[20],
 	/* context menu strings */
 	cm_quickspell_menu_str[50],
 	cm_textedit_menu_str[100],
@@ -1457,6 +1458,7 @@ void init_help()
 	add_xml_identifier(misc, "restart_countdown", client_restart_countdown_str, "Client will restart in %d seconds", sizeof(client_restart_countdown_str));
 	add_xml_identifier(misc, "restarting", client_restarting_str, "Restarting...", sizeof(client_restarting_str));
 	add_xml_identifier(misc, "restart", restart_now_label, "Restart now", sizeof(restart_now_label));
+	add_xml_identifier(misc, "abort_restart", abort_restart_label, "Abort", sizeof(abort_restart_label));
 	
 	/* strings for context menus */
 	add_xml_identifier(misc, "cm_quickspell_menu", cm_quickspell_menu_str, "Move Up\nMove Down\nRemove\n", sizeof(cm_quickspell_menu_str));
