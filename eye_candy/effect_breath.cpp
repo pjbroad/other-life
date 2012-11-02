@@ -19,14 +19,14 @@ namespace ec
 		const color_t blue, Texture* _texture, const Uint16 _LOD,
 #endif	/* NEW_TEXTURES */
 		const BreathEffect::BreathType _type) :
-		Particle(_effect, _mover, _pos, _velocity)
+		Particle(_effect, _mover, _pos, _velocity,
+			_size * (0.2 + randcoord()) * 15 / _LOD)
 	{
 		type = _type;
 		color[0] = red;
 		color[1] = green;
 		color[2] = blue;
 		texture = _texture;
-		size = _size * (0.2 + randcoord()) * 15 / _LOD;
 		//  alpha = _alpha;
 		alpha = _alpha * 2 / size;
 		flare_max = 8.0;
@@ -41,9 +41,9 @@ namespace ec
 		if (effect->recall)
 			return false;
 
-		const interval_t float_time = delta_t / 1000000.0;
-		velocity *= math_cache.powf_05_close(float_time * velocity.magnitude()
-			/ 8.0);
+		const interval_t float_time = delta_t / 1000000.0f;
+		velocity *= std::pow(0.5f, float_time * velocity.magnitude()
+			/ 8.0f);
 
 		switch (type)
 		{
@@ -56,7 +56,7 @@ namespace ec
 				{
 					if ((get_time() - born
 						> (type == BreathEffect::POISON ? 100000 : 400000))
-						|| (math_cache.powf_0_1_rough_close(randfloat(), float_time * 5.0)) < 0.5)
+						|| (pow_randfloat(float_time * 5.0f)) < 0.5)
 						state = 1;
 				}
 				else
@@ -75,15 +75,12 @@ namespace ec
 						}
 					}
 
-					const alpha_t scalar =
-						math_cache.powf_0_1_rough_close(randfloat(), float_time * 5.0);
+					const alpha_t scalar = pow_randfloat(float_time * 5.0f);
 					alpha *= scalar;
 
 					const coord_t size_scalar =
-						math_cache.powf_05_close((float)delta_t / 1500000);
-					size = size / size_scalar * 0.125 + size * 0.5;
-					if (size >= 3.0)
-						size = 3.0;
+						std::pow(0.5f, (float)delta_t / 1500000);
+					size = std::min(3.0f, size / size_scalar * 0.125f + size * 0.5f);
 				}
 				break;
 			}
@@ -92,7 +89,7 @@ namespace ec
 				if (state == 0)
 				{
 					if ((get_time() - born > 400000)
-						|| (math_cache.powf_0_1_rough_close(randfloat(), float_time * 70.0)) < 0.5)
+						|| (pow_randfloat(float_time * 70.0f)) < 0.5)
 						state = 1;
 				}
 				else
@@ -111,15 +108,12 @@ namespace ec
 						}
 					}
 
-					const alpha_t scalar =
-						math_cache.powf_0_1_rough_close(randfloat(), float_time * 20.0);
+					const alpha_t scalar = pow_randfloat(float_time * 20.0f);
 					alpha *= scalar;
 
 					const coord_t size_scalar =
-						math_cache.powf_05_close((float)delta_t / 1500000);
-					size = size / size_scalar * 0.125 + size * 0.5;
-					if (size >= 3.0)
-						size = 3.0;
+						std::pow(0.5f, (float)delta_t / 1500000);
+					size = std::min(3.0f, size / size_scalar * 0.125f + size * 0.5f);
 				}
 				break;
 			}
@@ -128,7 +122,7 @@ namespace ec
 				if (state == 0)
 				{
 					if ((get_time() - born > 400000)
-						|| (math_cache.powf_0_1_rough_close(randfloat(), float_time * 10.0)) < 0.5)
+						|| (pow_randfloat(float_time * 10.0f)) < 0.5)
 						state = 1;
 				}
 				else
@@ -244,17 +238,14 @@ namespace ec
 						}
 					}
 
-					const alpha_t scalar =
-						math_cache.powf_0_1_rough_close(randfloat(), float_time * 5.0);
+					const alpha_t scalar = pow_randfloat(float_time * 5.0f);
 					alpha *= scalar;
 					if (state == 2)
 						alpha *= square(scalar);
 
 					const coord_t size_scalar =
-						math_cache.powf_05_close((float)delta_t / 1500000);
-					size = size / size_scalar * 0.125 + size * 0.5;
-					if (size >= 2.0)
-						size = 2.0;
+						std::pow(0.5f, (float)delta_t / 1500000);
+					size = std::min(2.0f, size / size_scalar * 0.125f + size * 0.5f);
 				}
 				break;
 			}
@@ -368,8 +359,8 @@ namespace ec
 			return false;
 
 		const interval_t float_time = delta_t / 1000000.0;
-		velocity *= math_cache.powf_05_close(float_time * velocity.magnitude()
-			/ 2.0);
+		velocity *= std::pow(0.5f, float_time * velocity.magnitude()
+			/ 2.0f);
 
 		if (state == 0)
 		{
@@ -384,17 +375,15 @@ namespace ec
 		else
 		{
 			const alpha_t alpha_scalar = 1.0
-				- math_cache.powf_05_close((float)delta_t / 1000000);
+				- std::pow(0.5f, (float)delta_t / 1000000);
 			alpha -= alpha_scalar * 0.25;
 
 			if (alpha < 0.005)
 				return false;
 
-			const coord_t size_scalar = math_cache.powf_05_close((float)delta_t
+			const coord_t size_scalar = std::pow(0.5f, (float)delta_t
 				/ 1500000);
-			size = size / size_scalar * 0.125 + size * 0.5;
-			if (size >= 3)
-				size = 3;
+			size = std::min(3.0f, size / size_scalar * 0.125f + size * 0.5f);
 		}
 
 		return true;
@@ -432,7 +421,7 @@ namespace ec
 		mover = NULL;
 		count = 0;
 		count_scalar = 3000 / LOD;
-		size_scalar = scale * fastsqrt(LOD) / sqrt(10.0);
+		size_scalar = scale * std::sqrt(LOD) / sqrt(10.0);
 
 		spawner = new FilledSphereSpawner(scale / 3.0);
 		mover = new SmokeMover(this, 10.0);

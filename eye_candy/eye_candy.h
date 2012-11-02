@@ -155,6 +155,8 @@ namespace ec
 #define rand63 MathCache::rand63
 #define randcoord MathCache::randcoord
 #define randcoord MathCache::randcoord
+#define randcoord_non_zero MathCache::randcoord_non_zero
+#define pow_randfloat MathCache::pow_randfloat
 #define randcolor MathCache::randcolor
 #define randcolor MathCache::randcolor
 #define randalpha MathCache::randalpha
@@ -293,6 +295,9 @@ namespace ec
 		public:
 			Vec3()
 			{
+				x = 0.0f;
+				y = 0.0f;
+				z = 0.0f;
 			}
 			;
 			Vec3(coord_t _x, coord_t _y, coord_t _z)
@@ -312,14 +317,14 @@ namespace ec
 				x += rhs.x;
 				y += rhs.y;
 				z += rhs.z;
-#ifdef X86_64
+
 				if (!is_valid()) 
 				{
 					x = 0.0;
 					y = 0.0;
 					z = 0.0;
 				}
-#endif
+
 				return *this;
 			}
 			;
@@ -329,14 +334,14 @@ namespace ec
 				x -= rhs.x;
 				y -= rhs.y;
 				z -= rhs.z;
-#ifdef X86_64
+
 				if (!is_valid()) 
 				{
 					x = 0.0;
 					y = 0.0;
 					z = 0.0;
 				}
-#endif
+
 				return *this;
 			}
 			;
@@ -345,6 +350,7 @@ namespace ec
 			{
 				Vec3 lhs(x, y, z);
 				lhs += rhs;
+
 				return lhs;
 			}
 			;
@@ -353,6 +359,7 @@ namespace ec
 			{
 				Vec3 lhs(x, y, z);
 				lhs -= rhs;
+
 				return lhs;
 			}
 			;
@@ -362,6 +369,7 @@ namespace ec
 				x *= d;
 				y *= d;
 				z *= d;
+
 				return *this;
 			}
 			;
@@ -371,6 +379,7 @@ namespace ec
 				x /= d;
 				y /= d;
 				z /= d;
+
 				return *this;
 			}
 			;
@@ -379,6 +388,7 @@ namespace ec
 			{
 				Vec3 lhs(x, y, z);
 				lhs *= d;
+
 				return lhs;
 			}
 			;
@@ -387,6 +397,7 @@ namespace ec
 			{
 				Vec3 lhs(x, y, z);
 				lhs /= d;
+
 				return lhs;
 			}
 			;
@@ -411,6 +422,7 @@ namespace ec
 				x = rhs.x;
 				y = rhs.y;
 				z = rhs.z;
+
 				return *this;
 			}
 			;
@@ -423,7 +435,7 @@ namespace ec
 
 			coord_t magnitude() const
 			{
-				return fastsqrt(square(x) + square(y) + square(z));
+				return std::sqrt(square(x) + square(y) + square(z));
 			}
 			;
 
@@ -435,7 +447,7 @@ namespace ec
 
 			coord_t planar_magnitude() const
 			{
-				return fastsqrt(square(x) + square(z));
+				return std::sqrt(square(x) + square(z));
 			}
 			;
 
@@ -445,25 +457,28 @@ namespace ec
 			}
 			;
 
-			Vec3 normalize()
+			Vec3 normalize(const coord_t scale = 1.0f)
 			{
-				(*this) *= invsqrt(magnitude_squared());
-				return *this;
-			}
-			;
+				coord_t tmp;
 
-			Vec3 normalize(const coord_t scale)
-			{
-				(*this) *= (scale * invsqrt(magnitude_squared()));
+				tmp = std::max(magnitude_squared(), 0.0001f);
+
+				(*this) *= (scale / std::sqrt(tmp));
+
 				return *this;
 			}
 			;
 
 			void randomize(const coord_t scale = 1.0)
 			{
-				x = scale * (randcoord() * 2.0 - 1.0);
-				y = scale * (randcoord() * 2.0 - 1.0);
-				z = scale * (randcoord() * 2.0 - 1.0);
+				angle_t a, b;
+
+				a = randfloat() * 2.0f * M_PI;
+				b = randfloat() * 2.0f * M_PI;
+
+				x = scale * std::sin(a) * std::cos(b);
+				y = scale * std::sin(a) * std::sin(b);
+				z = scale * std::cos(a);
 			}
 			;
 
@@ -479,14 +494,15 @@ namespace ec
 				lhs_normal.normalize();
 				Vec3 rhs_normal = rhs;
 				rhs_normal.normalize();
-				return acos(lhs_normal.x * rhs_normal.x + lhs_normal.y
+
+				return std::acos(lhs_normal.x * rhs_normal.x + lhs_normal.y
 					* rhs_normal.y + lhs_normal.z * rhs_normal.z);
 			}
 			;
 
 			angle_t angle_to_prenormalized(const Vec3 rhs) const
 			{
-				return acos(x * rhs.x + y * rhs.y + z * rhs.z);
+				return std::acos(x * rhs.x + y * rhs.y + z * rhs.z);
 			}
 			;
 
@@ -609,13 +625,13 @@ namespace ec
 
 			angle_t magnitude() const
 			{
-				return fastsqrt(square(vec.x) + square(vec.y) + square(vec.z) + square(scalar));
+				return std::sqrt(square(vec.x) + square(vec.y) + square(vec.z) + square(scalar));
 			}
 			;
 
 			Quaternion normalize()
 			{
-				const angle_t inv_sqrt= invsqrt(vec.magnitude_squared() + square(scalar));
+				const angle_t inv_sqrt= 1.0f / std::sqrt(vec.magnitude_squared() + square(scalar));
 				vec *= inv_sqrt;
 				scalar *= inv_sqrt;
 				return *this;
@@ -682,7 +698,7 @@ namespace ec
 				const angle_t trace = matrix[0] + matrix[5] + matrix[10] + 1;
 				if (trace> 0)
 				{
-					const angle_t s = 0.5 * invsqrt(trace);
+					const angle_t s = 0.5 / std::sqrt(trace);
 					scalar = 0.25 / s;
 					vec = Vec3(matrix[9] - matrix[6], matrix[2] - matrix[8], matrix[4] - matrix[1]) * s;
 				}
@@ -690,7 +706,7 @@ namespace ec
 				{
 					if ((matrix[0]> matrix[5]) && (matrix[0]> matrix[10]))
 					{
-						const angle_t s = 2.0 * fastsqrt(1.0 + matrix[0] - matrix[5] - matrix[10]);
+						const angle_t s = 2.0 * std::sqrt(1.0 + matrix[0] - matrix[5] - matrix[10]);
 						vec.x = 0.5 / s;
 						vec.y = (matrix[1] + matrix[4]) / s;
 						vec.z = (matrix[2] + matrix[8]) / s;
@@ -698,7 +714,7 @@ namespace ec
 					}
 					else if (matrix[5]> matrix[10])
 					{
-						const angle_t s = 2.0 * fastsqrt(1.0 + matrix[5] - matrix[0] - matrix[10]);
+						const angle_t s = 2.0 * std::sqrt(1.0 + matrix[5] - matrix[0] - matrix[10]);
 						vec.x = (matrix[1] + matrix[4]) / s;
 						vec.y = 0.5 / s;
 						vec.z = (matrix[6] + matrix[9]) / s;
@@ -706,7 +722,7 @@ namespace ec
 					}
 					else
 					{
-						const angle_t s = 2.0 * fastsqrt(1.0 + matrix[10] - matrix[0] - matrix[5]);
+						const angle_t s = 2.0 * std::sqrt(1.0 + matrix[10] - matrix[0] - matrix[5]);
 						vec.x = (matrix[2] + matrix[8]) / s;
 						vec.y = (matrix[6] + matrix[9]) / s;
 						vec.z = 0.5 / s;
@@ -714,10 +730,10 @@ namespace ec
 					}
 				}
 #else
-				scalar = fastsqrt(fmax( 0, 1 + matrix[0] + matrix[5] + matrix[10])) / 2;
-				vec.x = fastsqrt(fmax( 0, 1 + matrix[0] - matrix[5] - matrix[10])) / 2;
-				vec.y = fastsqrt(fmax( 0, 1 - matrix[0] + matrix[5] - matrix[10])) / 2;
-				vec.z = fastsqrt(fmax( 0, 1 - matrix[0] - matrix[5] + matrix[10])) / 2;
+				scalar = std::sqrt(fmax( 0, 1 + matrix[0] + matrix[5] + matrix[10])) / 2;
+				vec.x = std::sqrt(fmax( 0, 1 + matrix[0] - matrix[5] - matrix[10])) / 2;
+				vec.y = std::sqrt(fmax( 0, 1 - matrix[0] + matrix[5] - matrix[10])) / 2;
+				vec.z = std::sqrt(fmax( 0, 1 - matrix[0] - matrix[5] + matrix[10])) / 2;
 				vec.x = copysign(vec.x, matrix[9] - matrix[6]);
 				vec.y = copysign(vec.y, matrix[2] - matrix[8]);
 				vec.z = copysign(vec.z, matrix[4] - matrix[1]);
@@ -736,7 +752,7 @@ namespace ec
 			void get_axis_and_angle(Vec3& axis, angle_t& angle) const
 			{
 				angle = acos(scalar);
-				angle_t sin_angle= fastsqrt(1.0 - square(scalar));
+				angle_t sin_angle= std::sqrt(1.0 - square(scalar));
 
 				if (fabs(sin_angle) < 0.0001)
 					sin_angle = 1;
@@ -1034,7 +1050,7 @@ namespace ec
 	{
 		public:
 			Particle(Effect* _effect, ParticleMover* _mover, const Vec3 _pos,
-				const Vec3 _velocity);
+				const Vec3 _velocity, const coord_t _size = 1.0f);
 			virtual ~Particle();
 
 			virtual bool idle(const Uint64 delta_t) = 0;
@@ -1084,6 +1100,7 @@ namespace ec
 
 			ParticleHistory* motion_blur;
 			int cur_motion_blur_point;
+
 	};
 
 	/*!

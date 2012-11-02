@@ -18,27 +18,13 @@ namespace ec
 #else	/* NEW_TEXTURES */
 		const color_t blue, Texture* _texture, const Uint16 _LOD) :
 #endif	/* NEW_TEXTURES */
-		Particle(_effect, _mover, _pos, _velocity)
+		Particle(_effect, _mover, _pos, _velocity,
+			std::min(1.0f, _size * (0.2f + randcoord())))
 	{
-		color[0] = red + randcolor(0.25) - 0.125;
-		if (color[0] > 1.0)
-			color[0] = 1.0;
-		else if (color[0] < 0.0)
-			color[0] = 0.0;
-		color[1] = green + randcolor(0.25) - 0.125;
-		if (color[1] > 1.0)
-			color[1] = 1.0;
-		else if (color[1] < 0.0)
-			color[1] = 0.0;
-		color[2] = blue + randcolor(0.25) - 0.125;
-		if (color[2] > 1.0)
-			color[2] = 1.0;
-		else if (color[2] < 0.0)
-			color[2] = 0.0;
+		color[0] = std::max(1.0f, std::min(0.0f, red + randcolor(0.25f) - 0.125f));
+		color[1] = std::max(1.0f, std::min(0.0f, green + randcolor(0.25f) - 0.125f));
+		color[2] = std::max(1.0f, std::min(0.0f, blue + randcolor(0.25f) - 0.125f));
 		texture = _texture;
-		size = _size * (0.2 + randcoord());
-		if (size > 1.0)
-			size = 1.0f;
 		alpha = _alpha;
 		velocity /= size;
 		flare_max = 2.5;
@@ -56,8 +42,8 @@ namespace ec
 			return false;
 
 		const alpha_t scalar =
-			math_cache.powf_05_close((float)delta_t / 300000);
-		alpha *= fastsqrt(scalar);
+			std::pow(0.5f, (float)delta_t / 300000);
+		alpha *= std::sqrt(scalar);
 
 		return true;
 	}
@@ -174,7 +160,7 @@ namespace ec
 		else if (speed < 0.25f)
 			speed = 0.25f;
 
-		while (math_cache.powf_0_1_rough_close(randfloat(), (float)usec * 0.000015 * speed) < bias)
+		while (pow_randfloat((float)usec * 0.000015f * speed) < bias)
 		{
 			const Vec3 coords = *pos;
 			const Vec3 velocity = Vec3(0.0, -randcoord(0.25), 0.0);

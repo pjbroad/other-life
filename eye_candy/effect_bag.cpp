@@ -12,12 +12,11 @@ namespace ec
 
 	BagParticle::BagParticle(Effect* _effect, ParticleMover* _mover,
 		const Vec3 _pos, const Vec3 _velocity, const coord_t _size) :
-		Particle(_effect, _mover, _pos, _velocity)
+		Particle(_effect, _mover, _pos, _velocity, _size)
 	{
 		color[0] = randcolor(0.3) + 0.7;
 		color[1] = randcolor(0.3) + 0.5;
 		color[2] = randcolor(0.3) + 0.3;
-		size = _size;
 		alpha = 0.75;
 		flare_max = 1.0;
 		flare_exp = 1.0;
@@ -77,8 +76,8 @@ namespace ec
 		const interval_t float_time = delta_t / 1000000.0;
 		if (age > 220000)
 		{
-			const alpha_t alpha_scalar = math_cache.powf_05_close(float_time
-				* 3.0);
+			const alpha_t alpha_scalar = std::pow(0.5f, float_time
+				* 3.0f);
 			alpha *= alpha_scalar;
 
 			if (alpha < 0.01)

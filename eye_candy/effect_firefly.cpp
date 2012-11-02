@@ -14,7 +14,7 @@ namespace ec
 		const Vec3 _pos, const Vec3 _velocity, const color_t hue_adjust,
 		const color_t saturation_adjust, const coord_t _size,
 		const coord_t _min_height, const coord_t _max_height) :
-		Particle(_effect, _mover, _pos, _velocity)
+		Particle(_effect, _mover, _pos, _velocity, _size)
 	{
 		color_t hue, saturation, value;
 		hue = 0.17;
@@ -23,11 +23,8 @@ namespace ec
 		hue += hue_adjust;
 		if (hue > 1.0)
 			hue -= 1.0;
-		saturation *= saturation_adjust;
-		if (saturation > 1.0)
-			saturation = 1.0;
+		saturation = std::min(1.0f, saturation * saturation_adjust);
 		hsv_to_rgb(hue, saturation, value, color[0], color[1], color[2]);
-		size = _size;
 		alpha = 1.0;
 		flare_max = 8.0;
 		flare_exp = 0.2;
@@ -47,29 +44,34 @@ namespace ec
 		Vec3 velocity_shift;
 		velocity_shift.randomize();
 		velocity_shift.y *= 0.3;
-		velocity_shift.normalize(0.0005 * fastsqrt(delta_t));
+		velocity_shift.normalize(0.0005 * std::sqrt(delta_t));
 		velocity += velocity_shift;
 		const coord_t magnitude = velocity.magnitude();
 		if (magnitude > 0.35)
 			velocity /= (magnitude / 0.35);
 		if (magnitude < 0.05)
 		{
-			velocity += Vec3(-0.15 + randcoord(0.3), 0.0, -0.15 + randcoord(0.3));
+			do
+			{
+				velocity += Vec3(-0.15 + randcoord(0.3), 0.0, -0.15 + randcoord(0.3));
+			}
+			while (velocity.magnitude() < 0.05);
+
 			velocity.normalize(0.35);
 		}
 
 		if (fabs(velocity.y) > 0.1)
-			velocity.y *= math_cache.powf_05_close(delta_t / 300000.0);
+			velocity.y *= std::pow(0.5f, delta_t / 300000.0f);
 
 		if (pos.y < min_height)
 		{
-			velocity.y += randcoord(0.125);
+			velocity.y += randcoord_non_zero() * 0.125;
 			pos.y = min_height;
 		}
 
 		if (pos.y > max_height)
 		{
-			velocity.y -= randcoord(0.125);
+			velocity.y -= randcoord_non_zero() * 0.125;
 			pos.y = max_height;
 		}
 		

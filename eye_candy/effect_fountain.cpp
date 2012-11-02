@@ -15,7 +15,8 @@ namespace ec
 		const color_t saturation_adjust, const coord_t _base_height,
 		const bool _backlight, const float _sqrt_scale,
 		const coord_t _max_size, const coord_t size_scalar) :
-		Particle(_effect, _mover, _pos, _velocity)
+		Particle(_effect, _mover, _pos, _velocity,
+			size_scalar * (0.5 + 5 * randcoord()))
 	{
 		base_height = _base_height;
 		backlight = _backlight;
@@ -28,19 +29,15 @@ namespace ec
 		hue += hue_adjust;
 		if (hue > 1.0)
 			hue -= 1.0;
-		saturation *= saturation_adjust;
-		if (saturation > 1.0)
-			saturation = 1.0;
+		saturation = std::min(1.0f, saturation * saturation_adjust);
 		hsv_to_rgb(hue, saturation, value, color[0], color[1], color[2]);
 		color[0] *= 2.0;
 		color[1] *= 2.0;
 		color[2] *= 2.0;
-		size = size_scalar * (0.5 + 5 * randcoord());
 		alpha = sqrt_scale * 3.5 / size;
 		if (backlight)
 			alpha /= 9;
-		if (alpha > 1.0)
-			alpha = 1.0;
+		alpha = std::min(1.0f, alpha);
 		flare_max = 1.5;
 		flare_exp = 0.3;
 		flare_frequency = 5.0;
@@ -108,12 +105,10 @@ namespace ec
 
 		if (state == 0)
 		{
-			const float scalar = math_cache.powf_05_close((float)delta_t
+			const float scalar = std::pow(0.5f, (float)delta_t
 				/ 2500000);
 			alpha *= scalar;
-			size = size / scalar * 0.25 + size * 0.75;
-			if (size >= max_size)
-				size = max_size;
+			size = std::min(max_size, size / scalar * 0.25f + size * 0.75f);
 
 			if (pos.y < base_height)
 			{
@@ -128,12 +123,10 @@ namespace ec
 			if (alpha < 0.02)
 				return false;
 
-			const float scalar = math_cache.powf_05_close((float)delta_t
+			const float scalar = std::pow(0.5f, (float)delta_t
 				/ 200000);
 			alpha *= scalar;
-			size = size / scalar * 0.25 + size * 0.75;
-			if (size >= max_size)
-				size = max_size;
+			size = std::min(max_size, size / scalar * 0.25f + size * 0.75f);
 		}
 
 		return true;
@@ -177,7 +170,7 @@ namespace ec
 		saturation_adjust = _saturation_adjust;
 		backlight = _backlight;
 		scale = _scale;
-		sqrt_scale = fastsqrt(scale);
+		sqrt_scale = std::sqrt(scale);
 		max_size = 3 * scale * 90 / (_LOD + 10);
 		size_scalar = sqrt_scale * 4.5 / (_LOD + 5);
 		base_height = _base_height + 0.1;
