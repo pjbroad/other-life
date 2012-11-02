@@ -1149,7 +1149,14 @@ void process_message_from_server (const Uint8 *in_data, int data_length)
 
 		case REDEFINE_YOUR_COLORS:
 			{
-				set_login_error (redefine_your_colours, strlen (redefine_your_colours), 0);
+				if(!previously_logged_in)
+				{
+					set_login_error (redefine_your_colours, strlen (redefine_your_colours), 0);
+					last_display=1;
+				} else {
+					restart_required = 1;
+					exit_now = 1;
+				}
 			}
 			break;
 

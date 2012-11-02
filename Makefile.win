@@ -6,7 +6,7 @@
 -include make.conf
 
 #Make the flag for Other-Life
-OTHER_LIFE = -DOTHER_LIFE
+OTHER_LIFE = -DOTHER_LIFE -DOTHER_LIFE_EXTENDED_CHAT
 
 # basic compiling and linking - rarely changed
 OPTIONS = -DWINDOWS $(OTHER_LIFE) -DELC -DWINVER=0x500 -mwindows $(foreach FEATURE, $(FEATURES), -D$(FEATURE)) -D_7ZIP_ST
