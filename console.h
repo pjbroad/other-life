@@ -13,7 +13,11 @@ extern "C" {
 #endif
 
 #ifndef DEF_INFO
- #define DEF_INFO ""
+ #ifdef OTHER_LIFE
+  #define DEF_INFO "1"
+ #else
+  #define DEF_INFO ""
+ #endif
 #endif
 
 typedef struct {
