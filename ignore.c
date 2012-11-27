@@ -237,9 +237,9 @@ int pre_check_if_ignored (const char *input_text, int len, Uint8 channel)
 		if(loadsofchannels == 3)
 		{
 			switch(channel) {
-				case ORIG_CHAT_CHANNEL1:
-				case ORIG_CHAT_CHANNEL2:
-				case ORIG_CHAT_CHANNEL3:
+				case CHAT_CHANNEL1:
+				case CHAT_CHANNEL2:
+				case CHAT_CHANNEL3:
 					for (offset = 0; is_color (input_text[offset]); offset++);		// Ignore colours
 					if (input_text[offset] == '[')
 					{

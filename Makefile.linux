@@ -3,7 +3,7 @@
 -include make.conf
 
 #Make the flag for Other-Life
-OTHER_LIFE = -DOTHER_LIFE
+OTHER_LIFE = -DOTHER_LIFE -DOTHER_LIFE_EXTENDED_CHAT
 
 # basic compiling and linking - rarely changed
 OPTIONS = $(OTHER_LIFE) -DLINUX -DELC $(foreach FEATURE, $(FEATURES), -D$(FEATURE)) -D_7ZIP_ST

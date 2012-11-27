@@ -965,10 +965,6 @@ typedef enum
 #define CHAT_MODPM	8
 #if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
 // channels 9-31 reserved for future use
-  #define ORIG_CHAT_CHANNEL1	5
-  #define ORIG_CHAT_CHANNEL2	6
-  #define ORIG_CHAT_CHANNEL3	7
-
   #define CHAT_CHANNEL1		32
   #define CHAT_CHANNEL2		33
   #define CHAT_CHANNEL3		34

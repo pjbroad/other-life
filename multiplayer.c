@@ -1910,16 +1910,10 @@ void process_message_from_server (const Uint8 *in_data, int data_length)
 				}
 			}
 			#endif
-			firstchannel =
-			#if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
-			(loadsofchannels == 3 ? ORIG_CHAT_CHANNEL1 : CHAT_CHANNEL1)
-			#else
-			CHAT_CHANNEL1
-			#endif // if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
-			;
+			firstchannel = CHAT_CHANNEL1;
 			lastchannel =
 			#if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
-			(loadsofchannels == 3 ? ORIG_CHAT_CHANNEL3 : CHAT_CHANNEL32)
+			(loadsofchannels == 3 ? CHAT_CHANNEL3 : CHAT_CHANNEL32)
 			#else
 			CHAT_CHANNEL3
 			#endif // if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)

@@ -1764,10 +1764,10 @@ int skip_message (const text_message *msg, Uint8 filter)
 	if(loadsofchannels == 3)
 	{
 		switch(channel) {
-			case ORIG_CHAT_CHANNEL1:
-			case ORIG_CHAT_CHANNEL2:
-			case ORIG_CHAT_CHANNEL3:
-				skip = (msg->channel != active_channels[filter - ORIG_CHAT_CHANNEL1]);
+			case CHAT_CHANNEL1:
+			case CHAT_CHANNEL2:
+			case CHAT_CHANNEL3:
+				skip = (msg->channel != active_channels[filter - CHAT_CHANNEL1]);
 		}
 	}
 	else
