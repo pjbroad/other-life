@@ -29,9 +29,11 @@ int chat_win = -1;
 
 void remove_chat_tab (Uint8 channel);
 int add_chat_tab (int nlines, Uint8 channel);
+void clear_chat_tabs_updated();
 void update_chat_tab_idx (Uint8 old_ix, Uint8 new_idx);
 void remove_tab_button (Uint8 channel);
 int add_tab_button (Uint8 channel);
+void clear_tab_buttons_updated();
 void update_tab_button_idx (Uint8 old_idx, Uint8 new_idx);
 void convert_tabs (int new_wc);
 
@@ -91,6 +93,12 @@ void remove_tab (Uint8 channel)
 	if (chat_win != -1) remove_chat_tab (channel);
 }
 
+void clear_tabs_updated ()
+{
+	if (tab_bar_win != -1) clear_tab_buttons_updated ();
+	if (chat_win != -1) clear_chat_tabs_updated ();
+}
+
 void update_tab_idx (Uint8 old_idx, Uint8 new_idx)
 {
 	// XXX: CAUTION
@@ -109,6 +117,7 @@ void set_channel_tabs (const Uint32 *chans)
 	int nmax = loadsofchannels; //MAX_ACTIVE_CHANNELS;
 	Uint32 chan;
 	Uint8 chan_nr, chan_nrp;
+
 	for (chan_nr = 0; chan_nr < nmax; chan_nr++)
 	{
 		chan = chans[chan_nr];
@@ -149,6 +158,7 @@ void set_channel_tabs (const Uint32 *chans)
 			add_tab (chan_nrp + firstchannel);
 		}
 	}
+	clear_tabs_updated();
 }
 
 void set_active_channels (Uint8 active, const Uint32 *channels, int nchan)
@@ -382,6 +392,16 @@ int add_chat_tab(int nlines, Uint8 channel)
 	return -1;
 }
 
+void clear_chat_tabs_updated ()
+{
+	int itab;
+	
+	for (itab = 0; itab < MAX_CHAT_TABS; itab++)
+	{
+		channels[itab].updated = 0;
+	}
+}
+
 void update_chat_tab_idx (Uint8 old_idx, Uint8 new_idx)
 {
 	int itab;
@@ -390,9 +410,10 @@ void update_chat_tab_idx (Uint8 old_idx, Uint8 new_idx)
 	
 	for (itab = 0; itab < MAX_CHAT_TABS; itab++)
 	{
-		if (channels[itab].chan_nr == old_idx && channels[itab].open)
+		if (channels[itab].chan_nr == old_idx && channels[itab].open && channels[itab].updated ==0)
 		{
 			channels[itab].chan_nr = new_idx;
+			channels[itab].updated = 1;
 			return;
 		}
 	}
@@ -1532,6 +1553,16 @@ unsigned int chan_int_from_name(char * name, int * return_length)
 	return 0;
 }
 
+void clear_tab_buttons_updated ()
+{
+	int itab;
+	
+	for (itab = 0; itab < tabs_in_use; itab++)
+	{
+		tabs[itab].updated = 0;
+	}
+}
+
 void update_tab_button_idx (Uint8 old_idx, Uint8 new_idx)
 {
 	int itab;
@@ -1540,9 +1571,10 @@ void update_tab_button_idx (Uint8 old_idx, Uint8 new_idx)
 	
 	for (itab = 0; itab < tabs_in_use; itab++)
 	{
-		if (tabs[itab].channel == old_idx)
+		if (tabs[itab].channel == old_idx && tabs[itab].updated ==0)
 		{
 			tabs[itab].channel = new_idx;
+			tabs[itab].updated = 1;
 			return;
 		}
 	}
