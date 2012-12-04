@@ -251,8 +251,17 @@ void recolour_message(text_message *msg){
 #else
 		CHAT_CHANNEL3
 #endif // if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
-	  && msg->len > 0 && msg->data[0] && !msg->deleted){
-		if (active_channels[current_channel] != msg->channel){
+	  && msg->len > 0 && msg->data[0] && !msg->deleted)
+	{
+		int i;
+		for(i=0; i< MAX_CHANNEL_COLORS; i++)
+		{
+			if(channel_colors[i].nr == msg->channel)
+				break;
+		}
+		if(i< MAX_CHANNEL_COLORS && channel_colors[i].color != -1) {
+			msg->data[0] = to_color_char (channel_colors[i].color);
+		} else if (active_channels[current_channel] != msg->channel){
 			msg->data[0] = to_color_char (c_grey2);
 		} else {
 			msg->data[0] = to_color_char (c_grey1);

@@ -388,7 +388,11 @@ void makeScreenShot ()
 	/* try to find a file name which isn't taken yet */
 	for (ishot = 1; ishot < 1000; ishot++)
 	{
+#ifdef OTHER_LIFE
+		safe_snprintf (fname+dlen, sizeof(fname)-dlen, "/olscreen%03d.png", ishot);
+#else
 		safe_snprintf (fname+dlen, sizeof(fname)-dlen, "/elscreen%03d.png", ishot);
+#endif
 		ret = file_exists(fname);
 		if(ret == 0)
 		{
@@ -404,7 +408,11 @@ void makeScreenShot ()
 	if (ishot >= 1000)
 	{
 		LOG_TO_CONSOLE(c_red2, max_screenshots_warning_str);
+#ifdef OTHER_LIFE
+		safe_snprintf (fname+dlen, sizeof(fname)-dlen, "/olscreen.png");
+#else
 		safe_snprintf (fname+dlen, sizeof(fname)-dlen, "/elscreen.png");
+#endif
 	}
 	LOG_TO_CONSOLE(c_green1, fname);
 
