@@ -1771,7 +1771,7 @@ static int draw_tab_details (widget_list *W)
 				glVertex2i(x+3,y+gy_adjust);
 				glVertex2i(x+3,y+7+gy_adjust);
 			glEnd();
-			glColor3f(0.77f,0.57f,0.39f);
+			glColor3f(newcol_r, newcol_g, newcol_b);
 			/* draw a dotted underline if input would go to this channel */
 			if ((input_text_line.len > 0) && (input_text_line.data[0] == '@') && !((input_text_line.len > 1) && (input_text_line.data[1] == '@')))
 			{
