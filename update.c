@@ -378,7 +378,8 @@ void    handle_file_download(struct http_get_struct *get)
 		if(!sts){
 			// TODO: make the restart more intelligent
 			if(allow_restart){
-				restart_required++;
+				if(strstr(download_cur_file, "2dobjects/")==NULL && strstr(download_cur_file, "3dobjects/")==NULL && strstr(download_cur_file, "maps/")==NULL && strstr(download_cur_file, "music/")==NULL && strstr(download_cur_file, "textures/")==NULL)
+					restart_required++;
 				if(restart_required == 1)
 				{
 					LOG_TO_CONSOLE(c_red1, "Downloading Updates...");
