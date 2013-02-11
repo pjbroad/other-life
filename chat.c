@@ -924,6 +924,11 @@ int root_key_to_input_field (Uint32 key, Uint32 unikey)
 	{
 		do_tab_complete(&input_text_line);
 	}
+	else if (get_show_window(console_root_win))
+	{
+		if (!chat_input_key (input_widget, 0, 0, key, unikey))
+			return 0;
+	}
 	else
 	{
 		return 0;

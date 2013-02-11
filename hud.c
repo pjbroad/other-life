@@ -42,7 +42,6 @@
 #include "url.h"
 #include "emotes.h"
 
-
 #define WALK 0
 #define SIT 1
 #define LOOK 2
