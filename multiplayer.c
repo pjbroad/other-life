@@ -40,6 +40,7 @@
 #include "spells.h"
 #include "storage.h"
 #include "trade.h"
+#include "trade_log.h"
 #include "translate.h"
 #include "update.h"
 #include "weather.h"
@@ -1536,6 +1537,7 @@ void process_message_from_server (const Uint8 *in_data, int data_length)
 		case GET_TRADE_EXIT:
 			{
 				hide_window(trade_win);
+				trade_exit();
 			}
 			break;
 
@@ -1857,6 +1859,7 @@ void process_message_from_server (const Uint8 *in_data, int data_length)
 				  break;
 				}
 				get_storage_items(in_data+3, data_length-3);
+				trade_post_storage();
 			}
 			break;
 
