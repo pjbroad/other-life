@@ -1254,7 +1254,6 @@ void init_channel_names(void)
 			/*channeldesc = malloc (attriblen)+1;
 			my_xmlStrncopy (&channeldesc, attrib, attriblen);*/
 			channeldesc = (char*)xmlStrdup(attrib);
-			xmlFree (attrib);
 			
 			// Add it.
 			add_spec_chan_name(channelno, channelname, channeldesc);
@@ -1310,7 +1309,6 @@ void init_channel_names(void)
 			channeldesc = malloc (attriblen);
 			my_xmlStrncopy (&channeldesc, attrib, attriblen);*/
 			channeldesc = (char*)xmlStrdup(attrib);
-			xmlFree (attrib);
 			
 			// Add it.
 			add_chan_name(channelno, channelname, channeldesc);
@@ -1326,6 +1324,7 @@ void init_channel_names(void)
 		LOG_ERROR(using_builtin_chanlist);
 		generic_chans();
 	}
+	xmlFreeDoc(doc);
 }
 
 void cleanup_chan_names(void)
