@@ -49,6 +49,11 @@ void display_user_menus(void);
  */
 void toggle_user_menus(int *enable);
 
+/*!
+ * \ingroup user_menus
+ * \brief Reload the user menus.
+ */
+void reload_user_menus(void);
 
 #ifdef __cplusplus
 }

@@ -130,6 +130,7 @@ namespace UserMenus
 			void set_options(int win_x, int win_y, int options);
 			void get_options(int *win_x, int *win_y, int *options);
 			static Container * get_instance(void);
+			void reload(void);
 			static int action_handler(window_info *win, int widget_id, int mx, int my, int option) { return get_instance()->action(widget_id, option); }
 			static void pre_show_handler(window_info *win, int widget_id, int mx, int my, window_info *cm_win) { get_instance()->pre_show(win, widget_id, mx, my, cm_win); }
 
@@ -154,7 +155,6 @@ namespace UserMenus
 			static const int name_sep;
 			static const int window_pad;
 
-			void reload(void);
 			void recalc_win_width(void);
 			int display(window_info *win);
 			int action(size_t active_menu, int option);
@@ -521,7 +521,10 @@ namespace UserMenus
 		
 		std::vector<std::string> search_paths;
 		if (include_datadir)
+		{
+			search_paths.push_back(std::string(get_path_updates()));
 			search_paths.push_back(std::string(datadir));
+		}
 		search_paths.push_back(std::string(get_path_config()));
 
 		for (size_t i=0; i<search_paths.size(); i++)
@@ -721,5 +724,11 @@ extern "C"
 	{
 		if (ready_for_user_menus)
 			UserMenus::Container::get_instance()->open_window();
+	}
+
+	void reload_user_menus(void)
+	{
+		if (ready_for_user_menus)
+			UserMenus::Container::get_instance()->reload();
 	}
 }
