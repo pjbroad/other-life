@@ -29,6 +29,7 @@
 #include "translate.h"
 #include "io/elpathwrapper.h"
 #include "threads.h"
+#include "user_menus.h"
 
 void create_update_root_window (int width, int height, int time, int next_window);		// Pre-declare this
 
@@ -378,8 +379,10 @@ void    handle_file_download(struct http_get_struct *get)
 		if(!sts){
 			// TODO: make the restart more intelligent
 			if(allow_restart){
-				if(strstr(download_cur_file, "2dobjects/")==NULL && strstr(download_cur_file, "3dobjects/")==NULL && strstr(download_cur_file, "maps/")==NULL && strstr(download_cur_file, "music/")==NULL && strstr(download_cur_file, "textures/")==NULL)
+				if(strstr(download_cur_file, "2dobjects/")==NULL && strstr(download_cur_file, "3dobjects/")==NULL && strstr(download_cur_file, "maps/")==NULL && strstr(download_cur_file, "music/")==NULL && strstr(download_cur_file, "textures/")==NULL && strstr(download_cur_file, ".menu")==NULL)
 					restart_required++;
+				if(strstr(download_cur_file, ".menu") > 0)
+					reload_user_menus();
 				if(restart_required == 1)
 				{
 					LOG_TO_CONSOLE(c_red1, "Downloading Updates...");
