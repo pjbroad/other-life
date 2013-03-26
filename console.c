@@ -806,9 +806,11 @@ int command_mark(char *text, int len)
 
 		for(;isspace(*text); text++);
 		if(strlen(text) > 0) {
-			put_mark_on_current_position(text);
-			safe_snprintf (str, sizeof(str), marked_str, text);
-			LOG_TO_CONSOLE(c_orange1,str);
+			if (put_mark_on_current_position(text))
+			{
+				safe_snprintf (str, sizeof(str), marked_str, text);
+				LOG_TO_CONSOLE(c_orange1,str);
+			}
 		}
 	}
 	return 1;
@@ -1609,6 +1611,16 @@ int save_local_data(char * text, int len){
 	return 0;
 }
 
+
+/* show counters for this session */
+static int session_counters(char *text, int len)
+{
+	text = getparams(text);
+	print_session_counters(text);
+	return 1;
+}
+
+
 #ifdef CONTEXT_MENUS_TEST
 int cm_test_window(char *text, int len);
 #endif
@@ -1707,6 +1719,7 @@ add_command("horse", &horse_cmd);
 	add_command("save", &save_local_data);
 	add_command("url", &url_command);
 	add_command("chat_to_counters", &chat_to_counters_command);
+	add_command(cmd_session_counters, &session_counters);
 	add_command("exp", &show_exp);
 #ifdef CONTEXT_MENUS_TEST
 	add_command("cmtest", &cm_test_window);
@@ -1717,7 +1730,7 @@ add_command("horse", &horse_cmd);
 	add_command("aliases", &aliases_command);
 #endif
 	add_command("ckdata", &command_ckdata);
-	add_command("reload_icons", &reload_icon_window);
+	add_command(cmd_reload_icons, &reload_icon_window);
 	add_command(cmd_open_url, &command_open_url);
 	add_command(cmd_show_spell, &command_show_spell);
 	add_command(cmd_cast_spell, &command_cast_spell);

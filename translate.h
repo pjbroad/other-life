@@ -284,6 +284,8 @@ extern char
 		cmd_open_url[20],
 		cmd_show_spell[20],
 		cmd_cast_spell[20],
+		cmd_reload_icons[20],
+		cmd_session_counters[20],
 		help_cmd_markpos_str[50],
 		location_info_str[40],
 		knowledge_cmd_str[40],
@@ -475,7 +477,7 @@ extern char
 		cm_dialog_options_str[80],
 		cm_dialog_menu_str[60],
 		cm_url_menu_str[150],
-		cm_counters_menu_str[90],
+		cm_counters_menu_str[160],
 		cm_help_options_str[50],
 		cm_npcname_menu_str[50],
 		cm_dialog_copy_menu_str[50],
@@ -545,6 +547,7 @@ extern char	reg_error_str[15],
 		/* books.c*/
 		book_open_err_str[30],
 		/*cache.c*/
+		cache_items_str[20],
 		cache_size_str[20],
 		/* cal.c */
 		no_animation_err_str[30],
@@ -670,6 +673,7 @@ extern char	reg_error_str[15],
 		init_display_str[35],
 		prep_op_win_str[35],
 		/* interface;c */
+		err_mapmarks_str[60],
 		err_nomap_str[60],
 		/* map_io.c */
 		load_map_str[35],

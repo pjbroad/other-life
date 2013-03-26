@@ -1598,22 +1598,11 @@ void hide_all_windows(){
 
 static void toggle_sit_stand()
 {
-	if(you_sit)
-		{
-			Uint8 str[4];
-			//Send message to server...	
-			str[0]=SIT_DOWN;
-			str[1]=0;
-			my_tcp_send(my_socket,str,2);
-		}
-	else
-		{
-			Uint8 str[4];
-			//Send message to server...
-			str[0]=SIT_DOWN;
-			str[1]=1;
-			my_tcp_send(my_socket,str,2);
-		}
+	Uint8 str[4];
+	//Send message to server...	
+	str[0]=SIT_DOWN;
+	str[1]=!you_sit;
+	my_tcp_send(my_socket,str,2);
 }
 
 // keypress handler common to all in-game root windows (game_root_win, 
@@ -2079,27 +2068,8 @@ int text_input_handler (Uint32 key, Uint32 unikey)
 	}
 	else if (ch == SDLK_RETURN && input_text_line.len > 0)
 	{
-		if (input_text_line.data[0] == '%' && input_text_line.len > 1) 
-		{
-			if ( (check_var (&(input_text_line.data[1]), IN_GAME_VAR) ) < 0)
-				send_input_text_line (input_text_line.data, input_text_line.len);
-		}
-		else if (input_text_line.len > 5 && input_text_line.data[0] == '@' && input_text_line.data[1] == '@' && input_text_line.data[2] != ' ')
-		{
-			chan_target_name(input_text_line.data, input_text_line.len);
-		}
-		else if ( input_text_line.data[0] == '#' || input_text_line.data[0] == char_cmd_str[0] )
-		{
-			test_for_console_command (input_text_line.data, input_text_line.len);
-		}
-		else
-		{
-			if(input_text_line.data[0] == char_at_str[0])
-				input_text_line.data[0]='@';
-			send_input_text_line (input_text_line.data, input_text_line.len);
-		}
+		parse_input(input_text_line.data, input_text_line.len);
 		add_line_to_history(input_text_line.data, input_text_line.len);
-		// also clear the buffer
 		clear_input_line();
 	}
 	else

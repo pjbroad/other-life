@@ -344,7 +344,7 @@ char
 	cm_dialog_options_str[80],
 	cm_dialog_menu_str[60],
 	cm_url_menu_str[150],
-	cm_counters_menu_str[90],
+	cm_counters_menu_str[160],
 	cm_help_options_str[50],
 	cm_npcname_menu_str[50],
 	cm_dialog_copy_menu_str[50],
@@ -466,7 +466,9 @@ char	name_too_long[75],
 	cmd_user_menu_wait_time_ms[30],
 	cmd_open_url[20],
 	cmd_show_spell[20],
-	cmd_cast_spell[20];
+	cmd_cast_spell[20],
+	cmd_reload_icons[20],
+	cmd_session_counters[20];
 #endif
 
 /*! \name Errors */
@@ -494,6 +496,7 @@ char	reg_error_str[15],
 	/* books.c */
 	book_open_err_str[30],
 	/*cache.c*/
+	cache_items_str[20],
 	cache_size_str[20],
 	/* cal.c */
 	no_animation_err_str[30],
@@ -583,6 +586,7 @@ char	reg_error_str[15],
 	init_display_str[35],
 	prep_op_win_str[35],
 	/* interface;c */
+	err_mapmarks_str[60],
 	err_nomap_str[60],
 	/* map_io.c */
 	load_map_str[35],
@@ -1110,6 +1114,8 @@ void init_console()
 	add_xml_identifier(cmd_grp,"user_menu_wait_time_ms",cmd_user_menu_wait_time_ms,"user_menu_wait_time_ms",sizeof(cmd_user_menu_wait_time_ms));
 	add_xml_identifier(cmd_grp,"show_spell",cmd_show_spell,"show_spell",sizeof(cmd_show_spell));
 	add_xml_identifier(cmd_grp,"cast_spell",cmd_cast_spell,"cast_spell",sizeof(cmd_cast_spell));
+	add_xml_identifier(cmd_grp,"session_counters",cmd_session_counters,"session_counters",sizeof(cmd_session_counters));
+	add_xml_identifier(cmd_grp,"reload_icons",cmd_reload_icons,"reload_icons",sizeof(cmd_reload_icons));
 }
 #endif
 
@@ -1199,6 +1205,7 @@ void init_errors()
 	add_xml_identifier (misc, "emptymap", empty_map_str, "Using an empty map instead.", sizeof(empty_map_str));
 	add_xml_identifier (misc, "nonomap", no_nomap_str, "Fatal error: Couldn't load map ./maps/nomap.elm.\nFix your maps.", sizeof(no_nomap_str));
 	add_xml_identifier (misc, "nobmpmap", err_nomap_str, "There is no map for this place.", sizeof(err_nomap_str));
+	add_xml_identifier (misc, "mapmarks", err_mapmarks_str, "Maximum number of mapmarks reached.", sizeof(err_mapmarks_str));
 	add_xml_identifier (misc, "book_open", book_open_err_str, "Couldn't open the book: %s!", sizeof(book_open_err_str));
 	add_xml_identifier (misc, "noanimation", no_animation_err_str, "No animation: %s!\n", sizeof(no_animation_err_str));
 	add_xml_identifier (misc, "invalid_location", invalid_location_str, "Invalid location %d,%d", sizeof(invalid_location_str));
@@ -1386,7 +1393,8 @@ void init_help()
 	add_xml_identifier(misc,"abort",abort_str,"Abort",sizeof(abort_str));
 	add_xml_identifier(misc,"sigils",sig_too_few_sigs,"This spell requires at least 2 sigils",sizeof(sig_too_few_sigs));
 	add_xml_identifier(misc,"switch",switch_video_mode,"Switches to video mode %s",sizeof(switch_video_mode));
-	add_xml_identifier(misc,"cache",cache_size_str,"Cache size",sizeof(cache_size_str));
+	add_xml_identifier(misc,"cachei",cache_items_str,"items",sizeof(cache_items_str));
+	add_xml_identifier(misc,"caches",cache_size_str,"Cache size",sizeof(cache_size_str));
 	add_xml_identifier (misc, "appropr_name", use_appropriate_name, "Use an appropriate name:\nPlease do not create a name that is obscene or offensive, contains more than 2 digits, is senseless or stupid (i.e. djrtq47fa), or is made with the intent of impersonating another player.\nTake into consideration that the name you choose does affect the atmosphere of the game. Inappropriate names can and will be locked.", sizeof (use_appropriate_name) );
 	add_xml_identifier(misc,"edit_quantity",quantity_edit_str,"Rightclick on the quantity you wish to edit",sizeof(quantity_edit_str));
 	add_xml_identifier(misc,"equip_here",equip_here_str,"Place an item in these boxes to equip it",sizeof(equip_here_str));
@@ -1576,7 +1584,7 @@ void init_help()
 	add_xml_identifier(misc, "cm_dialog_options", cm_dialog_options_str, "Auto close storage dialogue\nAuto select storage option in dialogue", sizeof(cm_dialog_options_str));
 	add_xml_identifier(misc, "cm_dialog_menu", cm_dialog_menu_str, "--\nEnable Keypresses\nKeypresses Anywhere", sizeof(cm_dialog_menu_str));
 	add_xml_identifier(misc, "cm_url_menu", cm_url_menu_str, "Open\nFind In Console\nMark Visited\nMark Unvisited\n--\nDelete\n--\nDelete All", sizeof(cm_url_menu_str));	
-	add_xml_identifier(misc, "cm_counters_menu", cm_counters_menu_str, "Delete Entry\n--\nReset Session Total\n--\nEnable Floating Messages For Category", sizeof(cm_counters_menu_str));
+	add_xml_identifier(misc, "cm_counters_menu", cm_counters_menu_str, "Delete Entry\n--\nReset Session Total\n--\nEnable Floating Messages For Category\n--\nPrint Category\nPrint All Categories\nPrint Just Session Information", sizeof(cm_counters_menu_str));
 	add_xml_identifier(misc, "cm_help_options", cm_help_options_str, "Right-click for options.", sizeof(cm_help_options_str));
 	add_xml_identifier(misc, "cm_npcname_menu", cm_npcname_menu_str, "Copy NPC Name", sizeof(cm_npcname_menu_str));
 	add_xml_identifier(misc, "cm_dialog_copy_menu", cm_dialog_copy_menu_str, "Exclude Responses\nRemove newlines", sizeof(cm_dialog_copy_menu_str));
