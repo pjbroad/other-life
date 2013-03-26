@@ -284,6 +284,22 @@ void add_floating_message(int actor_id, char * str, int direction, float r, floa
  */
 extern void handle_stats_selection(int stat, Uint32 flags);
 
+#ifdef OTHER_LIFE
+typedef struct
+{
+	Uint16 base;
+	Uint16 current;
+	char name[32];
+} xattrib_struct;
+#define MAX_XATTRIBS 32
+extern xattrib_struct xattribs[MAX_XATTRIBS];
+extern int num_xattribs;
+extern int use_xattribs;
+void init_xattribs();
+void get_xattribs(Uint16 count, Uint16 *data);
+void get_partial_xattribs(Uint16 entry, Uint16 *data);
+#endif
+
 #ifdef __cplusplus
 } // extern "C"
 #endif

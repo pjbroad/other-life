@@ -51,6 +51,99 @@ void floatingmessages_compare_stat(int actor_id, int value, int new_value, const
 
 void draw_stat_final(int len, int x, int y, const unsigned char * name, const char * value);
 
+#ifdef OTHER_LIFE
+
+xattrib_struct xattribs[MAX_XATTRIBS];
+int num_xattribs = 0;
+int use_xattribs = 0;
+
+void parse_xattribs(xmlNode *node)
+{
+	xmlNode *def;
+
+	for (def = node->children; def; def = def->next)
+	{
+		if (xmlStrcasecmp (def->name, (xmlChar*)"cross") == 0)
+			parse_xattribs(def);
+		else if (xmlStrcasecmp (node->name, (xmlChar*)"cross") == 0 && def->type == XML_ELEMENT_NODE)
+		{
+			if(num_xattribs < MAX_XATTRIBS)
+			{
+				get_item_string_value(xattribs[num_xattribs].name, sizeof(xattribs[num_xattribs].name), def, "name");
+				num_xattribs++;
+			}
+			else
+				LOG_ERROR("Found more than MAX_XATTRIBS (%i) cross attributes!\n", MAX_XATTRIBS);
+		}
+	}
+}
+
+void init_xattribs()
+{
+	xmlDoc *doc;
+	xmlNode *root = NULL;
+
+	memset(xattribs, 0, sizeof(xattribs));
+	if ((doc = xmlReadFile("languages/en/strings/stats.xml", NULL, 0)) == NULL)
+	{
+		LOG_ERROR("Could not read 'languages/en/strings/stats.xml'\n");
+	}
+	// Can we find a root element
+	else if ((root = xmlDocGetRootElement(doc)) == NULL)
+	{
+		LOG_ERROR("No XML root element found in 'languages/en/strings/stats.xml'");
+	}
+	// Is the root the right type?
+	else if (xmlStrcmp(root->name, (xmlChar*)"root"))
+	{
+		LOG_ERROR("Invalid root element '%s' in 'languages/en/strings/stats.xml'", root->name);
+	}
+	// We've found our expected root, now parse the children
+	else
+	{
+		parse_xattribs(root);
+	}
+
+	xmlFreeDoc(doc);
+}
+
+void get_xattribs(Uint16 count, Uint16 *data)
+{
+	int i;
+
+	if (count > num_xattribs)
+	{
+		LOG_ERROR("Got more cross attributes than I know about (%i)!\n", num_xattribs);
+		return;
+	}
+	for(i=0; i<count; i++)
+	{
+		xattribs[i].base = SDL_SwapLE16(*(Uint16 *)(data+2*i));
+		xattribs[i].current = SDL_SwapLE16(*(Uint16 *)(data+2*i+1));
+	}
+	use_xattribs = 1;
+}
+
+void get_partial_xattribs(Uint16 entry, Uint16 *data)
+{
+	if (entry >= MAX_XATTRIBS)
+	{
+		LOG_ERROR("Cross attribute entry is higher than the number of known cross attributes (%i)!\n", num_xattribs);
+		return;
+	}
+		xattribs[entry].base = SDL_SwapLE16(*(Uint16 *)(data));
+		xattribs[entry].current = SDL_SwapLE16(*(Uint16 *)(data+1));
+}
+
+void draw_statx(int len, int x, int y, xattrib_struct xattr)
+{
+        char str[9];
+        safe_snprintf(str,sizeof(str),"%2i/%-2i",xattr.current,xattr.base);
+        str[8]=0;
+        draw_stat_final(len,x,y,xattr.name,str);
+}
+
+#endif
 
 void get_the_stats(Sint16 *stats, size_t len_in_bytes)
 {
@@ -607,9 +700,129 @@ int display_stats_handler(window_info *win)
         char str[10];
         int x,y;
 
-        x=5;
+        x=4;
         y=5;
 
+#ifdef OTHER_LIFE
+	if (use_xattribs)
+	{
+		int i;
+
+	        //cross attributes
+	        glColor3f(1.0f,1.0f,0.0f);
+	        draw_string_small(x,y,attributes.cross,1);
+
+		for(i=0; i<num_xattribs; i++)
+		{
+			if(xattribs[i].name[0] > 0)
+			{
+	        		y+=14;
+				draw_statx(24,x,y,xattribs[i]);
+			}
+		}
+	}
+	else
+	{
+	        draw_string_small(x,y,attributes.base,1);
+	        y+=14;
+	        draw_stat(24,x,y,&(cur_stats.phy),&(attributes.phy));
+
+	        y+=14;
+	        draw_stat(24,x,y,&(cur_stats.coo),&(attributes.coo));
+
+	        y+=14;
+	        draw_stat(24,x,y,&(cur_stats.rea),&(attributes.rea));
+
+	        y+=14;
+	        draw_stat(24,x,y,&(cur_stats.wil),&(attributes.wil));
+
+	        y+=14;
+	        draw_stat(24,x,y,&(cur_stats.ins),&(attributes.ins));
+
+	        y+=14;
+	        draw_stat(24,x,y,&(cur_stats.vit),&(attributes.vit));
+
+	        //cross attributes
+	        glColor3f(1.0f,1.0f,0.0f);
+	        y+=20;
+
+	        draw_string_small(x,y,attributes.cross,1);
+	        y+=14;
+	        draw_statf(24,x,y,&(cur_stats.might),&(attributes.might));
+
+	        y+=14;
+	        draw_statf(24,x,y,&(cur_stats.matter),&(attributes.matter));
+
+	        y+=14;
+	        draw_statf(24,x,y,&(cur_stats.tough),&(attributes.tough));
+
+	        y+=14;
+	        draw_statf(24,x,y,&(cur_stats.charm),&(attributes.charm));
+
+	        y+=14;
+	        draw_statf(24,x,y,&(cur_stats.react),&(attributes.react));
+
+	        y+=14;
+	        draw_statf(24,x,y,&(cur_stats.perc),&(attributes.perc));
+
+	        y+=14;
+	        draw_statf(24,x,y,&(cur_stats.ration),&(attributes.ration));
+
+	        y+=14;
+	        draw_statf(24,x,y,&(cur_stats.dext),&(attributes.dext));
+
+	        y+=14;
+	        draw_statf(24,x,y,&(cur_stats.eth),&(attributes.eth));
+
+	        glColor3f(0.5f,0.5f,1.0f);
+	        y+=14;  // blank lines for spacing
+	        y+=14;  // blank lines for spacing
+
+	        //other attribs
+	        y+=20;
+	        safe_snprintf(str, sizeof(str), "%i",cur_stats.food_level);
+	        draw_stat_final(24,x,y,attributes.food.name,str);
+
+	        y+=14;
+	        draw_stat(24,x,y,&(cur_stats.material_points),&(attributes.material_points));
+
+	        y+=14;
+	        draw_stat(24,x,y,&(cur_stats.ethereal_points),&(attributes.ethereal_points));
+
+	        y+=14;
+	        draw_stat(24,x,y,&(cur_stats.action_points),&(attributes.action_points));
+
+	        //other info
+	        safe_snprintf(str, sizeof(str), "%i",cur_stats.overall_skill.base-cur_stats.overall_skill.cur);
+	        draw_stat_final(24,199,y,attributes.pickpoints,str);
+	}
+
+        //nexuses here
+        glColor3f(1.0f,1.0f,1.0f);
+        x+=195;
+        y=5;
+
+        draw_string_small(x,y,attributes.nexus,1);
+
+        y+=14;
+        draw_stat(24,x,y,&(cur_stats.human_nex),&(attributes.human_nex));
+
+        y+=14;
+        draw_stat(24,x,y,&(cur_stats.animal_nex),&(attributes.animal_nex));
+
+        y+=14;
+        draw_stat(24,x,y,&(cur_stats.vegetal_nex),&(attributes.vegetal_nex));
+
+        y+=14;
+        draw_stat(24,x,y,&(cur_stats.inorganic_nex),&(attributes.inorganic_nex));
+
+        y+=14;
+        draw_stat(24,x,y,&(cur_stats.artificial_nex),&(attributes.artificial_nex));
+
+        y+=14;
+        draw_stat(24,x,y,&(cur_stats.magic_nex),&(attributes.magic_nex));
+
+#else
         draw_string_small(x,y,attributes.base,1);
         y+=14;
         draw_stat(24,x,y,&(cur_stats.phy),&(attributes.phy));
@@ -707,7 +920,7 @@ int display_stats_handler(window_info *win)
 
         y+=14;
         draw_stat(24,x,y,&(cur_stats.magic_nex),&(attributes.magic_nex));
-
+#endif
         y+=20;
         //skills
         glColor3f(1.0f,0.5f,0.2f);
@@ -767,7 +980,29 @@ int display_stats_handler(window_info *win)
 
         y+=14;
         statsinfo[12].is_selected==1?glColor3f(1.0f,0.5f,0.5f):glColor3f(1.0f,0.5f,0.2f);
+#ifdef OTHER_LIFE
+	if(use_xattribs)
+        	cur_stats.overall_skill.cur = cur_stats.overall_skill.base;
+#endif
         draw_skill(46,x,y,&(cur_stats.overall_skill),&(attributes.overall_skill),cur_stats.overall_exp,cur_stats.overall_exp_next_lev);
+
+#ifdef OTHER_LIFE
+	if(use_xattribs)
+	{
+	        glColor3f(0.5f,0.5f,1.0f);
+
+	        //other attribs
+	        y+=20;
+	        draw_stat(24,x,y,&(cur_stats.material_points),&(attributes.material_points));
+
+	        y+=14;
+	        draw_stat(24,x,y,&(cur_stats.ethereal_points),&(attributes.ethereal_points));
+
+		x+=195;
+	        y-=14;
+	        draw_stat(24,x,y,&(cur_stats.action_points),&(attributes.action_points));
+	}
+#endif
 
         return 1;
 }

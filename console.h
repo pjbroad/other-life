@@ -14,7 +14,7 @@ extern "C" {
 
 #ifndef DEF_INFO
  #ifdef OTHER_LIFE
-  #define DEF_INFO "9"
+  #define DEF_INFO "10"
  #else
   #define DEF_INFO ""
  #endif
