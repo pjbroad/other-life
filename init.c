@@ -88,7 +88,9 @@
 #ifdef  CUSTOM_UPDATE
 #include "custom_update.h"
 #endif  //CUSTOM_UPDATE
-
+#ifdef OTHER_LIFE
+#include "stats.h"
+#endif
 #define	CFG_VERSION 7	// change this when critical changes to cfg are made that will break it
 
 int ini_file_size=0;
@@ -773,6 +775,10 @@ void init_stuff()
 
 	//Good, we should be in the right working directory - load all translatables from their files
 	load_translatables();
+
+#ifdef OTHER_LIFE
+	init_xattribs();
+#endif
 
 	//if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_NOPARACHUTE | SDL_INIT_EVENTTHREAD) == -1)	// experimental
 	if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_NOPARACHUTE) == -1)

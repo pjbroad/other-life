@@ -34,6 +34,9 @@
 #include "encyclopedia.h"
 #include "errors.h"
 #include "events.h"
+#ifdef OTHER_LIFE
+ #include "ext_protocol.h"
+#endif
 #include "gl_init.h"
 #include "icon_window.h"
 #include "init.h"
@@ -180,7 +183,11 @@ int start_rendering()
 
 				while((message = queue_pop(message_queue)) != NULL)
 				{
+#ifdef OTHER_LIFE
+					handle_extended_protocol_message(message->data, message->length);
+#else
 					process_message_from_server(message->data, message->length);
+#endif
 					free(message->data);
 					free(message);
 				}
