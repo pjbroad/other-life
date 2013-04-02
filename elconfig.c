@@ -530,7 +530,7 @@ static void consolidate_rotate_chat_log_status(void)
 	if ((rotate_chat_log==1) && !rotate_chat_log_config_var)
 	{
 		rotate_chat_log_config_var = 1;
-		set_var_unsaved("rotate_chat_log", OPT_BOOL);
+		set_var_unsaved("rotate_chat_log", INI_FILE_VAR);
 	}
 }
 
@@ -791,7 +791,7 @@ int switch_video(int mode, int full_screen)
 #ifndef LINUX
 	LOG_TO_CONSOLE(c_green2, video_restart_str);
 	video_mode=mode;
-	set_var_unsaved("switch_vidmode", INI_FILE_VAR);
+	set_var_unsaved("video_mode", INI_FILE_VAR);
 	return 1;
 #endif
 
@@ -1856,7 +1856,6 @@ static void init_ELC_vars(void)
 	add_var(OPT_BOOL,"use_cursor_on_animal", "useanimal", &include_use_cursor_on_animals, change_var, 0, "For animals, right click includes use cursor", "Toggles inclusion of the use cursor when right clicking on animals, useful for your summoned creatures.  Even when this option is off, you can still click the use icon.", CONTROLS);
 	add_var(OPT_BOOL,"disable_double_click", "disabledoubleclick", &disable_double_click, change_var, 0, "Disable double-click button safety", "Some buttons are protected from mis-click by requiring you to double-click them.  This option disables that protection.", CONTROLS);
 	add_var(OPT_BOOL,"achievements_ctrl_click", "achievementsctrlclick", &achievements_ctrl_click, change_var, 0, "Control click required to view achievements", "To view a players achievements, you click on them with the eye cursor.  With this option enabled, you must use Ctrl+click.", CONTROLS);
-	add_var(OPT_BOOL,"enable_trade_log", "enabletradelog", &enable_trade_log, change_var, 0, "Enable trade log", "Enable logging of all successful trades. (Experimental)", CONTROLS);
 	add_var(OPT_INT,"mouse_limit","lmouse",&mouse_limit,change_int,15,"Mouse Limit","You can increase the mouse sensitivity and cursor changing by adjusting this number to lower numbers, but usually the FPS will drop as well!",CONTROLS,1,INT_MAX);
 #ifdef OSX
 	add_var(OPT_BOOL,"osx_right_mouse_cam","osxrightmousecam", &osx_right_mouse_cam, change_var,0,"Rotate Camera with right mouse button", "Allows to rotate the camera by pressing the right mouse button and dragging the cursor", CONTROLS);
@@ -1867,6 +1866,8 @@ static void init_ELC_vars(void)
 	add_var(OPT_BOOL,"big_cursors","big_cursors", &big_cursors, change_var,0,"Big Pointers", "Use 32x32 graphics for pointer. Only works with SDL cursor turned off.", CONTROLS);
 	add_var(OPT_FLOAT,"pointer_size","pointer_size", &pointer_size, change_float,1.0,"Pointer Size", "Scale the pointer. 1.0 is 1:1 scale with pointer graphic. Only works with SDL cursor turned off.", CONTROLS,0.25,4.0,0.05);
 #endif // NEW_CURSOR
+	add_var(OPT_BOOL_INI,"enable_trade_log", "enabletradelog", &enable_trade_log, change_var, 0, "Enable trade log", "Enable logging of all successful trades. (Experimental)", CONTROLS);
+	add_var(OPT_MULTI,"trade_log_mode","tradelogmode",&trade_log_mode,change_int, TRADE_LOG_NONE,"Trade log","Set how successful trades are logged.",CONTROLS,"Do not log trades", "Log only to console", "Log only to file", "Log to console and file", NULL);
 	// CONTROLS TAB
 
 

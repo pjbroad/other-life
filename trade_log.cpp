@@ -10,20 +10,24 @@
 */
 
 #include <iostream>
+#include <fstream>
 #include <sstream>
 #include <string>
 #include <time.h>
 #include <algorithm>
 
 #include "client_serv.h"
+#include "elconfig.h"
+#include "elloggingwrapper.h"
 #include "interface.h"
+#include "io/elpathwrapper.h"
 #include "item_info.h"
 #include "text.h"
 #include "trade_log.h"
+#include "translate.h"
 
 /*
  * TODO		Write to Trade Log tab in one of the existing windows.
- * TODO		Option to write to per player trade log file.
 */
 
 namespace Trade_Log
@@ -96,6 +100,7 @@ namespace Trade_Log
 			List *your_stuff;
 			List *their_stuff;
 			enum TRADE_LOG_STATE { TLS_INIT, TLS_ACCEPT, TLS_EXIT } the_state;
+			std::string filename;
 	};
 
 
@@ -131,7 +136,16 @@ namespace Trade_Log
 	//
 	void State::completed(void)
 	{
-		if (!enable_trade_log || (the_state != TLS_EXIT))
+		// TODO temporary code dlete in a bit - pick up the old version of the option
+		if (enable_trade_log && (trade_log_mode == TRADE_LOG_NONE))
+		{
+			enable_trade_log = 0;
+			set_var_unsaved("enable_trade_log", INI_FILE_VAR);
+			trade_log_mode = TRADE_LOG_CONSOLE;
+			set_var_unsaved("trade_log_mode", INI_FILE_VAR);
+		}
+		
+		if ((trade_log_mode == TRADE_LOG_NONE) || (the_state != TLS_EXIT))
 		{
 			init();
 			return;
@@ -152,10 +166,33 @@ namespace Trade_Log
 		if (their_stuff)
 			their_stuff->get_details(message, "<--");
 
-		std::string message_str =  message.str();
-		message_str.erase(std::find_if(message_str.rbegin(), message_str.rend(), std::not1(std::ptr_fun<int, int>(std::iscntrl))).base(), message_str.end());
+		// write to console
+		if ((trade_log_mode == TRADE_LOG_CONSOLE) || (trade_log_mode == TRADE_LOG_BOTH))
+		{
+			std::string message_str =  message.str();
+			message_str.erase(std::find_if(message_str.rbegin(), message_str.rend(), std::not1(std::ptr_fun<int, int>(std::iscntrl))).base(), message_str.end());
+			LOG_TO_CONSOLE(c_green2, message_str.c_str()); // stripped of final newline
+		}
 
-		LOG_TO_CONSOLE(c_green2, message_str.c_str());
+		// and/or append to a log file
+		if ((trade_log_mode == TRADE_LOG_FILE) || (trade_log_mode == TRADE_LOG_BOTH))
+		{
+			if (filename.empty())
+			{
+				std::string username = std::string(username_str);
+				std::transform(username.begin(), username.end(), username.begin(), tolower);
+				filename = std::string(get_path_config()) + "trade_" + username + ".log";
+			}
+			std::ofstream out(filename.c_str(), std::ios_base::out | std::ios_base::binary | std::ios_base::app);
+			if (!out)
+			{
+				std::string error_str = std::string(file_write_error_str) + ' ' + filename;
+				LOG_TO_CONSOLE(c_red2, error_str.c_str());
+				LOG_ERROR("%s: %s \"%s\"\n", reg_error_str, file_write_error_str, filename.c_str());
+			}
+			else
+				out << message.str();
+		}
 	}
 
 } // end of Trade_Log namespace
@@ -167,7 +204,8 @@ static Trade_Log::State the_log;
 extern "C"
 {
 	static int enable_local_debug = 0;
-	int enable_trade_log = 0; // The config window option to enable the trade log
+	int enable_trade_log = 0; // TODO temporary code delete in a bit - this is a hiden option
+	int trade_log_mode = TRADE_LOG_NONE; // The config window option to enable the trade log
 	void trade_accepted(const char *name, const trade_item *yours, const trade_item *others, int max_items)
 		{ if (enable_local_debug) printf("%s\n", __FUNCTION__); the_log.accepted(name, yours, others, max_items); }
 	void trade_exit(void) { if (enable_local_debug) printf("%s\n", __FUNCTION__); the_log.exit(); }
