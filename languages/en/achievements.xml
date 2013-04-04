@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<achievements_system>
+<achievement achievement_id="0" image_id="0" title="Tutorial Finished">This person finished the newbie tutorial!</achievement>
+<achievement achievement_id="1" image_id="5" title="Vanquisher">Novac main quest finished</achievement>
+<achievement achievement_id="2" image_id="12" title="Church donator">Donated a brick to Caton</achievement>
+<achievement achievement_id="3" image_id="1" title="Alchemist">Alchemy tutorial finished</achievement>
+<achievement achievement_id="4" image_id="2" title="Professor of Potioning">Finished the potioning tutorial.</achievement>
+<achievement achievement_id="5" image_id="4" title="Crafter">Crafting tutorial finished</achievement>
+<achievement achievement_id="6" image_id="55" title="Armorer">Finished the armor breaking quest</achievement>
+<achievement achievement_id="7" image_id="54" title="Big Belly">Has the big belly perk</achievement>
+<achievement achievement_id="8" image_id="3" title="Child of Stars">Finished the manufacturing tutorial</achievement>
+<achievement achievement_id="9" image_id="13" title="Mushroom eater rank 1">Ate 1000 mushrooms</achievement>
+<achievement achievement_id="10" image_id="14" title="Mushroom eater rank 2">Ate 5000 mushrooms</achievement>
+<achievement achievement_id="11" image_id="15" title="Mushroom eater rank 3">Ate 25000 mushrooms</achievement>
+<achievement achievement_id="12" image_id="28" title="Herbalist rank 1">Harvested 10000 plants</achievement>
+<achievement achievement_id="13" image_id="29" title="Herbalist rank 2">Harvested 25000 plants</achievement>
+<achievement achievement_id="14" image_id="30" title="Herbalist rank 3">Harvested 50000 plants</achievement>
+<achievement achievement_id="15" image_id="31" title="Miner rank 1">Harvested 10000 minerals</achievement>
+<achievement achievement_id="16" image_id="32" title="Miner rank 2">Harvested 25000 minerals</achievement>
+<achievement achievement_id="17" image_id="33" title="Miner rank 3">Harvested 50000 minerals</achievement>
+<achievement achievement_id="18" image_id="34" title="Lucky finder rank 1">Found 5 rare stones</achievement>
+<achievement achievement_id="19" image_id="35" title="Lucky finder rank 2">Found 10 rare stones</achievement>
+<achievement achievement_id="20" image_id="36" title="Lucky finder rank 3">Found 30 rare stones</achievement>
+<achievement achievement_id="21" image_id="40" title="Mother Nature hates me rank 1">Got 5000 damage from harvesting events</achievement>
+<achievement achievement_id="22" image_id="41" title="Mother Nature hates me rank 2">Got 10000 damage from harvesting events</achievement>
+<achievement achievement_id="23" image_id="42" title="Mother Nature hates me rank 3">Got 50000 damage from harvesting events</achievement>
+<achievement achievement_id="24" image_id="37" title="Lucky crafter rank 1">Made 5 special items</achievement>
+<achievement achievement_id="25" image_id="38" title="Lucky crafter rank 2">Made 10 special items</achievement>
+<achievement achievement_id="26" image_id="39" title="Lucky crafter rank 3">Made 30 special items</achievement>
+<achievement achievement_id="27" image_id="46" title="Exterminator rank 1">20 Haidir missions</achievement>
+<achievement achievement_id="28" image_id="47" title="Exterminator rank 2">50 Haidir missions</achievement>
+<achievement achievement_id="29" image_id="48" title="Exterminator rank 3">200 Haidir missions</achievement>
+<achievement achievement_id="30" image_id="52" title="Knowledgeable">Read 100 books</achievement>
+<achievement achievement_id="31" image_id="53" title="Very Knowledgeable">Read 300 books</achievement>
+<achievement achievement_id="32" image_id="8" title="Armor Piercer">Ranging AP 60</achievement>
+<achievement achievement_id="33" image_id="49" title="Mason rank 1">Lost 6 rostogols</achievement>
+<achievement achievement_id="34" image_id="50" title="Mason rank 2">Lost 15 rostogols</achievement>
+<achievement achievement_id="35" image_id="51" title="Mason rank 3">Lost 40 rostogols</achievement>
+<achievement achievement_id="36" image_id="16" title="Low level killer rank 1">Killed 10000 weak monsters</achievement>
+<achievement achievement_id="37" image_id="17" title="Low level killer rank 2">Killed 25000 weak monsters</achievement>
+<achievement achievement_id="38" image_id="18" title="Low level killer rank 3">Killed 50000 weak monsters</achievement>
+<achievement achievement_id="39" image_id="19" title="Medium level killer rank 1">Killed 10000 medium level monsters</achievement>
+<achievement achievement_id="40" image_id="20" title="Medium level killer rank 2">Killed 25000 medium level monsters</achievement>
+<achievement achievement_id="41" image_id="21" title="Medium level killer rank 3">Killed 50000 medium level monsters</achievement>
+<achievement achievement_id="42" image_id="22" title="High level killer rank 1">Killed 10000 high level monsters</achievement>
+<achievement achievement_id="43" image_id="23" title="High level killer rank 2">Killed 25000 high level monsters</achievement>
+<achievement achievement_id="44" image_id="24" title="High level killer rank 3">Killed 50000 high level monsters</achievement>
+<achievement achievement_id="45" image_id="25" title="Very high level killer rank 1">Killed 10000 very high level monsters</achievement>
+<achievement achievement_id="46" image_id="26" title="Very high killer rank 2">Killed 25000 very high level monsters</achievement>
+<achievement achievement_id="47" image_id="27" title="Very high killer rank 3">Killed 50000 very high level monsters</achievement>
+<achievement achievement_id="48" image_id="43" title="Instancer rank 1">Went to 20 instances</achievement>
+<achievement achievement_id="49" image_id="44" title="Instancer rank 2">Went to 50 instances</achievement>
+<achievement achievement_id="50" image_id="45" title="Instancer rank 3">Went to 200 instances</achievement>
+
+<image_settings size="32" display="32"/>
+<window_settings per_row="5" min_rows="1" max_rows="12" border="2" prev="[&lt;]" next="[&gt;]" close="[close]"/>
+<texture>./textures/achievements01.bmp</texture>
+
+
+<strings
+       too_many="Too many achievement windows open already"
+       xml_fail="Failed to load achievement data"
+       texture_fail="Failed to load achievement texture"
+       close_help="Close or +ctrl close all"
+       no_next_help="No more pages"
+       no_prev_help="No previous page"
+       next_help="Next page"
+       prev_help="Previous page"
+/>
+
+</achievements_system>

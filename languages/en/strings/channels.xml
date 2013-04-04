@@ -20,7 +20,6 @@
 	<channel number="6" name="Invasions">Chat about Invasions and Leonard</channel>
 	<channel number="7" name="Events">Chat about Contests and Events</channel>
 	<channel number="8" name="Leonard">Chat about Leonard</channel>
-	<channel number="11" name="Prattler">Come listen to the story bot</channel>
 	<channel number="20" name="Off Topic">Chat about (almost) any topic</channel>
 	<channel number="24" name="Irilion">Chat for people visiting Irilion</channel>
 	<channel number="124" name="Trivia">Play Trivia!</channel>
