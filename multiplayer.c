@@ -103,7 +103,11 @@ short real_game_minute = 0;
 short real_game_second = 0;
 int is_acid_rain_day = 0, is_raining = 0;
 
-int loadsofchannels = 3; // default to only 3 channels
+#if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
+  int loadsofchannels = 4; // default to only 4 channels
+#else
+  int loadsofchannels = 3; // default to only 3 channels
+#endif
 int firstchannel;
 int lastchannel;
 
