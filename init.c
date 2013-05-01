@@ -233,10 +233,8 @@ void read_config()
 	if ( !read_el_ini () )
 	{
 		// oops, the file doesn't exist, give up
-		const char *err_stg = "Failure reading el.ini";
-		fprintf(stderr, "%s\n", err_stg);
-		LOG_ERROR(err_stg);
 		safe_snprintf(str, sizeof(str), "Failure reading %s", INIFILE);
+		fprintf(stderr, "%s\n", str);
 		LOG_ERROR(str);
 		SDL_Quit ();
 		exit (1);
