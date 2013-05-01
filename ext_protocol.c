@@ -1,4 +1,5 @@
 #include <SDL_types.h>
+#include <zlib.h>
 #include "errors.h"
 #include "ext_protocol.h"
 #include "multiplayer.h"
@@ -54,10 +55,46 @@ void handle_extended_protocol_message(const Uint8 *in_data, int data_length)
 #endif
 			break;
 		case OL_COMPRESSED_PACKET:
+			{
+				Uint8 buffer[262144];
+				uLong buf_len;
+				int result;
 #if 0
-			safe_snprintf(info, sizeof(info), "Got OL_COMPRESSED_PACKET message. LENGTH: %u/%i, FLAGS: %u",SDL_SwapLE16(*(Uint16 *)(in_data+1)), data_length, in_data[3]);
-			LOG_TO_CONSOLE(c_green1, info);
+				safe_snprintf(info, sizeof(info), "Got OL_COMPRESSED_PACKET message. LENGTH: %u/%i, FLAGS: %u",SDL_SwapLE16(*(Uint16 *)(in_data+1)), data_length, in_data[3]);
+				LOG_TO_CONSOLE(c_green1, info);
 #endif
+				if(data_length < 5)
+					break;
+				buf_len = sizeof(buffer);
+				result = uncompress(buffer, &buf_len, in_data+4, data_length-4);
+				if(result != Z_OK)
+				{
+					safe_snprintf(info, sizeof(info), "Error uncompressing data from server! Result: %i", result);
+					LOG_TO_CONSOLE(c_red2, info);
+				}
+				else
+				{
+					Uint8 *new_data;
+					Uint16 size;
+					Uint32 position = 0;
+
+					while(position < buf_len)
+					{
+						size = SDL_SwapLE16(*(Uint16 *)(buffer+position+1))+2;
+						new_data = malloc(size);
+						memcpy(new_data, &buffer[position], size);
+#if 0
+						safe_snprintf(info, sizeof(info), "Generated EL message. LENGTH: %u/%i, EL Packet Type: %u",SDL_SwapLE16(*(Uint16 *)(new_data+1)), size, new_data[0]);
+						LOG_TO_CONSOLE(c_green1, info);
+						safe_snprintf(info, sizeof(info), "buf_len: %u, position: %u, size: %u",buf_len, position, size);
+						LOG_TO_CONSOLE(c_green1, info);
+#endif
+						handle_extended_protocol_message(new_data, size);
+						free(new_data);
+						position += size;
+					}
+				}
+			}
 			break;
 		case OL_OLD_EL_PACKET:
 			{
@@ -68,10 +105,7 @@ void handle_extended_protocol_message(const Uint8 *in_data, int data_length)
 #endif
 				new_data = malloc(data_length-1);
 				new_data[0] = in_data[3];
-				if(SDL_BYTEORDER == SDL_LIL_ENDIAN)
-					*((Uint16 *)(new_data+1)) = data_length-3;
-				else
-					*((Uint16 *)(new_data+1)) = SDL_Swap16(data_length-3);
+				*((Uint16 *)(new_data+1)) = SDL_SwapLE16((Uint16)data_length-3);
 				if(data_length > 4)
 					memcpy(&new_data[3], &in_data[4], data_length-3);
 #if 0
