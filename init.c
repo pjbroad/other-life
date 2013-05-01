@@ -233,6 +233,9 @@ void read_config()
 	if ( !read_el_ini () )
 	{
 		// oops, the file doesn't exist, give up
+		const char *err_stg = "Failure reading el.ini";
+		fprintf(stderr, "%s\n", err_stg);
+		LOG_ERROR(err_stg);
 		safe_snprintf(str, sizeof(str), "Failure reading %s", INIFILE);
 		LOG_ERROR(str);
 		SDL_Quit ();
@@ -784,6 +787,7 @@ void init_stuff()
 	if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_NOPARACHUTE) == -1)
 		{
 			LOG_ERROR("%s: %s\n", no_sdl_str, SDL_GetError());
+			fprintf(stderr, "%s: %s\n", no_sdl_str, SDL_GetError());
 			SDL_Quit();
 			exit(1);
 		}
@@ -1019,6 +1023,7 @@ void init_stuff()
 	update_loading_win(init_network_str, 5);
 	if(SDLNet_Init()<0){
 		LOG_ERROR("%s: %s\n", failed_sdl_net_init, SDLNet_GetError());
+		fprintf(stderr, "%s: %s\n", failed_sdl_net_init, SDLNet_GetError());
 		SDLNet_Quit();
 		SDL_Quit();
 		exit(2);
@@ -1027,6 +1032,7 @@ void init_stuff()
 
 	if(SDL_InitSubSystem(SDL_INIT_TIMER)<0){
 		LOG_ERROR("%s: %s\n", failed_sdl_timer_init, SDL_GetError());
+		fprintf(stderr, "%s: %s\n", failed_sdl_timer_init, SDL_GetError());
 		SDL_Quit();
 	 	exit(1);
 	}
@@ -1056,6 +1062,7 @@ void init_stuff()
 	have_rules=read_rules();
 	if(!have_rules){
 		LOG_ERROR(rules_not_found);
+		fprintf(stderr, "%s\n", rules_not_found);
 		SDL_Quit();
 		exit(3);
 	}
