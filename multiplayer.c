@@ -54,6 +54,10 @@
 #include "missiles.h"
 #include "threads.h"
 
+#ifdef OTHER_LIFE
+  #include "ext_protocol.h"
+#endif
+
 /* NOTE: This file contains implementations of the following, currently unused, and commented functions:
  *          Look at the end of the file.
  *
@@ -535,6 +539,16 @@ void connect_to_server()
 
 	//send the current version to the server
 	send_version_to_server(&ip);
+
+#ifdef OTHER_LIFE
+	{
+		Uint8 str[2];
+
+		str[0]= OL_COMPRESSED_PACKET;
+		str[1]= 0;
+		my_tcp_send(my_socket, str, 2);
+	}
+#endif
 
 	//ask for the opening screen
 	if(!previously_logged_in)
