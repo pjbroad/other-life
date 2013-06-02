@@ -2,6 +2,7 @@
 #include <zlib.h>
 #include "errors.h"
 #include "ext_protocol.h"
+#include "knowledge.h"
 #include "multiplayer.h"
 #include "stats.h"
 #include "text.h"
@@ -45,6 +46,7 @@ void handle_extended_protocol_message(const Uint8 *in_data, int data_length)
 						get_xattribs(a_length, (Uint16 *)(in_data+16));
 					else
 						get_partial_xattribs(start, (Uint16 *)(in_data+16));
+					update_research_rate();
 				}
 			}
 			break;

@@ -120,6 +120,26 @@ void update_research_rate(void)
 	else
 	{
 		last_research_completed = your_info.research_completed;
+#ifdef OTHER_LIFE
+		if(use_xattribs)
+		{
+			int i;
+			for(i=0; i<num_xattribs; i++)
+			{
+				if(my_strcompare(xattribs[i].name,"Rationality"))
+					break;
+			}
+			if(i<num_xattribs)
+			{
+				research_rate = 1.0 / (float)xattribs[i].current;
+			}
+			else
+			{
+				research_rate = 2.0 / (float)(your_info.wil.cur + your_info.rea.cur);
+			}
+		}
+		else
+#endif
 		research_rate = 2.0 / (float)(your_info.wil.cur + your_info.rea.cur);
 	}
 }
