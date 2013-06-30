@@ -38,6 +38,7 @@
 #include "url.h"
 #include "command_queue.h"
 #include "counters.h"
+#include "map.h"
 #include "minimap.h"
 #include "errors.h"
 #include "io/elpathwrapper.h"
@@ -816,7 +817,7 @@ int command_mark(char *text, int len)
 	return 1;
 }
 
-int command_unmark(char *text, int len)
+int command_unmark_special(char *text, int len, int do_log)
 {
 	int i;
 
@@ -831,14 +832,24 @@ int command_unmark(char *text, int len)
 				char str[512];
 				marks[i].x = marks[i].y = -1;
 				save_markings();
-				safe_snprintf(str, sizeof(str), unmarked_str, marks[i].text);
-				LOG_TO_CONSOLE(c_orange1, str);
+				load_map_marks(); // simply to compact the array and make room for new marks
+				if (do_log)
+				{
+					safe_snprintf(str, sizeof(str), unmarked_str, marks[i].text);
+					LOG_TO_CONSOLE(c_orange1, str);
+				}
 				break;
 			}
 		}
 	}
 	return 1;
 }
+
+int command_unmark(char *text, int len)
+{
+	return command_unmark_special(text, len, 1);
+}
+
 
 int command_mark_color(char *text, int len)
 {
