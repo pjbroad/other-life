@@ -10,6 +10,7 @@
 #include "global.h"
 #include "map.h"
 #include "misc.h"
+#include "multiplayer.h"
 #include "particles.h"
 #include "textures.h"
 #include "shadows.h"
@@ -184,6 +185,7 @@ void weather_clear()
 	thunders_count = 0;
 	lightning_stop = 0;
 	lightning_falling = 0;
+	is_raining = 0;
 	weather_ratios[0] = 1.0;
 	for(i = 1; i < MAX_WEATHER_TYPES; ++i)
 	{
