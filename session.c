@@ -10,6 +10,7 @@
 #include "missiles.h"
 #include "multiplayer.h"
 #include "platform.h"
+#include "sound.h"
 #include "stats.h"
 #include "translate.h"
 #include "counters.h"
@@ -20,19 +21,25 @@
 #include "gamewin.h"
 
 int session_win = -1;
+int exp_log_threshold = 5000;
 static int reconnecting = 0;
 static int last_port = -1;
 static unsigned char last_server_address[60];
 static int show_reset_help = 0;
+static int last_mouse_click_y = -1;
+static int last_mouse_over_y = -1;
 
-player_attribs session_stats;
+static Uint32 session_exp[NUM_SKILLS];
+static Uint32 max_exp[NUM_SKILLS];
+static Uint32 last_exp[NUM_SKILLS];
+
 Uint32 session_start_time;
 
 int display_session_handler(window_info *win);
 
 int get_session_exp_ranging(void)
 {
-	return your_info.ranging_exp - session_stats.ranging_exp;
+	return *(statsinfo[SI_RAN].exp) - session_exp[SI_RAN];
 }
 
 static int mouseover_session_reset_handler(void)
@@ -42,10 +49,25 @@ static int mouseover_session_reset_handler(void)
 	return 0;
 }
 
+static int click_session_handler(window_info *win, int mx, int my, Uint32 flags)
+{
+	last_mouse_click_y = my;
+	do_click_sound();
+	return 1;
+}
+
+static int mouseover_session_handler(window_info *win, int mx, int my)
+{
+	last_mouse_over_y = my;
+	return 1;
+}
+
 void fill_session_win(void)
 {
 	int reset_button_id = -1;
 	set_window_handler(session_win, ELW_HANDLER_DISPLAY, &display_session_handler);
+	set_window_handler(session_win, ELW_HANDLER_CLICK, &click_session_handler );
+	set_window_handler(session_win, ELW_HANDLER_MOUSEOVER, &mouseover_session_handler );
 
 	reset_button_id=button_add_extended(session_win, reset_button_id, NULL, 450, 3, 0, 0, 0, 1.0f, newcol_r, newcol_g, newcol_b, reset_str);
 	widget_set_OnClick(session_win, reset_button_id, session_reset_handler);
@@ -53,21 +75,45 @@ void fill_session_win(void)
 	
 }
 
+void set_last_skill_exp(size_t skill, int exp)
+{
+	if (skill < NUM_SKILLS)
+	{
+		last_exp[skill] = exp;
+		if (exp > max_exp[skill])
+			max_exp[skill] = exp;
+		if ((skill != SI_ALL) && (exp >= exp_log_threshold) && (exp_log_threshold > 0))
+		{
+			char str[80];
+			safe_snprintf(str, sizeof(str), "You gained %d exp for %s.", exp, statsinfo[skill].skillnames->name);
+			LOG_TO_CONSOLE(c_green2,str);
+		}
+	}
+}
+
+void set_session_exp_to_current(void)
+{
+	int i;
+	for (i=0; i<NUM_SKILLS; i++)
+	{
+		max_exp[i] = last_exp[i] = 0;
+		session_exp[i] = *(statsinfo[i].exp);
+	}
+}
+
 int display_session_handler(window_info *win)
 {
-	int x, y, timediff;
-	char buffer[80];
-	player_attribs cur_stats = your_info;
+	int i, x, y, timediff;
+	char buffer[128];
 
 	x = 10;
 	y = 21;
 	timediff = 0;
 
 	glColor3f(1.0f, 1.0f, 1.0f);
-	draw_string_small(x, y, (unsigned char*)"Skill", 1);
-
-	glColor3f(1.0f, 1.0f, 1.0f);
-	draw_string_small(x + 200, y, (unsigned char*)"Experience Gain", 1);
+	safe_snprintf(buffer, sizeof(buffer), "%-20s%-17s%-17s%-17s",
+		"Skill", "Total Exp", "Max Exp", "Last Exp" );
+	draw_string_small(x, y, (unsigned char*)buffer, 1);
 
 	glDisable(GL_TEXTURE_2D);
 	glColor3f(newcol_r, newcol_g, newcol_b);
@@ -80,72 +126,23 @@ int display_session_handler(window_info *win)
 
 	y = 55;
 
-	draw_string_small(x, y, attributes.attack_skill.name , 1);
-	safe_snprintf(buffer, sizeof(buffer), "%d", cur_stats.attack_exp - session_stats.attack_exp);
-	draw_string_small(x + 200, y, (unsigned char*)buffer, 1);
+	for (i=0; i<NUM_SKILLS; i++)
+	{
+		if ((last_mouse_click_y >= y) && (last_mouse_click_y < y+16))
+			elglColourN("global.mouseselected");
+		else if ((last_mouse_over_y >= y) && (last_mouse_over_y < y+16))
+			elglColourN("global.mousehighlight");
+		else
+			glColor3f(1.0f, 1.0f, 1.0f);
+		safe_snprintf(buffer, sizeof(buffer), "%-20s%-17u%-17u%-17u",
+			statsinfo[i].skillnames->name, *(statsinfo[i].exp) - session_exp[i], max_exp[i], last_exp[i]);
+		draw_string_small(x, y, (unsigned char*)buffer, 1);
+		y += 16;
+	}
+
 	y += 16;
 
-	draw_string_small(x, y, attributes.defense_skill.name , 1);
-	safe_snprintf(buffer, sizeof(buffer), "%d", cur_stats.defense_exp - session_stats.defense_exp);
-	draw_string_small(x + 200, y, (unsigned char*)buffer, 1);
-	y += 16;
-
-	draw_string_small(x, y, attributes.harvesting_skill.name , 1);
-	safe_snprintf(buffer, sizeof(buffer), "%d", cur_stats.harvesting_exp - session_stats.harvesting_exp);
-	draw_string_small(x + 200, y, (unsigned char*)buffer, 1);
-	y += 16;
-
-	draw_string_small(x, y, attributes.alchemy_skill.name , 1);
-	safe_snprintf(buffer, sizeof(buffer), "%d", cur_stats.alchemy_exp - session_stats.alchemy_exp);
-	draw_string_small(x + 200, y, (unsigned char*)buffer, 1);
-	y += 16;
-
-	draw_string_small(x, y, attributes.magic_skill.name , 1);
-	safe_snprintf(buffer, sizeof(buffer), "%d", cur_stats.magic_exp - session_stats.magic_exp);
-	draw_string_small(x + 200, y, (unsigned char*)buffer, 1);
-	y += 16;
-
-	draw_string_small(x, y, attributes.potion_skill.name , 1);
-	safe_snprintf(buffer, sizeof(buffer), "%d", cur_stats.potion_exp - session_stats.potion_exp);
-	draw_string_small(x + 200, y, (unsigned char*)buffer, 1);
-	y += 16;
-
-	draw_string_small(x, y, attributes.summoning_skill.name , 1);
-	safe_snprintf(buffer, sizeof(buffer), "%d", cur_stats.summoning_exp - session_stats.summoning_exp);
-	draw_string_small(x + 200, y, (unsigned char*)buffer, 1);
-	y += 16;
-
-	draw_string_small(x, y, attributes.manufacturing_skill.name , 1);
-	safe_snprintf(buffer, sizeof(buffer), "%d", cur_stats.manufacturing_exp - session_stats.manufacturing_exp);
-	draw_string_small(x + 200, y, (unsigned char*)buffer, 1);
-	y += 16;
-
-	draw_string_small(x, y, attributes.crafting_skill.name , 1);
-	safe_snprintf(buffer, sizeof(buffer), "%d", cur_stats.crafting_exp - session_stats.crafting_exp);
-	draw_string_small(x + 200, y, (unsigned char*)buffer, 1);
-	y += 16;
-
-	draw_string_small(x, y, attributes.engineering_skill.name , 1);
-	safe_snprintf(buffer, sizeof(buffer), "%d", cur_stats.engineering_exp - session_stats.engineering_exp);
-	draw_string_small(x + 200, y, (unsigned char*)buffer, 1);
-	y += 16;
-
-	draw_string_small(x, y, attributes.tailoring_skill.name , 1);
-	safe_snprintf(buffer, sizeof(buffer), "%d", cur_stats.tailoring_exp - session_stats.tailoring_exp);
-	draw_string_small(x + 200, y, (unsigned char*)buffer, 1);
-	y += 16;
-
-	draw_string_small(x, y, attributes.ranging_skill.name , 1);
-	safe_snprintf(buffer, sizeof(buffer), "%d", get_session_exp_ranging());
-	draw_string_small(x + 200, y, (unsigned char*)buffer, 1);
-	y += 16;
-
-	draw_string_small(x, y, attributes.overall_skill.name , 1);
-	safe_snprintf(buffer, sizeof(buffer), "%d", cur_stats.overall_exp - session_stats.overall_exp);
-	draw_string_small(x + 200, y, (unsigned char*)buffer, 1);
-
-	y += 32;
-
+	glColor3f(1.0f, 1.0f, 1.0f);
 	draw_string_small(x, y, (unsigned char*)"Session Time", 1);
 	timediff = cur_time - session_start_time;
 	safe_snprintf(buffer, sizeof(buffer), "%02d:%02d:%02d", timediff/3600000, (timediff/60000)%60, (timediff/1000)%60);
@@ -158,7 +155,7 @@ int display_session_handler(window_info *win)
 	if(timediff<=0){
 		timediff=1;
 	}
-	safe_snprintf(buffer, sizeof(buffer), "%2.2f", (float)(cur_stats.overall_exp - session_stats.overall_exp)/((float)timediff/60000.0f));
+	safe_snprintf(buffer, sizeof(buffer), "%2.2f", (float)(*(statsinfo[SI_ALL].exp) - session_exp[SI_ALL])/((float)timediff/60000.0f));
 	draw_string_small(x + 200, y, (unsigned char*)buffer, 1);
 
 	if (show_reset_help)
@@ -200,7 +197,7 @@ void init_session(void)
 	}
 
 	if (!reconnecting){
-		session_stats = your_info;
+		set_session_exp_to_current();
 		session_start_time = cur_time;
 		reconnecting = 1;
 	}
@@ -217,7 +214,7 @@ int session_reset_handler(void)
 	if (safe_button_click(&last_click))
 	{
 		init_session();
-		session_stats = your_info;
+		set_session_exp_to_current();
 		session_start_time = cur_time;
 		reset_session_counters();
 		range_critical_hits = 0;
