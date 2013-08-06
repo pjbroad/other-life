@@ -70,7 +70,7 @@ void fill_session_win(void)
 	set_window_handler(session_win, ELW_HANDLER_CLICK, &click_session_handler );
 	set_window_handler(session_win, ELW_HANDLER_MOUSEOVER, &mouseover_session_handler );
 
-	reset_button_id=button_add_extended(session_win, reset_button_id, NULL, 450, 3, 0, 0, 0, 1.0f, newcol_r, newcol_g, newcol_b, reset_str);
+	reset_button_id=button_add_extended(session_win, reset_button_id, NULL, 450, 280, 0, 0, 0, 1.0f, newcol_r, newcol_g, newcol_b, reset_str);
 	widget_set_OnClick(session_win, reset_button_id, session_reset_handler);
 	widget_set_OnMouseover(session_win, reset_button_id, mouseover_session_reset_handler);
 	
