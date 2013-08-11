@@ -18,10 +18,12 @@
 #include "init.h"
 #include "interface.h"
 #include "items.h"
+#include "item_info.h"
 #include "keys.h" //Avoid problems with SHIFT, ALT, CTRL
 #include "knowledge.h"
 #include "manufacture.h"
 #include "mapwin.h"
+#include "minimap.h"
 #include "missiles.h"
 #include "multiplayer.h"
 #include "new_character.h"
@@ -29,12 +31,12 @@
 #include "questlog.h"
 #include "sound.h"
 #include "spells.h"
+#include "stats.h"
 #include "storage.h"
 #include "tabs.h"
 #include "textures.h"
 #include "trade.h"
 #include "translate.h"
-#include "minimap.h"
 #ifdef ECDEBUGWIN
 #include "eye_candy_debugwin.h"
 #endif
@@ -111,8 +113,6 @@ int qb_action_mode=ACTION_USE;
 
 int show_stats_in_hud=0;
 int show_statbars_in_hud=0;
-
-struct stats_struct statsinfo[NUM_WATCH_STAT-1];
 
 static int first_disp_stat = 0;					/* first skill that will be display */
 static int num_disp_stat = NUM_WATCH_STAT-1;		/* number of skills to be displayed */
@@ -1131,74 +1131,7 @@ void init_misc_display(hud_interface type)
 	cm_grey_line(cm_hud_id, CMH_RANGSTATS, (type == HUD_INTERFACE_NEW_CHAR));
 	cm_grey_line(cm_hud_id, CMH_QUICKBM, (type == HUD_INTERFACE_NEW_CHAR));
 	cm_grey_line(cm_hud_id, CMH_LOCATION, (type == HUD_INTERFACE_NEW_CHAR));
-		
-	/* store references to the skills info in an easy to use array */
-	statsinfo[0].exp = &your_info.attack_exp;
-	statsinfo[0].next_lev = &your_info.attack_exp_next_lev;
-	statsinfo[0].skillattr = &your_info.attack_skill;
-	statsinfo[0].skillnames = &attributes.attack_skill;
 
-	statsinfo[1].exp = &your_info.defense_exp;
-	statsinfo[1].next_lev = &your_info.defense_exp_next_lev;
-	statsinfo[1].skillattr = &your_info.defense_skill;
-	statsinfo[1].skillnames = &attributes.defense_skill;
-
-	statsinfo[2].exp = &your_info.harvesting_exp;
-	statsinfo[2].next_lev = &your_info.harvesting_exp_next_lev;
-	statsinfo[2].skillattr = &your_info.harvesting_skill;
-	statsinfo[2].skillnames = &attributes.harvesting_skill;
-
-	statsinfo[3].exp = &your_info.alchemy_exp;
-	statsinfo[3].next_lev = &your_info.alchemy_exp_next_lev;
-	statsinfo[3].skillattr = &your_info.alchemy_skill;
-	statsinfo[3].skillnames = &attributes.alchemy_skill;
-
-	statsinfo[4].exp = &your_info.magic_exp;
-	statsinfo[4].next_lev = &your_info.magic_exp_next_lev;
-	statsinfo[4].skillattr = &your_info.magic_skill;
-	statsinfo[4].skillnames = &attributes.magic_skill;
-
-	statsinfo[5].exp = &your_info.potion_exp;
-	statsinfo[5].next_lev = &your_info.potion_exp_next_lev;
-	statsinfo[5].skillattr = &your_info.potion_skill;
-	statsinfo[5].skillnames = &attributes.potion_skill;
-
-	statsinfo[6].exp = &your_info.summoning_exp;
-	statsinfo[6].next_lev = &your_info.summoning_exp_next_lev;
-	statsinfo[6].skillattr = &your_info.summoning_skill;
-	statsinfo[6].skillnames = &attributes.summoning_skill;
-
-	statsinfo[7].exp = &your_info.manufacturing_exp;
-	statsinfo[7].next_lev = &your_info.manufacturing_exp_next_lev;
-	statsinfo[7].skillattr = &your_info.manufacturing_skill;
-	statsinfo[7].skillnames = &attributes.manufacturing_skill;
-
-	statsinfo[8].exp = &your_info.crafting_exp;
-	statsinfo[8].next_lev = &your_info.crafting_exp_next_lev;
-	statsinfo[8].skillattr = &your_info.crafting_skill;
-	statsinfo[8].skillnames = &attributes.crafting_skill;
-
-	statsinfo[9].exp = &your_info.engineering_exp;
-	statsinfo[9].next_lev = &your_info.engineering_exp_next_lev;
-	statsinfo[9].skillattr = &your_info.engineering_skill;
-	statsinfo[9].skillnames = &attributes.engineering_skill;
-
-	statsinfo[10].exp = &your_info.tailoring_exp;
-	statsinfo[10].next_lev = &your_info.tailoring_exp_next_lev;
-	statsinfo[10].skillattr = &your_info.tailoring_skill;
-	statsinfo[10].skillnames = &attributes.tailoring_skill;
-
-	statsinfo[11].exp = &your_info.ranging_exp;
-	statsinfo[11].next_lev = &your_info.ranging_exp_next_lev;
-	statsinfo[11].skillattr = &your_info.ranging_skill;
-	statsinfo[11].skillnames = &attributes.ranging_skill;
-
-	/* always make last as special case for skills modifiers - and best displayed last anyway */
-	statsinfo[12].exp = &your_info.overall_exp;
-	statsinfo[12].next_lev = &your_info.overall_exp_next_lev;
-	statsinfo[12].skillattr = &your_info.overall_skill;
-	statsinfo[12].skillnames = &attributes.overall_skill;
-	
 	for (i=0; i<MAX_WATCH_STATS; i++)
 	{
 		if (watch_this_stats[i] > 0)
@@ -1628,6 +1561,7 @@ int mouseover_misc_handler(window_info *win, int mx, int my)
 
 /* #define as these numbers are used many times */
 #define DEF_QUICKBAR_X_LEN 30
+#define DEF_QUICKBAR_Y_LEN 30
 #define DEF_QUICKBAR_X (DEF_QUICKBAR_X_LEN+4)
 #define DEF_QUICKBAR_Y 64
 
@@ -1643,7 +1577,7 @@ static int last_num_quickbar_slots = 6;
 // return the window y len based on the number of slots
 int get_quickbar_y_len(void)
 {
-	return num_quickbar_slots * 30 + 1;
+	return num_quickbar_slots * DEF_QUICKBAR_Y_LEN + 1;
 }
 
 // check if key is one of the item keys and use it if so.
@@ -1769,7 +1703,7 @@ int	display_quickbar_handler(window_info *win)
 					
 			x_start= 2;
 			x_end= x_start+27;
-			y_start= 30*(cur_pos%num_quickbar_slots)+2;
+			y_start= DEF_QUICKBAR_Y_LEN*(cur_pos%num_quickbar_slots)+2;
 			y_end= y_start+27;
 
 			if(quickbar_dir != VERTICAL)
@@ -1860,16 +1794,16 @@ int	display_quickbar_handler(window_info *win)
 		{
 			for(y=1;y<num_quickbar_slots;y++)
 				{
-					glVertex3i(0, y*30+1, 0);
-					glVertex3i(quickbar_x_len, y*30+1, 0);
+					glVertex3i(0, y*DEF_QUICKBAR_Y_LEN+1, 0);
+					glVertex3i(quickbar_x_len, y*DEF_QUICKBAR_Y_LEN+1, 0);
 				}
 		}
 	else
 		{
 			for(y=1;y<num_quickbar_slots;y++)
 				{
-					glVertex3i(y*30+1, 0, 0);
-					glVertex3i(y*30+1, quickbar_x_len, 0);
+					glVertex3i(y*DEF_QUICKBAR_Y_LEN+1, 0, 0);
+					glVertex3i(y*DEF_QUICKBAR_Y_LEN+1, quickbar_x_len, 0);
 				}
 		}
 	glEnd();
@@ -1883,6 +1817,42 @@ CHECK_GL_ERRORS();
 
 int last_type=0;
 
+static void quickbar_item_description_help(window_info *win, int pos, int slot)
+{
+	Uint16 item_id = item_list[pos].id;
+	int image_id = item_list[pos].image_id;
+	if (show_item_desc_text && item_info_available() && (get_item_count(item_id, image_id) == 1))
+	{
+		const char *str = get_item_description(item_id, image_id);
+		if (str != NULL)
+		{
+			int xpos = 0, ypos = 0;
+			int len_str = (strlen(str) + 1) * SMALL_FONT_X_LEN;
+			/* vertical place right (or left) and aligned with slot */
+			if (quickbar_dir==VERTICAL)
+			{
+				xpos = win->len_x + 5;
+				if ((xpos + len_str + win->cur_x) > window_width)
+					xpos = -len_str;
+				ypos = slot * DEF_QUICKBAR_Y_LEN + (DEF_QUICKBAR_Y_LEN - SMALL_FONT_Y_LEN) / 2;
+			}
+			/* horizontal place right at bottom (or top) of window */
+			else
+			{
+				xpos = 0;
+				ypos = win->len_y + 5;
+				if ((xpos + len_str + win->cur_x) > window_width)
+					xpos = window_width - win->cur_x - len_str;
+				if ((xpos + win->cur_x) < 0)
+					xpos = -win->cur_x + 5;
+				if ((ypos + SMALL_FONT_Y_LEN + win->cur_y) > window_height)
+					ypos = -(5 + SMALL_FONT_Y_LEN + (quickbar_draggable * ELW_TITLE_HEIGHT));
+			}
+			show_help(str, xpos, ypos);
+		}
+	}
+}
+
 int mouseover_quickbar_handler(window_info *win, int mx, int my) {
 	int y,i=0;
 	int x_screen,y_screen;
@@ -1891,14 +1861,14 @@ int mouseover_quickbar_handler(window_info *win, int mx, int my) {
 			if(quickbar_dir==VERTICAL)
 				{
 					x_screen=0;
-					y_screen=y*30;
+					y_screen=y*DEF_QUICKBAR_Y_LEN;
 				}
 			else
 				{
-					x_screen=y*30;
+					x_screen=y*DEF_QUICKBAR_Y_LEN;
 					y_screen=0;
 				}
-			if(mx>x_screen && mx<x_screen+30 && my>y_screen && my<y_screen+30)
+			if(mx>x_screen && mx<x_screen+DEF_QUICKBAR_Y_LEN && my>y_screen && my<y_screen+DEF_QUICKBAR_Y_LEN)
 				{
 					for(i=0;i<ITEM_NUM_ITEMS;i++){
 						if(item_list[i].quantity && item_list[i].pos==y)
@@ -1912,6 +1882,7 @@ int mouseover_quickbar_handler(window_info *win, int mx, int my) {
 								} else {
 									elwin_mouse=CURSOR_PICK;
 								}
+								quickbar_item_description_help(win, i, y);
 								return 1;
 							}
 					}
@@ -1968,14 +1939,14 @@ int	click_quickbar_handler(window_info *win, int mx, int my, Uint32 flags)
 			if(quickbar_dir==VERTICAL)
 				{
 					x_screen=0;
-					y_screen=y*30;
+					y_screen=y*DEF_QUICKBAR_Y_LEN;
 				}
 			else
 				{
-					x_screen=y*30;
+					x_screen=y*DEF_QUICKBAR_Y_LEN;
 					y_screen=0;
 				}
-			if(mx>x_screen && mx<x_screen+30 && my>y_screen && my<y_screen+30)
+			if(mx>x_screen && mx<x_screen+DEF_QUICKBAR_Y_LEN && my>y_screen && my<y_screen+DEF_QUICKBAR_Y_LEN)
 				{
 					//see if there is an empty space to drop this item over.
 					if(item_dragged!=-1)//we have to drop this item

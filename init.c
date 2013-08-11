@@ -47,6 +47,7 @@
 #include "astrology.h"
 #include "mapwin.h"
 #include "missiles.h"
+#include "named_colours.h"
 #include "new_actors.h"
 #include "openingwin.h"
 #include "particles.h"
@@ -765,6 +766,9 @@ void init_stuff()
 	// is read.
 	init_chat_channels ();
 
+	// load the named colours for the elgl-Colour-() functions
+	init_named_colours();
+
 	// initialize the fonts, but don't load the textures yet. Do that here
 	// because the messages need the font widths.
 	init_fonts();
@@ -1067,6 +1071,8 @@ void init_stuff()
 
 	//initiate function pointers
 	init_attribf();
+
+	init_statsinfo_array();
 
 	//Read the books for i.e. the new char window
 	init_books();
