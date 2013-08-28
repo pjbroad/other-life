@@ -1857,6 +1857,7 @@ static void init_ELC_vars(void)
 	add_var(OPT_BOOL,"use_full_dialogue_window", "keypressdialoguesfullwindow", &use_full_dialogue_window, change_var, 0, "Keypresses allowed anywhere in dialogue boxes", "If set, the above will work anywhere in the Dialogue Window, if unset only on the NPC's face", CONTROLS);
 	add_var(OPT_BOOL,"use_cursor_on_animal", "useanimal", &include_use_cursor_on_animals, change_var, 0, "For animals, right click includes use cursor", "Toggles inclusion of the use cursor when right clicking on animals, useful for your summoned creatures.  Even when this option is off, you can still click the use icon.", CONTROLS);
 	add_var(OPT_BOOL,"disable_double_click", "disabledoubleclick", &disable_double_click, change_var, 0, "Disable double-click button safety", "Some buttons are protected from mis-click by requiring you to double-click them.  This option disables that protection.", CONTROLS);
+	add_var(OPT_BOOL,"auto_disable_ranging_lock", "adrl", &auto_disable_ranging_lock, change_var, 1, "Auto-disable Ranging Lock when under attack", "Automatically disable Ranging Lock when the char is under attack and Ranging Lock is enabled", CONTROLS);
 	add_var(OPT_BOOL,"achievements_ctrl_click", "achievementsctrlclick", &achievements_ctrl_click, change_var, 0, "Control click required to view achievements", "To view a players achievements, you click on them with the eye cursor.  With this option enabled, you must use Ctrl+click.", CONTROLS);
 	add_var(OPT_INT,"mouse_limit","lmouse",&mouse_limit,change_int,15,"Mouse Limit","You can increase the mouse sensitivity and cursor changing by adjusting this number to lower numbers, but usually the FPS will drop as well!",CONTROLS,1,INT_MAX);
 #ifdef OSX
@@ -1878,6 +1879,7 @@ static void init_ELC_vars(void)
 	add_var(OPT_BOOL,"view_analog_clock","analog",&view_analog_clock,change_var,1,"Analog Clock","Toggle the analog clock",HUD);
 	add_var(OPT_BOOL,"view_digital_clock","digit",&view_digital_clock,change_var,1,"Digital Clock","Toggle the digital clock",HUD);
 	add_var(OPT_BOOL,"view_knowledge_bar","knowledge_bar",&view_knowledge_bar,change_var,1,"Knowledge Bar","Toggle the knowledge bar",HUD);
+	add_var(OPT_BOOL,"view_hud_timer","timer",&view_hud_timer,change_var,1,"Countdown/Stopwatch Timer","Toggle the countdown/stopwatch timer.  Shift-left-click to toggle mode. Left-click to start/stop. Mouse wheel to reset, up/down to change countdown start time (+ctrl/alt to change step).",HUD);
 	add_var(OPT_BOOL,"show_game_seconds","show_game_seconds",&show_game_seconds,change_var,0,"Show Game Seconds","Show seconds on the digital clock. Note: the seconds displayed are computed on client side and synchronized with the server at each new minute.",HUD);
 	add_var(OPT_BOOL,"show_stats_in_hud","sstats",&show_stats_in_hud,change_var,0,"Stats In HUD","Toggle showing stats in the HUD",HUD);
 	add_var(OPT_BOOL,"show_statbars_in_hud","sstatbars",&show_statbars_in_hud,change_var,0,"StatBars In HUD","Toggle showing statbars in the HUD. Needs Stats in HUD",HUD);
