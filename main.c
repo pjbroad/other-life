@@ -39,6 +39,7 @@
  #include "ext_protocol.h"
 #endif
 #include "gl_init.h"
+#include "hud.h"
 #include "icon_window.h"
 #include "io/elfilewrapper.h"
 #include "init.h"
@@ -279,6 +280,7 @@ int start_rendering()
 	save_exploration_map();
 	cleanup_counters();
 	cleanup_chan_names();
+	cleanup_hud();
 	SDL_RemoveTimer(draw_scene_timer);
 	SDL_RemoveTimer(misc_timer);
 	end_particles ();
