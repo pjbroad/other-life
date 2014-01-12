@@ -111,7 +111,6 @@ void cleanup_mem(void)
 	cleanup_manufacture();
 	cleanup_text_buffers();
 	cleanup_fonts();
-	cursors_cleanup();
 	destroy_all_actors();
 	end_actors_lists();
 	cleanup_lights();
@@ -123,7 +122,9 @@ void cleanup_mem(void)
 	cache_e3d->free_item = &destroy_e3d;
 	cache_delete(cache_e3d);
 	cache_e3d = NULL;
+#ifdef NEW_TEXTURES
 	free_texture_cache();
+#endif
 	// This should be fixed now  Sir_Odie
 	cache_delete(cache_system);
 	cache_system = NULL;
@@ -311,6 +312,8 @@ int start_rendering()
 	destroy_tcp_out_mutex();
 
 	if (use_frame_buffer) free_reflection_framebuffer();
+
+	cursors_cleanup();
 
 	printf("doing SDL_Quit\n");
 	fflush(stderr);

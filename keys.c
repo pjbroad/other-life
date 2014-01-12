@@ -117,6 +117,13 @@ Uint32 K_ECDEBUGWIN=ALT|CTRL|'c';
 Uint32 K_EMOTES=CTRL|'j';
 Uint32 K_RANGINGWIN=CTRL|'t';
 
+// Remaining keys are not assigned to the keyboard but
+// can be redefined or used by the #keypress command.
+// They will get values at startup along with any keys
+// undefined in key.ini
+Uint32 K_COUNTERS=SDLK_UNKNOWN;
+Uint32 K_HELPSKILLS=SDLK_UNKNOWN;
+
 typedef struct
 {
 	char name[25];
@@ -213,7 +220,9 @@ static key_store_entry key_store[] =
 	{ "#K_ECDEBUGWIN", &K_ECDEBUGWIN },
 #endif
 	{ "#K_EMOTES", &K_EMOTES },
-	{ "#K_RANGINGWIN", &K_RANGINGWIN }
+	{ "#K_RANGINGWIN", &K_RANGINGWIN },
+	{ "#K_COUNTERS", &K_COUNTERS },
+	{ "#K_HELPSKILLS", &K_HELPSKILLS }
 };
 
 
@@ -434,12 +443,11 @@ static Uint16 get_key_code(const char *key)
 			case 0xdf6ba7e: //UNDO
 				return 322;
 			default:
-				return 0;
+				return SDLK_UNKNOWN;
 		}
 	}
 }
 
-#ifdef FASTER_STARTUP
 static void parse_key_line(const char *line)
 {
 	char kstr[100], t1[100], t2[100], t3[100], t4[100];
@@ -479,107 +487,23 @@ void read_key_config()
 {
 	char line[512];
 	el_file_ptr f;
-
-	f = el_open_custom("key.ini");
-	if (!f)
-		return; //take the defaults
-
-	while (el_fgets(line, sizeof(line), f))
-		parse_key_line(line);
-
-	el_close(f);
-}
-
-#else  // FASTER_STARTUP
-
-Uint32 parse_key_string (const char *s)
-{
-	char t1[100],t2[100],t3[100],t4[100];
-	Uint32 key=0;
-	int nkey = sscanf (s, "%99s %99s %99s %99s", t1, t2, t3, t4);
-
-	if (nkey > 0)
-	{
-		add_key (&key, get_key_code (t1));
-		if (nkey > 1 && t2[0] != '#')
-		{
-			add_key (&key, get_key_code (t2));
-			if (nkey > 2 && t3[0] != '#')
-			{
-				add_key (&key, get_key_code (t3));
-				if (nkey > 3 && t4[0] != '#')
-				{
-					add_key (&key, get_key_code (t4));
-				}
-			}
-		}
-	}
-
-	return key;
-}
-
-// load the dynamic definitions for keys
-void read_key_config()
-{
-	FILE *f = NULL;
-	char * file_mem;
-	struct stat key_file;
-	int key_file_size,t;
-	size_t ret;
 	size_t num_keys = sizeof(key_store)/sizeof(key_store_entry);
+	Uint32 last_key_value = SDLK_LAST;
 	size_t i;
 
-#ifndef WINDOWS
-	char key_ini[256];
-	safe_snprintf (key_ini, sizeof (key_ini), "%s/key.ini", configdir);
-	// don't use my_fopen, not everyone keeps local settings
-	f=fopen(key_ini,"rb"); //try to load local settings
-	if(!f) //use global settings
-		{
-			safe_snprintf (key_ini, sizeof (key_ini), "%s/key.ini", datadir);
-			f=my_fopen(key_ini,"rb");
-		}
-
+	f = el_open_custom("key.ini");
 	if (f)
-		{
-			fstat (fileno (f), &key_file);
-		}
-
-#else
-	f=my_fopen("key.ini","rb");
-	if (f)
-        fstat (fileno (f), &key_file);
-#endif
-
-	if(!f)
 	{
-		return; //take the defaults
+		while (el_fgets(line, sizeof(line), f))
+			parse_key_line(line);
+		el_close(f);
 	}
 
-	key_file_size = key_file.st_size;
-	if (key_file_size <= 0)
-	{
-		fclose(f);
-		return;
-	}
-
-	file_mem = (char *) calloc(key_file_size+2, sizeof(Uint8));
-	ret = fread (file_mem, 1, key_file_size+1, f);
-	fclose(f);
-	if (ret != key_file_size)
-	{
-		LOG_ERROR("%s() read failed %zu %d\n", __FUNCTION__, ret ,key_file_size+1);
-		free(file_mem);
-		return;
-	}
-
+	// look for unassigned keys and assign one up from SDLK_LAST
 	for (i=0; i<num_keys; i++)
-		if ( (t = get_string_occurance (key_store[i].name, file_mem, key_file_size, 0)) != -1)
-			*key_store[i].value = parse_key_string (&file_mem[t]);
-
-	free(file_mem);
+		if (*key_store[i].value == 0)
+			*key_store[i].value = ++last_key_value;
 }
-#endif // FASTER_STARTUP
 
 // Returns (in the buffer provided) a string describing the specified keydef.
 const char *get_key_string(Uint32 keydef, char *buf, size_t buflen)

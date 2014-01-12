@@ -36,6 +36,7 @@
  #include "gamewin.h"
  #include "gl_init.h"
  #include "hud.h"
+ #include "hud_indicators.h"
  #include "init.h"
  #include "interface.h"
  #include "items.h"
@@ -334,6 +335,20 @@ static void change_show_action_bar(int * var)
 	*var= !*var;
 	if (stats_bar_win >= 0)
 		init_stats_display();
+}
+
+static void change_indicators_var(int * var)
+{
+	*var= !*var;
+	if (*var)
+	{
+		if (indicators_win < 0)
+			init_hud_indicators();
+		else
+			show_window(indicators_win);
+	}
+	else
+		hide_window(indicators_win);
 }
 
 void change_minimap_scale(float * var, float * value)
@@ -1889,6 +1904,7 @@ static void init_ELC_vars(void)
 	add_var(OPT_BOOL,"show_stats_in_hud","sstats",&show_stats_in_hud,change_var,0,"Stats In HUD","Toggle showing stats in the HUD",HUD);
 	add_var(OPT_BOOL,"show_statbars_in_hud","sstatbars",&show_statbars_in_hud,change_var,0,"StatBars In HUD","Toggle showing statbars in the HUD. Needs Stats in HUD",HUD);
 	add_var(OPT_BOOL,"show_action_bar","ssactionbar",&show_action_bar,change_show_action_bar,0,"Action Points Bar in HUD","Show the current action points level in a stats bar on the bottom HUD.",HUD);
+	add_var(OPT_BOOL,"show_indicators","showindicators",&show_indicators,change_indicators_var,1,"Show Status Indicators in HUD","Show status indicators for special day, harvesting and poision.",HUD);
 	add_var(OPT_BOOL,"logo_click_to_url","logoclick",&logo_click_to_url,change_var,0,"Logo Click To URL","Toggle clicking the LOGO opening a browser window",HUD);
 	add_var(OPT_STRING,"logo_link", "logolink", LOGO_URL_LINK, change_string, 128, "Logo Link", "URL when clicking the logo", HUD);
 	add_var(OPT_BOOL,"show_help_text","shelp",&show_help_text,change_var,1,"Help Text","Enable tooltips.",HUD);
@@ -1946,6 +1962,7 @@ static void init_ELC_vars(void)
 	add_var(OPT_BOOL,"highlight_tab_on_nick", "highlight", &highlight_tab_on_nick, change_var, 1, "Highlight Tabs On Name", "Should tabs be highlighted when someone mentions your name?", CHAT);
 	add_var(OPT_BOOL,"emote_filter", "emote_filter", &emote_filter, change_var, 1, "Emotes filter", "Do not display lines of text in local chat containing emotes only", CHAT);
 	add_var(OPT_BOOL,"summoning_filter", "summ_filter", &summoning_filter, change_var, 0, "Summoning filter", "Do not display lines of text in local chat containing summoning messages", CHAT);
+	add_var(OPT_BOOL,"mixed_message_filter", "mixedmessagefilter", &mixed_message_filter, change_var, 0, "Mixed item filter", "Do not display console messages for mixed items when other windows are closed", CHAT);
 	add_var(OPT_INT,"time_warning_hour","warn_h",&time_warn_h,change_int,-1,"Time warning for new hour","If set to -1, there will be no warning given. Otherwise, you will get a notification in console this many minutes before the new hour",CHAT, -1, 30);
 	add_var(OPT_INT,"time_warning_sun","warn_s",&time_warn_s,change_int,-1,"Time warning for dawn/dusk","If set to -1, there will be no warning given. Otherwise, you will get a notification in console this many minutes before sunrise/sunset",CHAT, -1, 30);
 	add_var(OPT_INT,"time_warning_day","warn_d",&time_warn_d,change_int,-1,"Time warning for new #day","If set to -1, there will be no warning given. Otherwise, you will get a notification in console this many minutes before the new day",CHAT, -1, 30);
