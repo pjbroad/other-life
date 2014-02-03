@@ -1367,7 +1367,7 @@ void cleanup_chan_names(void)
 		}
 		free(pseudo_chans[i]);
 	}
-	while(step->next != NULL) {
+	while(step != NULL) {
 		temp_node = step;
 		step = step->next;
 		temp_cn = queue_delete_node(chan_name_queue, temp_node);
@@ -1382,6 +1382,7 @@ void cleanup_chan_names(void)
 		}
 		free(temp_cn);
 	}
+	queue_destroy(chan_name_queue);
 }
 
 

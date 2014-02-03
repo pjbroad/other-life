@@ -831,13 +831,13 @@ int command_unmark_special(char *text, int len, int do_log)
 			{
 				char str[512];
 				marks[i].x = marks[i].y = -1;
-				save_markings();
-				load_map_marks(); // simply to compact the array and make room for new marks
 				if (do_log)
 				{
 					safe_snprintf(str, sizeof(str), unmarked_str, marks[i].text);
 					LOG_TO_CONSOLE(c_orange1, str);
 				}
+				save_markings();
+				load_map_marks(); // simply to compact the array and make room for new marks
 				break;
 			}
 		}
@@ -1595,7 +1595,7 @@ int command_keypress(char *text, int len)
 	{
 		Uint32 value = get_key_value(text);
 		if (value)
-			keypress_root_common(value, 0);
+			do_keypress(value);
 	}
 	return 1;
 }
@@ -1628,7 +1628,10 @@ int save_local_data(char * text, int len){
 void auto_save_local_and_server(void)
 {
 	time_t time_delta = 60 * 90;
-	if(!disconnected && get_our_actor() && ((last_save_time + time_delta) <= time(NULL)))
+	actor *me;
+
+	me = get_our_actor();
+	if(!disconnected && me && !me->fighting && ((last_save_time + time_delta) <= time(NULL)))
 	{
 		last_save_time = time(NULL);
 		save_local_data(NULL, 0);
