@@ -14,13 +14,11 @@
 #ifdef OPENGL_TRACE
 #include "gl_init.h"
 #endif
-#ifdef ENCYCL_NAVIGATION
 #include "context_menu.h"
 #include "gamewin.h"
 #include "hud.h"
 #include "notepad.h"
 #include "tabs.h"
-#endif // ENCYCL_NAVIGATION
 #include "translate.h"
 #include "text.h"
 
@@ -39,7 +37,6 @@ int num_category=0,numpage=-1,numtext,x,y,numimage,id,color,size,ref,currentpage
 float u,v,uend,vend,xend,yend,r,g,b;
 char *s,*ss;
 
-#ifdef ENCYCL_NAVIGATION
 static void save_raw_page_link(const char *link, const char *title, size_t from_page_index);
 static void find_page(const char *search_title, void *data);
 static void encycl_nav_free(void);
@@ -48,7 +45,6 @@ static int repeat_search = 0;
 static int show_cm_help = 0;
 /* move to translate */
 static const char* cm_encycl_help_str = "Right-click for search and bookmark options";
-#endif // ENCYCL_NAVIGATION
 
 int display_encyclopedia_handler(window_info *win)
 {
@@ -135,7 +131,6 @@ CHECK_GL_ERRORS();
 
 	}
 
-#ifdef ENCYCL_NAVIGATION
 	if (repeat_search && last_search != NULL)
 	{
 		find_page(last_search, NULL);
@@ -146,7 +141,6 @@ CHECK_GL_ERRORS();
 		show_help(cm_encycl_help_str, 0, win->len_y+10);
 		show_cm_help = 0;
 	}
-#endif
 
 	return 1;
 }
@@ -659,9 +653,7 @@ void ReadCategoryXML(xmlNode * a_node)
 				t->Next=T;
 				x+=strlen(T->text)*((T->size)?11:8);
 				lastextlen=strlen(T->text)*((T->size)?11:8);
-#ifdef ENCYCL_NAVIGATION
 				save_raw_page_link(T->ref, T->text, numpage);
-#endif
 			}
 			// See if this is the new maximum length.
 			if(Page[numpage].max_y < y)
@@ -756,13 +748,10 @@ void FreeXML()
 			free(tmp);
 		}
 	}
-#ifdef ENCYCL_NAVIGATION
 	encycl_nav_free();
-#endif
 }
 
 
-#ifdef ENCYCL_NAVIGATION
 /*
  *	Functions to search and navigate to encyclopedia pages.
  *	All links are save into a list with the link text used as the title.
@@ -780,7 +769,6 @@ void FreeXML()
  *	pjbroad/bluap Feb 2011.
  *
  * TODO
- *		Move strings to translate.
  * 		Could add window to all three help sections help, skills, encycl
  * 			already have which pages belong to which tabs, we just throw all but encycl away
 */
@@ -792,10 +780,6 @@ struct PAGE_LINK
 	const char *title;
 	size_t from_page_index;
 };
-
-/* move to translate */
-static const char* cm_encycl_base_str = "Encyclopedia Index\nSearch Encyclopedia Titles\nRepeat Last Search\nBookmark This Page\nUnbookmark This Page\nClear Bookmarks";
-static const char* encycl_search_propmt = "Enter text to find";
 
 #define MAX_SAME_TITLE_LINKS 10
 #define MAX_FOUND_LINKS 25
@@ -1144,7 +1128,7 @@ static int cm_encycl_handler(window_info *win, int widget_id, int mx, int my, in
 			close_ipu(&ipu_encycl);
 			init_ipu(&ipu_encycl, encyclopedia_win, DEFAULT_FONT_X_LEN * 20, -1, 40, 1, NULL, find_page_callback);
 			ipu_encycl.x = mx; ipu_encycl.y = my;
-			display_popup_win(&ipu_encycl, encycl_search_propmt);
+			display_popup_win(&ipu_encycl, encycl_search_prompt_str);
 			if (ipu_encycl.popup_win >=0 && ipu_encycl.popup_win<windows_list.num_windows)
 				windows_list.window[ipu_encycl.popup_win].opaque = 1;
 			break;
@@ -1223,7 +1207,6 @@ int keypress_encyclopedia_handler(window_info *win, int mx, int my, Uint32 key, 
 	}
 	return 0;
 }
-#endif // ENCYCL_NAVIGATION
 
 
 void fill_encyclopedia_win ()
@@ -1239,7 +1222,6 @@ void fill_encyclopedia_win ()
 		return;
 	}
 
-#ifdef ENCYCL_NAVIGATION
 	set_window_handler(encyclopedia_win, ELW_HANDLER_MOUSEOVER, &mouseover_encyclopedia_handler);
 	set_window_handler(encyclopedia_win, ELW_HANDLER_KEYPRESS, &keypress_encyclopedia_handler);
 
@@ -1252,5 +1234,4 @@ void fill_encyclopedia_win ()
 		find_base_pages();
 		process_encycl_links();
 	}
-#endif
 }

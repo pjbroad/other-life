@@ -8,7 +8,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include "tiles.h"
-#include "../asc.h"
 #include "global.h"
 //#ifdef OSX
 //#include <ApplicationServices/ApplicationServices.h>
@@ -16,6 +15,7 @@
 #ifdef EYE_CANDY
 #include "eye_candy_window.h"
 #endif
+#include "../asc.h"
 
 extern char* selected_file;
 
@@ -1613,10 +1613,10 @@ FILE *my_fopen (const char *fname, const char *mode)
 }
 
 #ifdef ZLIB
-gzFile * my_gzopen(const char * filename, const char * mode)
+gzFile my_gzopen(const char * filename, const char * mode)
 {
 	char gzfilename[1024];
-	gzFile * result;
+	gzFile result;
 
 	snprintf(gzfilename, sizeof(gzfilename), "%s.gz", filename);
 	result= gzopen(gzfilename, mode);

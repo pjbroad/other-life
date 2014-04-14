@@ -1668,6 +1668,9 @@ int check_var (char *str, var_name_type type)
 		our_vars.var[i]->saved= 0;
 	switch (our_vars.var[i]->type)
 	{
+		case OPT_INT_INI:
+			// Needed, because var is never changed through widget
+			our_vars.var[i]->saved= 0;
 		case OPT_INT:
 		case OPT_MULTI:
 		case OPT_MULTI_H:
@@ -1675,7 +1678,6 @@ int check_var (char *str, var_name_type type)
 			our_vars.var[i]->func ( our_vars.var[i]->var, atoi (ptr) );
 			return 1;
 		case OPT_BOOL_INI:
-		case OPT_INT_INI:
 			// Needed, because var is never changed through widget
 			our_vars.var[i]->saved= 0;
 		case OPT_BOOL:
@@ -1889,7 +1891,6 @@ static void init_ELC_vars(void)
 	add_var(OPT_BOOL,"big_cursors","big_cursors", &big_cursors, change_var,0,"Big Pointers", "Use 32x32 graphics for pointer. Only works with SDL cursor turned off.", CONTROLS);
 	add_var(OPT_FLOAT,"pointer_size","pointer_size", &pointer_size, change_float,1.0,"Pointer Size", "Scale the pointer. 1.0 is 1:1 scale with pointer graphic. Only works with SDL cursor turned off.", CONTROLS,0.25,4.0,0.05);
 #endif // NEW_CURSOR
-	add_var(OPT_BOOL_INI,"enable_trade_log", "enabletradelog", &enable_trade_log, change_var, 0, "Enable trade log", "Enable logging of all successful trades. (Experimental)", CONTROLS);
 	add_var(OPT_MULTI,"trade_log_mode","tradelogmode",&trade_log_mode,change_int, TRADE_LOG_NONE,"Trade log","Set how successful trades are logged.",CONTROLS,"Do not log trades", "Log only to console", "Log only to file", "Log to console and file", NULL);
 	// CONTROLS TAB
 
