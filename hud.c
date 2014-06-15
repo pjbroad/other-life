@@ -14,6 +14,8 @@
 #include "gamewin.h"
 #include "gl_init.h"
 #include "global.h"
+#include "hud_indicators.h"
+#include "hud_timer.h"
 #include "icon_window.h"
 #include "init.h"
 #include "interface.h"
@@ -27,6 +29,7 @@
 #include "missiles.h"
 #include "multiplayer.h"
 #include "new_character.h"
+#include "notepad.h"
 #include "platform.h"
 #include "questlog.h"
 #include "sound.h"
@@ -91,8 +94,8 @@ static int cm_sound_enabled = 0;
 static int cm_music_enabled = 0;
 static int cm_minimap_shown = 0;
 static int cm_rangstats_shown = 0;
-enum {	CMH_STATS=0, CMH_STATBARS, CMH_KNOWBAR, CMH_DIGCLOCK, CMH_ANACLOCK,
-		CMH_SECONDS, CMH_FPS, CMH_QUICKBM, CMH_SEP1, CMH_MINIMAP, CMH_RANGSTATS,
+enum {	CMH_STATS=0, CMH_STATBARS, CMH_KNOWBAR, CMH_TIMER, CMH_DIGCLOCK, CMH_ANACLOCK,
+		CMH_SECONDS, CMH_FPS, CMH_INDICATORS, CMH_QUICKBM, CMH_SEP1, CMH_MINIMAP, CMH_RANGSTATS,
 		CMH_SEP2, CMH_SOUND, CMH_MUSIC, CMH_SEP3, CMH_LOCATION };
 enum {	CMQB_RELOC=0, CMQB_DRAG, CMQB_RESET, CMQB_FLIP, CMQB_ENABLE };
 
@@ -102,6 +105,7 @@ int hud_text;
 int view_analog_clock= 1;
 int view_digital_clock= 0;
 int view_knowledge_bar = 1;
+int view_hud_timer = 1;
 int copy_next_LOCATE_ME = 0;
 int	stats_bar_win= -1;
 int	misc_win= -1;
@@ -124,6 +128,18 @@ static int mouse_over_knowledge_bar = 0;			/* 1 if mouse is over the knowledge b
 
 static const int knowledge_bar_height = SMALL_FONT_Y_LEN + 6;
 static const int stats_bar_height = SMALL_FONT_Y_LEN;
+
+
+/* called on client exit to free resources */
+void cleanup_hud(void)
+{
+	destroy_timer();
+	destroy_window(misc_win);
+	destroy_window(stats_bar_win);
+	destroy_window(quickbar_win);
+	destroy_window(indicators_win);
+	stats_bar_win = quickbar_win = misc_win = indicators_win = -1;
+}
 
 
 /* #exp console command, display current exp information */
@@ -179,6 +195,8 @@ void init_hud_interface (hud_interface type)
 		init_stats_display ();
 		init_quickbar ();
 		init_quickspell ();
+		if (show_indicators)
+			init_hud_indicators (); 
 		ready_for_user_menus = 1;
 		if (enable_user_menus)
 			display_user_menus();
@@ -196,6 +214,7 @@ void show_hud_windows ()
 	if (misc_win >= 0) show_window (misc_win);
 	if (quickbar_win >= 0) show_window (quickbar_win);
 	if (quickspell_win >= 0) show_window (quickspell_win);
+	if (indicators_win >= 0) show_window (indicators_win);
 }
 
 void hide_hud_windows ()
@@ -205,6 +224,7 @@ void hide_hud_windows ()
 	if (misc_win >= 0) hide_window (misc_win);
 	if (quickbar_win >= 0) hide_window (quickbar_win);
 	if (quickspell_win >= 0) hide_window (quickspell_win);
+	if (indicators_win >= 0) hide_window (indicators_win);
 }
 
 // draw everything related to the hud
@@ -452,12 +472,23 @@ void view_tab (int *window, int *col_id, int tab)
 
 void show_help(const char *help_message, int x, int y)
 {
-	show_help_coloured(help_message, x, y, 1.0f, 1.0f, 1.0f);
+	show_sized_help_coloured(help_message, x, y, 1.0f, 1.0f, 1.0f, 0);
+}
+
+void show_sized_help(const char *help_message, int x, int y, int big)
+{
+	show_sized_help_coloured(help_message, x, y, 1.0f, 1.0f, 1.0f, big);
 }
 
 void show_help_coloured(const char *help_message, int x, int y, float r, float g, float b)
 {
-	int len=strlen(help_message)*8+1;
+	show_sized_help_coloured(help_message, x, y, r, g, b, 0);
+}
+
+void show_sized_help_coloured(const char *help_message, int x, int y, float r, float g, float b, int big)
+{
+	float y_font_len = (big) ?DEFAULT_FONT_Y_LEN: SMALL_FONT_Y_LEN;
+	int len=strlen(help_message)*((big) ?DEFAULT_FONT_X_LEN :SMALL_FONT_X_LEN)+1;
 	int width=window_width-80;
 
 	if(x+len>width) x-=(x+len)-width;
@@ -467,17 +498,20 @@ void show_help_coloured(const char *help_message, int x, int y, float r, float g
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_BLEND);
 	glBegin(GL_QUADS);
-	glVertex3i(x-1,y+SMALL_FONT_Y_LEN,0);
+	glVertex3i(x-1,y+y_font_len,0);
 	glVertex3i(x-1,y,0);
 	glVertex3i(x+len,y,0);
-	glVertex3i(x+len,y+SMALL_FONT_Y_LEN,0);
+	glVertex3i(x+len,y+y_font_len,0);
 	glEnd();
 
 	glDisable(GL_BLEND);
 	glEnable(GL_TEXTURE_2D);
 
 	glColor3f(r,g,b);
-	draw_string_small(x, y, (unsigned char*)help_message, 1);
+	if (big)
+		draw_string(x, y, (unsigned char*)help_message, 1);
+	else
+		draw_string_small(x, y, (unsigned char*)help_message, 1);
 #ifdef OPENGL_TRACE
 CHECK_GL_ERRORS();
 #endif //OPENGL_TRACE
@@ -1094,7 +1128,7 @@ static void context_hud_pre_show_handler(window_info *win, int widget_id, int mx
 
 void init_misc_display(hud_interface type)
 {
-	int y_len = 128 + DEFAULT_FONT_Y_LEN + knowledge_bar_height + (NUM_WATCH_STAT-1) * stats_bar_height;
+	int y_len = 128 + DEFAULT_FONT_Y_LEN + knowledge_bar_height + get_height_of_timer() + (NUM_WATCH_STAT-1) * stats_bar_height;
 	int i;
 	//create the misc window
 	if(misc_win < 0)
@@ -1107,10 +1141,12 @@ void init_misc_display(hud_interface type)
 			cm_bool_line(cm_hud_id, CMH_STATS, &show_stats_in_hud, "show_stats_in_hud");
 			cm_bool_line(cm_hud_id, CMH_STATBARS, &show_statbars_in_hud, "show_statbars_in_hud");
 			cm_bool_line(cm_hud_id, CMH_KNOWBAR, &view_knowledge_bar, "view_knowledge_bar");
+			cm_bool_line(cm_hud_id, CMH_TIMER, &view_hud_timer, "view_hud_timer");
 			cm_bool_line(cm_hud_id, CMH_DIGCLOCK, &view_digital_clock, "view_digital_clock");
 			cm_bool_line(cm_hud_id, CMH_ANACLOCK, &view_analog_clock, "view_analog_clock");
 			cm_bool_line(cm_hud_id, CMH_SECONDS, &show_game_seconds, "show_game_seconds");
 			cm_bool_line(cm_hud_id, CMH_FPS, &show_fps, "show_fps");
+			cm_bool_line(cm_hud_id, CMH_INDICATORS, &show_indicators, "show_indicators");
 			cm_bool_line(cm_hud_id, CMH_MINIMAP, &cm_minimap_shown, NULL);
 			cm_bool_line(cm_hud_id, CMH_RANGSTATS, &cm_rangstats_shown, NULL);
 			cm_bool_line(cm_hud_id, CMH_QUICKBM, &cm_quickbar_enabled, NULL);
@@ -1127,6 +1163,7 @@ void init_misc_display(hud_interface type)
 	cm_grey_line(cm_hud_id, CMH_STATS, (type == HUD_INTERFACE_NEW_CHAR));
 	cm_grey_line(cm_hud_id, CMH_STATBARS, (type == HUD_INTERFACE_NEW_CHAR));
 	cm_grey_line(cm_hud_id, CMH_FPS, (type == HUD_INTERFACE_NEW_CHAR));
+	cm_grey_line(cm_hud_id, CMH_INDICATORS, (type == HUD_INTERFACE_NEW_CHAR));
 	cm_grey_line(cm_hud_id, CMH_MINIMAP, (type == HUD_INTERFACE_NEW_CHAR));
 	cm_grey_line(cm_hud_id, CMH_RANGSTATS, (type == HUD_INTERFACE_NEW_CHAR));
 	cm_grey_line(cm_hud_id, CMH_QUICKBM, (type == HUD_INTERFACE_NEW_CHAR));
@@ -1194,7 +1231,6 @@ static int calc_statbar_start_y(int base_y_start, int win_y_len)
 int display_misc_handler(window_info *win)
 {
 	int base_y_start = win->len_y - (view_analog_clock?128:64) - (view_digital_clock?DEFAULT_FONT_Y_LEN:0);
-	char str[16];	// one extra incase the length of the day ever changes
 #ifdef OPENGL_TRACE
 CHECK_GL_ERRORS();
 #endif //OPENGL_TRACE
@@ -1248,6 +1284,7 @@ CHECK_GL_ERRORS();
 	//Digital Clock
 	if(view_digital_clock > 0){
 		int x;
+		char str[10];
 
 		//glColor3f(newcol_r, newcol_g, newcol_b); // useless
 		if (show_game_seconds)
@@ -1270,6 +1307,7 @@ CHECK_GL_ERRORS();
 	/* if mouse over the either of the clocks - display the time & date */
 	if (mouse_over_clock)
 	{
+		char str[20];
 		const char *the_date = get_date(NULL);
 		int centre_y =  (view_analog_clock) ?win->len_y-96 : base_y_start + DEFAULT_FONT_Y_LEN/2;
 
@@ -1286,6 +1324,7 @@ CHECK_GL_ERRORS();
 	/* if mouse over the compass - display the coords */
 	if (mouse_over_compass)
 	{
+		char str[12];
 		actor *me = get_our_actor ();
 		if (me != NULL)
 		{
@@ -1324,6 +1363,9 @@ CHECK_GL_ERRORS();
 
 		base_y_start -= knowledge_bar_height;
 	}
+
+	/* if the timer is visible, draw it */
+	base_y_start -= display_timer(win, base_y_start);
 
 	// Trade the number of quickbar slots if too much is displayed (not considering stats yet)
 	while (((win->len_y - base_y_start) - get_max_quick_y()) > 0)
@@ -1470,9 +1512,12 @@ int	click_misc_handler(window_info *win, int mx, int my, Uint32 flags)
 		}
 	}
 
+	if (mouse_is_over_timer(win, mx, my))
+		return mouse_click_timer(flags);
+
 	// only handle mouse button clicks, not scroll wheels moves
 	if ( (flags & ELW_MOUSE_BUTTON) == 0) return 0;
-	
+
 	// reserve CTRL clicks for scrolling
 	if (flags & ELW_CTRL) return 0;
 
@@ -1551,6 +1596,10 @@ int mouseover_misc_handler(window_info *win, int mx, int my)
 	/* check if over the knowledge bar */
 	if (mouse_is_over_knowedge_bar(win, mx, my))
 		mouse_over_knowledge_bar = 1;
+
+	/* check if over the timer */
+	if (mouse_is_over_timer(win, mx, my))
+		set_mouse_over_timer();
 
 	/* if mouse over the compass - display the coords */
 	if(my>win->len_y-64 && my<win->len_y)

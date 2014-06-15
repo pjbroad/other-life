@@ -853,6 +853,28 @@ void parse_input(char *data, int len)
 	{
 		test_for_console_command ((char*)data, len);
 	}
+	else if (data[0] == '/' && len > 1)
+	{
+		// Forum #58898: Please the server when sending player messages;
+		// remove all but one space between name and message start.
+		// do not assume data is null terminated
+		size_t dx = 0;
+		char *rebuf = (char *)malloc(len+1);
+		for (dx=0; (dx < len) && (data[dx] != ' '); dx++)
+			rebuf[dx] = data[dx];
+		rebuf[dx] = '\0';
+		while ((dx < len) && (data[dx] == ' '))
+			dx++;
+		if (dx < len)
+		{
+			size_t rebuf_len = 0;
+			safe_strcat(rebuf, " ", len+1);
+			rebuf_len = strlen(rebuf);
+			safe_strncpy2(&rebuf[rebuf_len], &data[dx], len+1-rebuf_len, len-dx);
+		}
+		send_input_text_line (rebuf, strlen(rebuf));
+		free(rebuf);
+	}
 	else
 	{
 		if(data[0] == char_at_str[0])
@@ -1345,7 +1367,7 @@ void cleanup_chan_names(void)
 		}
 		free(pseudo_chans[i]);
 	}
-	while(step->next != NULL) {
+	while(step != NULL) {
 		temp_node = step;
 		step = step->next;
 		temp_cn = queue_delete_node(chan_name_queue, temp_node);
@@ -1360,6 +1382,7 @@ void cleanup_chan_names(void)
 		}
 		free(temp_cn);
 	}
+	queue_destroy(chan_name_queue);
 }
 
 

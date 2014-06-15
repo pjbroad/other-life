@@ -80,6 +80,7 @@ int previously_logged_in= 0;
 time_t last_heart_beat;
 time_t last_save_time;
 int always_pathfinding = 0;
+int mixed_message_filter = 0;
 char inventory_item_string[300] = {0};
 size_t inventory_item_string_id = 0;
 
@@ -115,6 +116,27 @@ int is_acid_rain_day = 0, is_raining = 0;
 #endif
 int firstchannel;
 int lastchannel;
+
+/* real_game_second_valid set when we know the server seconds */
+static short real_game_second_valid = 0;
+int is_real_game_second_valid(void) { return real_game_second_valid; }
+void set_real_game_second_valid(void) { real_game_second_valid = 1; }
+
+/* get the current game time in seconds */
+Uint32 get_game_time_sec(void)
+{
+	return real_game_minute * 60 + real_game_second;
+}
+
+/* get the difference between the supplied time and current game time, allowing for wrap round */
+Uint32 diff_game_time_sec(Uint32 ref_time)
+{
+	Uint32 curr_game_time = get_game_time_sec();
+	if (ref_time > curr_game_time)
+		curr_game_time += 6 * 60 * 60;
+	return curr_game_time - ref_time;
+}
+
 
 /*
  *	Date handling code:
@@ -183,11 +205,14 @@ void create_tcp_out_mutex()
 	tcp_out_data_mutex = SDL_CreateMutex();
 }
 
-void destroy_tcp_out_mutex()
+void cleanup_tcp()
 {
 	SDL_DestroyMutex(tcp_out_data_mutex);
-
 	tcp_out_data_mutex = 0;
+	SDLNet_TCP_Close(my_socket);
+	SDLNet_FreeSocketSet(set);
+	set=NULL;
+	SDLNet_Quit();
 }
 
 #ifdef DEBUG
@@ -568,7 +593,8 @@ void connect_to_server()
 
 	//clear out info
 	clear_waiting_for_questlog_entry();
-	harvesting = 0;
+	clear_today_is_special_day();
+	clear_now_harvesting();
 	last_heart_beat= time(NULL);
 	send_heart_beat();	// prime the hearbeat to prevent some stray issues when there is lots of lag
 	hide_window(trade_win);
@@ -798,6 +824,7 @@ void process_message_from_server (const Uint8 *in_data, int data_length)
 				real_game_minute= SDL_SwapLE16(*((short *)(in_data+3)));
 				real_game_minute %= 360;
 				real_game_second = 0;
+				set_real_game_second_valid();
 				next_second_time = cur_time+1000;
 				if (real_game_minute < last_real_game_minute)
 					invalidate_date();
@@ -984,7 +1011,7 @@ void process_message_from_server (const Uint8 *in_data, int data_length)
 				safe_strncpy2(inventory_item_string, (const char *)&in_data[3], sizeof(inventory_item_string)-1, data_length - 3);
 				inventory_item_string[sizeof(inventory_item_string)-1] = 0;
 				inventory_item_string_id++;
-				if(!(get_show_window(items_win)||get_show_window(manufacture_win)||get_show_window(trade_win)))
+				if(!(mixed_message_filter||get_show_window(items_win)||get_show_window(manufacture_win)||get_show_window(trade_win)))
 					{
 						put_text_in_buffer(CHAT_SERVER, &in_data[3], data_length-3);
 					}
@@ -2267,6 +2294,14 @@ void process_message_from_server (const Uint8 *in_data, int data_length)
 				free(achievement_data);
 			}
 			break;
+		case SEND_BUFF_DURATION:
+			{
+				if (data_length <= 3)
+					LOG_WARNING("CAUTION: Possibly forged/invalid SEND_BUFF_DURATION packet received.\n");
+				else
+					here_is_a_buff_duration((Uint8)in_data[3]);
+				break;
+			}
 		default:
 			{
 				// Unknown packet type??

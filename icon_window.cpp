@@ -22,6 +22,7 @@
 #include "gl_init.h"
 #include "hud.h"
 #include "interface.h"
+#include "io/elfilewrapper.h"
 #include "multiplayer.h"
 #include "new_character.h"
 #include "icon_window.h"
@@ -177,7 +178,7 @@ namespace IconWindow
 				{
 					Uint32 value = get_key_value(key_name.c_str());
 					if (value)
-						keypress_root_common(value, 0);
+						do_keypress(value);
 				}
 				Basic_Icon::action();
 			}

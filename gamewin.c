@@ -94,6 +94,7 @@ extern int e3d_count, e3d_total;    // LRNR:stats testing only
 #endif  //DEBUG
 int cm_banner_disabled = 0;
 int ranging_lock = 0;
+int auto_disable_ranging_lock = 1;
 
 void draw_special_cursors()
 {
@@ -508,13 +509,9 @@ int click_game_handler(window_info *win, int mx, int my, Uint32 flags)
 	int shift_on = flags & ELW_SHIFT;
 	int range_weapon_equipped;
 
-#if !defined OSX && !defined WINDOWS
-#ifdef MIDDLE_MOUSE_PASTE
 	if ((flags & ELW_MOUSE_BUTTON_WHEEL) == ELW_MID_MOUSE)
 		// Don't handle middle button clicks
 		return 0;
-#endif
-#endif
 
 	if (flags & ELW_WHEEL_UP)
 	{
@@ -1830,6 +1827,10 @@ int keypress_root_common (Uint32 key, Uint32 unikey)
 	{
 		view_tab (&tab_stats_win, &tab_stats_collection_id, STATS_TAB_SESSION);
 	}
+	else if (key == K_COUNTERS)
+	{
+		view_tab (&tab_stats_win, &tab_stats_collection_id, STATS_TAB_COUNTERS);
+	}
 	else if (key == K_OPTIONS)
 	{
 		view_window (&elconfig_win, 0);
@@ -1845,6 +1846,10 @@ int keypress_root_common (Uint32 key, Uint32 unikey)
 	else if (key == K_HELP)
 	{
 		view_tab(&tab_help_win, &tab_help_collection_id, HELP_TAB_HELP);
+	}
+	else if (key == K_HELPSKILLS)
+	{
+		view_tab(&tab_help_win, &tab_help_collection_id, HELP_TAB_SKILLS);
 	}
 	else if (key == K_RULES)
 	{
@@ -2328,6 +2333,16 @@ int keypress_game_handler (window_info *win, int mx, int my, Uint32 key, Uint32 
 	
 	// we handled it, return 1 to let the window manager know
 	return 1;
+}
+
+void do_keypress(Uint32 key)
+{
+	if (game_root_win >= 0)
+	{
+		window_info *win = &windows_list.window[game_root_win];
+		if (win != NULL)
+			keypress_game_handler(win, 0, 0, key, 0);
+	}
 }
 
 int show_game_handler (window_info *win) {

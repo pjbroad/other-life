@@ -16,6 +16,7 @@
 #include "gl_init.h"
 #include "global.h"
 #include "hud.h"
+#include "highlight.h"
 #include "init.h"
 #include "lights.h"
 #include "misc.h"
@@ -52,6 +53,11 @@ int lines_to_show=0;
 int show_timestamp = 0;
 
 int dark_channeltext = 0;
+
+static int is_special_day = 0;
+int today_is_special_day(void) { return is_special_day; };
+void set_today_is_special_day(void) { is_special_day = 1; };
+void clear_today_is_special_day(void) { is_special_day = 0; };
 
 int log_chat = LOG_SERVER;
 
@@ -412,13 +418,13 @@ int parse_text_for_emote_commands(const char *text, int len)
 void check_harvesting_effect(void)
 {
 	/* if the harvesting effect is on but we're not harvesting, stop it */
-	if ((!harvesting || !use_harvesting_eye_candy) && (harvesting_effect_reference != NULL))
+	if ((!now_harvesting() || !use_harvesting_eye_candy) && (harvesting_effect_reference != NULL))
 	{
 		ec_recall_effect(harvesting_effect_reference);
 		harvesting_effect_reference = NULL;
 	}
 	/* but if we are harvesting but there is no effect, start it if wanted */
-	else if (harvesting && use_eye_candy && use_harvesting_eye_candy && (harvesting_effect_reference == NULL))
+	else if (now_harvesting() && use_eye_candy && use_harvesting_eye_candy && (harvesting_effect_reference == NULL))
 	{
 		actor *act;
 		LOCK_ACTORS_LISTS();
@@ -524,6 +530,7 @@ int filter_or_ignore_text (char *text_to_add, int len, int size, Uint8 channel)
 	if (from_color_char (text_to_add[0]) == c_green1 && my_strncompare(text_to_add+1,"Game Time", 9))
 	{
 		real_game_second = atoi(&text_to_add[18]);
+		set_real_game_second_valid();
 		next_second_time = cur_time + 1000;
         new_second();
 	}
@@ -546,18 +553,17 @@ int filter_or_ignore_text (char *text_to_add, int len, int size, Uint8 channel)
 		else if (my_strncompare(text_to_add+1, "You started to harvest ", 23)) {
 			strncpy(harvest_name, text_to_add+1+23, len-1-23-1);
 			harvest_name[len-1-23-1] = '\0';
-			harvesting = 1;
+			set_now_harvesting();
 		}
 		else if ((my_strncompare(text_to_add+1, "You stopped harvesting.", 23)) ||
 			(my_strncompare(text_to_add+1, "You can't harvest while fighting (duh)!", 39)) ||
 			(my_strncompare(text_to_add+1, "You can't do that while trading!", 32)) ||
-			(my_strncompare(text_to_add+1, "You are too far away! Get closer!", 33)) ||
 			(my_strncompare(text_to_add+1, "You can't harvest here", 22)) ||
 			(my_strncompare(text_to_add+1, "You lack the knowledge of ", 26)) ||
 			((my_strncompare(text_to_add+1, "You need to wear ", 17) && strstr(text_to_add, "order to harvest") != NULL)) ||
 			((my_strncompare(text_to_add+1, "You need to have a ", 19) && strstr(text_to_add, "order to harvest") != NULL)))
 		{
-			harvesting = 0;
+			clear_now_harvesting();
 		}
 		else if (is_death_message(text_to_add+1)) {
 			// nothing to be done here cause all is done in the test function
@@ -602,9 +608,28 @@ int filter_or_ignore_text (char *text_to_add, int len, int size, Uint8 channel)
 		else if (strstr(text_to_add+1, "You have been saved!")) {
 			last_save_time = time(NULL);
 		}
-		
+		else if (strstr(text_to_add+1, "Day ends:") || strstr(text_to_add+1, "This day was removed by ")) {
+			clear_today_is_special_day();
+		}
+		else if (strstr(text_to_add+1, "Today is a special day:")) {
+			set_today_is_special_day();
+		}
+		else if (my_strncompare(text_to_add+1, "You are too far away! Get closer!", 33)) {
+			static Uint32 last_time = 0;
+			static int done_one = 0;
+			Uint32 new_time = SDL_GetTicks();
+			clear_now_harvesting(); /* messages was previously in the list above */
+			if(your_actor != NULL)
+				add_highlight(your_actor->x_tile_pos,your_actor->y_tile_pos, HIGHLIGHT_SOFT_FAIL);
+			/* suppress further messages within for 5 seconds of last */
+			if (done_one && (abs(new_time - last_time) < 5000))
+				return 0;
+			done_one = 1;
+			last_time = new_time;
+		}
+
 	} else if (channel == CHAT_LOCAL) {
-		if (harvesting && my_strncompare(text_to_add+1, username_str, strlen(username_str))) {
+		if (now_harvesting() && my_strncompare(text_to_add+1, username_str, strlen(username_str))) {
 			char *ptr = text_to_add+1+strlen(username_str);
 			if (my_strncompare(ptr, " found a ", 9)) {
 				ptr += 9;

@@ -378,14 +378,7 @@ void read_bin_cfg()
 	rz=cfg_mem.camera_z;
 	new_zoom_level=zoom_level=cfg_mem.zoom_level;
 
-	// Needed for just one release, recover previous settings for player banners.
-	if (cfg_mem.unused_01 != 0 || cfg_mem.unused_02 != 0)
-	{
-		cfg_mem.banner_settings &= 1;
-		cfg_mem.banner_settings |= (cfg_mem.unused_01 << 2);
-		cfg_mem.banner_settings |= (cfg_mem.unused_02 << 3);
-		cfg_mem.unused_01 = cfg_mem.unused_02 = 0;
-	}
+	item_lists_set_active(cfg_mem.active_item_list);
 
 	view_health_bar=cfg_mem.banner_settings & 1;
 	view_ether_bar=(cfg_mem.banner_settings >> 1) & 1;
@@ -425,6 +418,7 @@ void read_bin_cfg()
 	disable_manuwin_keypress = (cfg_mem.misc_bool_options >> 15) & 1;
 	always_show_astro_details = (cfg_mem.misc_bool_options >> 16) & 1;
 	items_list_on_left = (cfg_mem.misc_bool_options >> 17) & 1;
+	items_mod_click_any_cursor = (cfg_mem.misc_bool_options >> 18) & 1;
 
 	set_options_user_menus(cfg_mem.user_menu_win_x, cfg_mem.user_menu_win_y, cfg_mem.user_menu_options);
 
@@ -632,6 +626,8 @@ void save_bin_cfg()
 	cfg_mem.banner_settings |= view_hp << 3;
 	cfg_mem.banner_settings |= view_ether << 4;
 
+	cfg_mem.active_item_list = item_lists_get_active();
+
 	cfg_mem.quantity_selected=(quantities.selected<ITEM_EDIT_QUANT)?quantities.selected :0;
 
 	if(quickbar_relocatable>0)
@@ -683,6 +679,7 @@ void save_bin_cfg()
 	cfg_mem.misc_bool_options |= disable_manuwin_keypress << 15;
 	cfg_mem.misc_bool_options |= always_show_astro_details << 16;
 	cfg_mem.misc_bool_options |= items_list_on_left << 17;
+	cfg_mem.misc_bool_options |= items_mod_click_any_cursor << 18;
 
 	get_options_user_menus(&cfg_mem.user_menu_win_x, &cfg_mem.user_menu_win_y, &cfg_mem.user_menu_options);
 
@@ -739,6 +736,10 @@ void init_stuff()
 
 	load_server_list("servers.lst");
 	set_server_details();
+
+#ifdef NEW_SOUND
+	initial_sound_init();
+#endif
 
 	// Read the config file
 	read_config();
@@ -890,7 +891,6 @@ void init_stuff()
 	init_particles ();
 #ifdef NEW_SOUND
 	update_loading_win(init_audio_str, 1);
-	initial_sound_init();
 	load_sound_config_data(SOUND_CONFIG_PATH);
 #endif // NEW_SOUND
 	update_loading_win(init_actor_defs_str, 4);

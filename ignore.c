@@ -232,6 +232,18 @@ int pre_check_if_ignored (const char *input_text, int len, Uint8 channel)
 				get_name_from_text(input_text, len, 0, offset, name);		// Type 0 = ":" or " "
 			}
 			break;
+		case CHAT_SERVER:
+			for (offset = 0; is_color (input_text[offset]); offset++);		// Ignore colours
+			if(strncasecmp(input_text+offset, "delayed: ", 9) == 0)
+			{
+				offset = 10;
+				if(strncasecmp(input_text+offset, pm_from_str, strlen(pm_from_str)) == 0)
+				{
+					offset += strlen(pm_from_str)+1;
+					get_name_from_text(input_text, len, 0, offset, name);		// Type 0 = ":" or " "
+				}
+			}
+			break;
 	}
 	#if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
 		if(loadsofchannels == 3)

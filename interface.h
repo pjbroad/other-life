@@ -76,6 +76,7 @@ extern int hud_text;
 extern int weather_text;
 
 extern int ranging_lock;
+extern int auto_disable_ranging_lock;
 
 /*!
  * A flag for a mode, that show whether a mode is supported and/or selected.
@@ -379,6 +380,16 @@ void put_mark_on_map_on_mouse_position();
  * \pre If we don't have an active actor, this function won't perform any actions further actions.
  */
 int put_mark_on_current_position(char *name);
+
+/*!
+ * \ingroup interfaces
+ * \brief   Destroys all of the root windows if necessary.
+ *
+ *      Destroys all the root windows, if necessary, i.e. if the associated *_root_win variables are greater than or equal to zero, by calling \ref destroy_window for each of them.
+ *
+ * \callgraph
+ */
+void destroy_all_root_windows ();
 
 /*!
  * \ingroup interfaces

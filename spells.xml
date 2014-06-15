@@ -29,6 +29,20 @@
 		<reagent id="60" uid="41">1</reagent>
 	</spell>
 	<spell>
+		<name>Heal Allies</name>
+		<desc>Restores some HP on Guildies</desc>
+		<id>21</id>
+		<group>0</group>
+		<icon>41</icon>
+		<mana>24</mana>
+		<lvl skill="mag">40</lvl>
+		<sigil>3</sigil>	
+		<sigil>8</sigil>	
+		<sigil>23</sigil>	
+		<reagent id="59" uid="40">3</reagent>
+		<reagent id="60" uid="41">2</reagent>
+	</spell>
+	<spell>
 		<name>Restoration</name>
 		<desc>Restores some of your health</desc>
 		<id>7</id>
@@ -118,6 +132,7 @@
 		<reagent id="56" uid="37">4</reagent>
 		<reagent id="60" uid="41">4</reagent>
 		<reagent id="54" uid="35">4</reagent>
+		<buff>7</buff>
 	</spell>
 	<spell>
 		<name>Intercontinental Teleport</name>
@@ -148,6 +163,7 @@
 		<reagent id="53" uid="34">10</reagent>
 		<reagent id="56" uid="37">10</reagent>
 		<reagent id="55" uid="36">10</reagent>
+		<buff>11</buff>
 	</spell>
 <!-- attack group -->
 	<spell>
@@ -232,6 +248,7 @@
 		<sigil>21</sigil>	
 		<reagent id="60" uid="41">1</reagent>
 		<reagent id="56" uid="37">1</reagent>
+		<buff>1</buff>
 	</spell>
 	<spell>
 		<name>Shield</name>
@@ -245,6 +262,7 @@
 		<sigil>15</sigil>	
 		<sigil>21</sigil>	
 		<reagent id="55" uid="36">1</reagent>
+		<buff>0</buff>
 	</spell>
 	<spell>
 		<name>Magic Immunity</name>
@@ -260,6 +278,7 @@
 		<sigil>21</sigil>	
 		<reagent id="60" uid="41">2</reagent>
 		<reagent id="56" uid="37">1</reagent>
+		<buff>3</buff>
 	</spell>
 	<spell>
 		<name>Heat Shield</name>
@@ -275,6 +294,7 @@
 		<reagent id="56" uid="37">3</reagent>
 		<reagent id="55" uid="36">3</reagent>
 		<reagent id="51" uid="32">4</reagent>
+		<buff>24</buff>
 	</spell>
 	<spell>
 		<name>Cold Shield</name>
@@ -290,6 +310,7 @@
 		<reagent id="56" uid="37">3</reagent>
 		<reagent id="55" uid="36">3</reagent>
 		<reagent id="50" uid="31">4</reagent>
+		<buff>23</buff>
 	</spell>
 	<spell>
 		<name>Radiation Shield</name>
@@ -306,6 +327,7 @@
 		<reagent id="56" uid="37">3</reagent>
 		<reagent id="55" uid="36">3</reagent>
 		<reagent id="60" uid="41">4</reagent>
+		<buff>25</buff>
 	</spell>
 </Spell_list>
 <Groups>

@@ -250,6 +250,7 @@ extern char
 		channel_color_add_str[20],
 		channel_color_delete_str[20],
 		/*console.c*/
+		local_save_str[80],
 		logconn_str[50],
 		time_warn_hour_str[75],
 		time_warn_sunrise_str[100],
@@ -301,6 +302,8 @@ extern char
 		urlwin_clear_str[30],
 		/*draw_scene.c*/
 		low_framerate_str[100],
+		/* encyclopedia */
+		encycl_search_prompt_str[25],
 		/*filter.c*/
 		no_filters_str[50],
 		filters_str[50],
@@ -314,6 +317,11 @@ extern char
 		stats_scroll_help_str[100],
 		remove_bar_message_str[50],
 		cm_action_points_str[30],
+		hud_timer_cm_str[80],
+		hud_timer_popup_title_str[25],
+		day_indicator_str[40],
+		harvest_indicator_str[40],
+		poison_indicator_str[40],
 		/*ignore.c*/
 		no_ignores_str[50],
 		ignores_str[50],
@@ -334,7 +342,7 @@ extern char
 		quantity_edit_str[100],
 		equip_here_str[100],
 		equip_str[20],
-		pick_item_help_str[50],
+		mod_click_item_help_str[50],
 		multiuse_item_help_str[50],
 		stoall_help_str[50],
 		getall_help_str[50],
@@ -359,6 +367,8 @@ extern char
 		researching_str[30],
 		not_researching_anything[25],
 		not_researching_str[25],
+		countdown_str[20],
+		stopwatch_str[20],
 		minutes_str[15],
 		minute_str[15],
 		idle_str[15],
@@ -466,7 +476,7 @@ extern char
 		cm_quickspell_menu_str[50],
 		cm_textedit_menu_str[100],
 		cm_quickbar_menu_str[150],
-		cm_hud_menu_str[250],
+		cm_hud_menu_str[270],
 		cm_banner_menu_str[240],
 		cm_title_menu_str[150],
 		cm_title_help_str[50],
@@ -486,6 +496,7 @@ extern char
 		cm_stats_bar_base_str[30],
 		cm_recipe_menu_str[100],
 		cm_manuwin_menu_str[50],
+		cm_encycl_base_str[150],
 		/* user_menus.cpp */
 		um_invalid_command_str[50],
 		um_invalid_line_str[50],

@@ -35,6 +35,7 @@ extern int client_version_patch; /*!< The clients Patchlevel number */
 extern int version_first_digit; /*!< the first digit of the version */
 extern int version_second_digit; /*!< the second digit of the version */
 extern int always_pathfinding; /*!< use pathfinding for walk click on far visible tiles of the 3d map */
+extern int mixed_message_filter; /*!< If true, do not display console messages for mixed items when other windows are closed */
 /*! @} */
 
 
@@ -42,6 +43,34 @@ extern Uint32 next_second_time; /*!< the time of the next second */
 extern short real_game_minute; /*!< the real game minute */
 extern short real_game_second; /*!< the real game second */
 
+/*!
+ * \brief	check validity of game seconds
+ *
+ * \retval	true if we have set seconds.
+*/
+int is_real_game_second_valid(void);
+
+/*!
+ * \brief	Set game seconds as valid.
+ * 
+*/
+void set_real_game_second_valid(void);
+
+/*!
+ * \brief	Get the current game time.
+ * 
+ * \retval	game time in seconds.
+*/
+Uint32 get_game_time_sec(void);
+
+/*!
+ * \brief	Get the time difference from current game time.
+ *
+ * \param	the relative time to compare
+ * 
+ * \retval	the time difference in seconds, wrapped appropriately
+*/
+Uint32 diff_game_time_sec(Uint32 ref_time);
 
 extern time_t last_heart_beat; /*!< a timestamp that inidicates when the last message was sent to the server */
 
@@ -66,10 +95,10 @@ void create_tcp_out_mutex();
 /*!
  * \ingroup network_actors
  *
- *      Destroys the mutex for the tcp output buffer.
+ *      Destroys the mutex for the tcp output buffer, the socket and the socket set
  *
  */
-void destroy_tcp_out_mutex();
+void cleanup_tcp();
 
 	/*!
  * \ingroup network_actors

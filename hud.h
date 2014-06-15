@@ -6,7 +6,7 @@
 #ifndef	__HUD_H
 #define	__HUD_H
 
-#include "elwindows.h"
+#include <SDL_types.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -70,6 +70,7 @@ extern int hud_y;
 extern int view_analog_clock;
 extern int view_digital_clock;
 extern int view_knowledge_bar;
+extern int view_hud_timer;
 
 extern int quickbar_x;
 extern int quickbar_y;
@@ -99,6 +100,14 @@ int action_item_keys(Uint32 key);
  * \callgraph
  */
 void init_hud_interface (hud_interface type);
+
+/*!
+ * \ingroup other
+ * \brief Called on client exit - free memory and generally clean up
+ *
+ * \callgraph
+ */
+void cleanup_hud(void);
 
 /*!
  * \ingroup other
@@ -241,6 +250,21 @@ void show_help(const char *message, int x, int y);
 
 /*!
  * \ingroup windows
+ * \brief Shows the \a message at the given position (\a x, \a y).
+ *
+ *      Shows the \a message at the given position (\a x, \a y).
+ *
+ * \param message   the help message to show
+ * \param x         the x coordinate of the position to draw the help message
+ * \param y         the y coordinate of the position to draw the help message
+ * \param big       if zero use the small font, otherwise the default
+ *
+ * \callgraph
+ */
+void show_sized_help(const char *message, int x, int y, int big);
+
+/*!
+ * \ingroup windows
  * \brief Shows the \a message at the given position and colour (\a x, \a y).
  *
  *      Shows the \a message at the given position and colour (\a x, \a y).
@@ -255,6 +279,25 @@ void show_help(const char *message, int x, int y);
  * \callgraph
  */
 void show_help_coloured(const char *help_message, int x, int y, float r, float g, float b);
+
+
+/*!
+ * \ingroup windows
+ * \brief Shows the \a message at the given position and colour (\a x, \a y).
+ *
+ *      Shows the \a message at the given position and colour (\a x, \a y).
+ *
+ * \param message   the help message to show
+ * \param x         the x coordinate of the position to draw the help message
+ * \param y         the y coordinate of the position to draw the help message
+ * \param r         the red RGB value for text
+ * \param g         the green RGB value for text
+ * \param b         the blue RGB value for text
+ * \param big       if zero use the small font, otherwise the default
+ *
+ * \callgraph
+ */
+void show_sized_help_coloured(const char *help_message, int x, int y, float r, float g, float b, int big);
 
 //stats/health section
 

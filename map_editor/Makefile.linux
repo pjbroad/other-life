@@ -27,7 +27,7 @@ _CXXFLAGS=$(OPTIONS) -mcpu=i686 -O3 -fomit-frame-pointer -ffast-math -pipe $(GTK
 GTK_LIBS =  $(shell gtk-config --libs) 
 GTK2_LIBS = $(shell pkg-config gtk+-2.0 --libs)
 
-LIBS=$(shell sdl-config --libs) -lGL -lGLU $(shell xml2-config --libs) -lcal3d -lSDL_image
+LIBS=$(shell sdl-config --libs) -lGL -lGLU $(shell xml2-config --libs) -lcal3d -lSDL_image -lz
 
 COBJS=2d_objects.o 3d_objects.o	\
 	browser.o draw_scene.o	\
@@ -136,3 +136,22 @@ $(ELC_XZ_CCOBJS): %.o : ../xz/%.c $(GENDEP)
 
 clean:
 	-rm -f $(OBJS) $(EXE)
+
+# Based on the main client static build, this works on Ubuntu 8.04 (LTS) at least
+# Its only a little bit static but it may work
+# Install these packages in addition to those required for a standard build
+# libasound2-dev libaudio-dev libartsc0-dev libesd0-dev libpulse-dev libaa1-dev libgpmg1-dev libdirectfb-dev
+LIBD=/usr/lib
+STATICLIBS=$(LIBD)/libSDL_net.a $(LIBD)/libSDL.a $(LIBD)/libSDL_image.a \
+	$(LIBD)/libopenal.a $(LIBD)/libvorbisfile.a $(LIBD)/libvorbis.a \
+	$(LIBD)/libogg.a $(LIBD)/libxml2.a $(LIBD)/libcal3d.a \
+	$(LIBD)/libpng.a $(LIBD)/libasound.a $(LIBD)/libaudio.a \
+	$(LIBD)/libartsc.a $(LIBD)/libesd.a $(LIBD)/libpulse-simple.a \
+	$(LIBD)/libpulse.a $(LIBD)/libaa.a $(LIBD)/libgpm.a \
+	$(LIBD)/libcurses.a $(LIBD)/libslang.a $(LIBD)/libdirectfb.a \
+	$(LIBD)/libdirect.a $(LIBD)/libfusion.a $(LIBD)/librt.a \
+	$(LIBD)/libtiff.a $(LIBD)/libjpeg.a $(LIBD)/libGLU.a $(LIBD)/libz.a \
+	-lGL
+
+static: $(OBJS)
+	@$(MAKE) -f Makefile.linux 'LIBS=$(STATICLIBS)'
