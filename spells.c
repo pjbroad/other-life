@@ -253,10 +253,11 @@ void check_then_do_buff_duration_request(void)
 		while (!(requested_durations & last_requested_duration))
 			last_requested_duration <<= 1;
 		last_request_time = SDL_GetTicks();
-
+#ifndef OTHER_LIFE
 		str[0] = GET_BUFF_DURATION;
 		*((Uint16 *)(str+1)) = SDL_SwapLE16(requested_durations);
 		my_tcp_send (my_socket, str, 3);
+#endif
 	}
 }
 
