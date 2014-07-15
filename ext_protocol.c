@@ -1,5 +1,6 @@
 #include <SDL_types.h>
 #include <zlib.h>
+#include "asc.h"
 #include "errors.h"
 #include "ext_protocol.h"
 #include "knowledge.h"
