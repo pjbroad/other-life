@@ -457,6 +457,9 @@ extern char
 		ranging_success_rate_str[40],
 		ranging_critical_rate_str[40],
 		ranging_exp_per_arrow_str[40],
+		/* storage */
+		storage_filter_prompt_str[15],
+		storage_filter_help_str[40],
 		/* session.c */
 		session_reset_help[60],
 		/*trade.c*/
@@ -481,7 +484,7 @@ extern char
 		cm_title_menu_str[150],
 		cm_title_help_str[50],
 		cm_items_menu_str[150],
-		cm_storage_menu_str[75],
+		cm_storage_menu_str[90],
 		cm_astro_menu_str[80],
 		cm_ranging_menu_str[50],
 		cm_dialog_options_str[80],
