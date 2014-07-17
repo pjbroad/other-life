@@ -323,6 +323,9 @@ char
 	ranging_success_rate_str[40],
 	ranging_critical_rate_str[40],
 	ranging_exp_per_arrow_str[40],
+	/* storage */
+	storage_filter_prompt_str[15],
+	storage_filter_help_str[40],
 	/* session.c */
 	session_reset_help[60],
 	/*trade.c*/
@@ -347,7 +350,7 @@ char
 	cm_title_menu_str[150],
 	cm_title_help_str[50],
 	cm_items_menu_str[150],
-	cm_storage_menu_str[75],
+	cm_storage_menu_str[90],
 	cm_astro_menu_str[80],
 	cm_ranging_menu_str[50],
 	cm_dialog_options_str[80],
@@ -1480,6 +1483,8 @@ void init_help()
 	add_xml_identifier(misc,"ranging_success_rate", ranging_success_rate_str, "Success rate     %.2f %%", sizeof(ranging_success_rate_str));
 	add_xml_identifier(misc,"ranging_critical_rate", ranging_critical_rate_str, "Critical rate    %.2f %%", sizeof(ranging_critical_rate_str));
 	add_xml_identifier(misc,"ranging_exp_per_arrow", ranging_exp_per_arrow_str, "Exp/arrows       %.2f exp", sizeof(ranging_exp_per_arrow_str));
+	add_xml_identifier(misc,"storage_filter_prompt", storage_filter_prompt_str, "Filter: ", sizeof(storage_filter_prompt_str));
+	add_xml_identifier(misc,"storage_filter_help", storage_filter_help_str, "Type text - filter items.", sizeof(storage_filter_help_str));
 
 	//New characters
 	add_xml_identifier(new,"skin",skin_str,"Skin",sizeof(skin_str));
@@ -1602,7 +1607,7 @@ void init_help()
 	add_xml_identifier(misc, "cm_title_menu", cm_title_menu_str, "Hide Windows\nOpaque Background\nWindows On Top\n", sizeof(cm_title_menu_str));
 	add_xml_identifier(misc, "cm_title_help", cm_title_help_str, "Right-click for window menu", sizeof(cm_title_help_str));
 	add_xml_identifier(misc, "cm_items_menu", cm_items_menu_str, "--\nUse Small Window\nManual Window Size\nItem Window On Drop\nAllow Equipment Swap\nAlt/Ctrl-click With Any Cursor\n--\nOpen Storage (View Only)", sizeof(cm_items_menu_str));
-	add_xml_identifier(misc, "cm_storage_menu", cm_storage_menu_str, "--\nPrint Items To Console\nSort Categories Alphabetically\n", sizeof(cm_storage_menu_str));
+	add_xml_identifier(misc, "cm_storage_menu", cm_storage_menu_str, "--\nPrint Items To Console\nSort Categories Alphabetically\nDisable item filter", sizeof(cm_storage_menu_str));
 	add_xml_identifier(misc, "cm_astro_menu", cm_astro_menu_str, "--\nPrint Details To Console\nAlways Print Details To Console", sizeof(cm_astro_menu_str));
 	add_xml_identifier(misc, "cm_ranging_menu", cm_ranging_menu_str, "--\nPrint To Console", sizeof(cm_ranging_menu_str));
 	add_xml_identifier(misc, "cm_dialog_options", cm_dialog_options_str, "Auto close storage dialogue\nAuto select storage option in dialogue", sizeof(cm_dialog_options_str));
