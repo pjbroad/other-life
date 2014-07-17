@@ -1,4 +1,3 @@
-
 #include <stdlib.h>
 #include <string.h>
 #include <SDL.h>
@@ -176,7 +175,11 @@ static __inline__ void draw_actor_points(float zoom_multip, float px, float py)
 						colors_list[color].b1);
 				}
 			}
+#ifdef OTHER_LIFE
+			else if(!a->is_enhanced_model || (a->is_enhanced_model && (a->kind_of_actor < 1 || a->kind_of_actor > 5)))
+#else
 			else if(!a->is_enhanced_model)
+#endif
 			{
 				if (a->dead) 
 					elglColourN("minimap.deadcreature");
