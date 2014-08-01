@@ -135,6 +135,7 @@ int spell_mini_rows=0;
 
 
 /* spell duration state */
+#undef BUFF_DURATION_DEBUG
 static Uint16 requested_durations = 0;
 static Uint16 last_requested_duration = 0;
 static size_t buff_duration_colour_id = 0;
@@ -420,16 +421,7 @@ int init_spells ()
 		xmlNode *data;
 		char tmp[200];
 		char name[200];
-		const int expected_version = 1;
-		int actual_version = -1;
 		i = 0;
-
-		if ((actual_version = xmlGetInt(root,(xmlChar*)"version")) < expected_version)
-		{
-			safe_snprintf(tmp, sizeof(tmp), "Warning: %s file is out of date expecting %d, actual %d.", fname, expected_version, actual_version);
-			LOG_TO_CONSOLE (c_red1, tmp);
-		}
-
 		//parse spells
 		node = get_XML_node(root->children, "Spell_list");
 		node = get_XML_node(node->children, "spell");
@@ -744,25 +736,6 @@ void remove_active_spell(int pos)
 		stop_sound(active_spells[pos].sound);
 #endif // NEW_SOUND
 }
-
-#if defined(BUFF_DURATION_DEBUG)
-static void rerequest_durations(void)
-{
-	size_t i;
-	for (i = 0; i < NUM_ACTIVE_SPELLS; i++)
-	{
-		if (active_spells[i].spell >= 0)
-			request_buff_duration(active_spells[i].spell);
-	}
-}
-
-int command_buff_duration(char *text, int len)
-{
-	LOG_TO_CONSOLE(c_green1, "Request buff durations");
-	rerequest_durations();
-	return 1;
-}
-#endif
 
 void get_active_spell_list(const Uint8 *my_spell_list)
 {
