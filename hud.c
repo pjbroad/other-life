@@ -112,6 +112,7 @@ int	misc_win= -1;
 int	quickbar_win= -1;
 int	quickspell_win= -1;
 int show_help_text=1;
+int always_enlarge_text=1;
 
 int qb_action_mode=ACTION_USE;
 
@@ -129,6 +130,7 @@ static int mouse_over_knowledge_bar = 0;			/* 1 if mouse is over the knowledge b
 static const int knowledge_bar_height = SMALL_FONT_Y_LEN + 6;
 static const int stats_bar_height = SMALL_FONT_Y_LEN;
 
+static int mouseover_quickbar_item_pos = -1;
 
 /* called on client exit to free resources */
 void cleanup_hud(void)
@@ -469,6 +471,12 @@ void view_tab (int *window, int *col_id, int tab)
 	}
 }
 
+int enlarge_text(void)
+{
+	if (always_enlarge_text)
+		return 1;
+	return ((SDL_GetModState() & (KMOD_CTRL|KMOD_ALT)));
+}
 
 void show_help(const char *help_message, int x, int y)
 {
@@ -1711,6 +1719,7 @@ int	display_quickbar_handler(window_info *win)
 	char str[80];
 	int y, i;
 	Uint32 _cur_time = SDL_GetTicks(); /* grab a snapshot of current time */
+	int ypos = -1, xpos = -1;
 
 	// check if the number of slots has changes and adjust if needed
 	if (last_num_quickbar_slots == -1)
@@ -1727,7 +1736,7 @@ int	display_quickbar_handler(window_info *win)
 	glEnable(GL_TEXTURE_2D);
 	glColor3f(1.0f,1.0f,1.0f);
 	//ok, now let's draw the objects...
-	for(i=0;i<num_quickbar_slots;i++)
+	for(i=num_quickbar_slots-1;i>=0;i--)
 	{
 		if(item_list[i].quantity > 0)
 		{
@@ -1828,9 +1837,25 @@ int	display_quickbar_handler(window_info *win)
 			}
 			
 			safe_snprintf(str,sizeof(str),"%i",item_list[i].quantity);
-			draw_string_small_shadowed(x_start,y_end-SMALL_FONT_Y_LEN,(unsigned char*)str,1,1.0f,1.0f,1.0f,0.0f,0.0f,0.0f);
+			if (quickbar_dir==VERTICAL)
+			{
+				int lenstr = strlen(str);
+				lenstr *= ((mouseover_quickbar_item_pos == i) && enlarge_text()) ?DEFAULT_FONT_X_LEN :SMALL_FONT_X_LEN;
+				xpos = ((x_start + lenstr + win->cur_x) > window_width) ?window_width - win->cur_x - lenstr :x_start;
+				ypos = y_end-15;
+			}
+			else
+			{
+				xpos = x_start;
+				ypos = (i&1)?(y_end-15):(y_end-25);
+			}
+			if ((mouseover_quickbar_item_pos == i) && enlarge_text())
+				draw_string_shadowed(xpos,ypos,(unsigned char*)str,1,1.0f,1.0f,1.0f,0.0f,0.0f,0.0f);
+			else
+				draw_string_small_shadowed(xpos,ypos,(unsigned char*)str,1,1.0f,1.0f,1.0f,0.0f,0.0f,0.0f);
 		}
 	}
+	mouseover_quickbar_item_pos = -1;
 	
 	// Render the grid *after* the images. It seems impossible to code
 	// it such that images are rendered exactly within the boxes on all 
@@ -1932,6 +1957,7 @@ int mouseover_quickbar_handler(window_info *win, int mx, int my) {
 									elwin_mouse=CURSOR_PICK;
 								}
 								quickbar_item_description_help(win, i, y);
+								mouseover_quickbar_item_pos = y;
 								return 1;
 							}
 					}

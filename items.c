@@ -543,6 +543,9 @@ int display_items_handler(window_info *win)
 	}
 	draw_string_small(win->len_x-strlen(quantity_str)*8-5, quantity_y_offset-19, (unsigned char*)quantity_str, 1);
 
+	glColor3f(0.57f,0.67f,0.49f);
+	draw_string_small (wear_items_x_offset + 33 - (8 * strlen(equip_str))/2, wear_items_y_offset-18, (unsigned char*)equip_str, 1);
+
 	glColor3f(1.0f,1.0f,1.0f);
 	//ok, now let's draw the objects...
 	for(i=ITEM_NUM_ITEMS-1;i>=0;i--){
@@ -625,12 +628,11 @@ int display_items_handler(window_info *win)
 
 				glDisable(GL_BLEND);
 				glEnable(GL_TEXTURE_2D);
-				//glColor3f(1.0f, 1.0f, 1.0f); //moved below
 			}
 			
 			if(!item_is_weared){
 				safe_snprintf(str, sizeof(str), "%i", item_list[i].quantity);
-				if ((mouseover_item_pos == i) && (SDL_GetModState() & (KMOD_CTRL|KMOD_ALT)))
+				if ((mouseover_item_pos == i) && enlarge_text())
 					draw_string_shadowed(x_start, (i&1)?(y_end-15):(y_end-25), (unsigned char*)str, 1,1.0f,1.0f,1.0f, 0.0f, 0.0f, 0.0f);
 				else
 					draw_string_small_shadowed(x_start, (i&1)?(y_end-15):(y_end-25), (unsigned char*)str, 1,1.0f,1.0f,1.0f, 0.0f, 0.0f, 0.0f);
@@ -638,6 +640,8 @@ int display_items_handler(window_info *win)
 		}
 	}
 	mouseover_item_pos = -1;
+
+	glColor3f(1.0f,1.0f,1.0f);
 
 	//draw the load string
 	if (!use_small_items_window)

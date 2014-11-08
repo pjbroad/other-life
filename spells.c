@@ -2,6 +2,7 @@
 #include <string.h>
 #include <errno.h>
 #include "spells.h"
+#include "actors.h"
 #include "asc.h"
 #include "cursors.h"
 #include "context_menu.h"
@@ -737,6 +738,25 @@ void remove_active_spell(int pos)
 #endif // NEW_SOUND
 }
 
+static void rerequest_durations(void)
+{
+	size_t i;
+	for (i = 0; i < NUM_ACTIVE_SPELLS; i++)
+	{
+		if (active_spells[i].spell >= 0)
+			request_buff_duration(active_spells[i].spell);
+	}
+}
+
+#if defined(BUFF_DURATION_DEBUG)
+int command_buff_duration(char *text, int len)
+{
+	LOG_TO_CONSOLE(c_green1, "Request buff durations");
+	rerequest_durations();
+	return 1;
+}
+#endif
+
 void get_active_spell_list(const Uint8 *my_spell_list)
 {
 	size_t i;
@@ -813,6 +833,18 @@ void display_spells_we_have()
 	float scale, duration;
 	int cur_spell,cur_pos;
 	int x_start = -1,y_start;
+
+	if (your_actor != NULL)
+	{
+		static int last_actor_type = -1;
+		if (last_actor_type < 0)
+			last_actor_type = your_actor->actor_type;
+		if (last_actor_type != your_actor->actor_type)
+		{
+			last_actor_type = your_actor->actor_type;
+			rerequest_durations();
+		}
+	}
 
 #ifdef OPENGL_TRACE
 	CHECK_GL_ERRORS();

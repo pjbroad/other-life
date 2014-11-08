@@ -56,6 +56,7 @@
 #include "queue.h"
 #include "reflection.h"
 #include "rules.h"
+#include "session.h"
 #include "shader/shader.h"
 #include "sky.h"
 #include "sound.h"
@@ -182,6 +183,9 @@ int start_rendering()
 
 			//advance the clock
 			cur_time = SDL_GetTicks();
+
+			// update the approximate distance moved
+			update_session_distance();
 
 			//check for network data
 			if(!queue_isempty(message_queue)) {

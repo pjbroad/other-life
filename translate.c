@@ -192,7 +192,7 @@ char
 	stats_scroll_help_str[100],
 	remove_bar_message_str[50],
 	cm_action_points_str[30],
-	hud_timer_cm_str[80],
+	hud_timer_cm_str[100],
 	hud_timer_popup_title_str[25],
 	day_indicator_str[40],
 	harvest_indicator_str[40],
@@ -267,6 +267,7 @@ char
 	/*new_character.c*/
 	skin_str[15],
 	hair_str[15],
+	eyes_str[15],
 	shirt_str[15],
 	pants_str[15],
 	boots_str[15],
@@ -783,6 +784,7 @@ char	win_notepad[20],
 	button_save_notes[30],
 	label_note_name[20],
 	game_version_str[60],
+	game_version_prefix_str[60],
 	label_cursor_coords[17],
 	label_mark_filter[13];
 #endif  // ELC
@@ -1330,6 +1332,7 @@ void init_errors()
 
 	//Rule errors
 	add_xml_identifier(rules,"proceed",you_can_proceed,"Read the rules and you can play in %d sec",sizeof(you_can_proceed));
+	add_xml_identifier(rules,"proceed",you_can_proceed,"Read the rules and you can play in %d seconds",sizeof(you_can_proceed));
 	add_xml_identifier(rules,"ready",accepted_rules,"Read the rules and click on \"I Accept\" to play!",sizeof(accepted_rules));
 	add_xml_identifier(rules,"accept",accept_label,"I Accept",sizeof(accept_label));
 	add_xml_identifier(rules,"read",read_rules_str,"An error occured while reading the rules",sizeof(read_rules_str));
@@ -1464,7 +1467,7 @@ void init_help()
 	add_xml_identifier(misc,"stats_scroll_help",stats_scroll_help_str,"Scroll Up/Down using CTRL+left/CTRL+right click or scrollwheel.",sizeof(stats_scroll_help_str));
 	add_xml_identifier(misc,"remove_bar_message",remove_bar_message_str,"Removed exp bar as space is limited.",sizeof(remove_bar_message_str));
 	add_xml_identifier(misc,"cm_action_points",cm_action_points_str,"Show Action Points Bar",sizeof(cm_action_points_str));
-	add_xml_identifier(misc,"hud_timer_cm",hud_timer_cm_str,"Change Mode\nStart/Stop\nSet Time\nReset Time\n--\nShow Help",sizeof(hud_timer_cm_str));
+	add_xml_identifier(misc,"hud_timer_cm",hud_timer_cm_str,"Change Mode\nKeep State\n--\nStart/Stop\nSet Time\nReset Time\n--\nShow Help",sizeof(hud_timer_cm_str));
 	add_xml_identifier(misc,"hud_timer_popup_title",hud_timer_popup_title_str,"Time (in seconds)",sizeof(hud_timer_popup_title_str));
 	add_xml_identifier(misc,"day indicator",day_indicator_str,"S||Special Day||Ordinary Day",sizeof(day_indicator_str));
 	add_xml_identifier(misc,"harvest_indicator",harvest_indicator_str,"H||Harvesting||Not Harvesting",sizeof(harvest_indicator_str));
@@ -1489,6 +1492,7 @@ void init_help()
 	//New characters
 	add_xml_identifier(new,"skin",skin_str,"Skin",sizeof(skin_str));
 	add_xml_identifier(new,"hair",hair_str,"Hair",sizeof(hair_str));
+	add_xml_identifier(new,"eyes",eyes_str,"Eyes",sizeof(eyes_str));
 	add_xml_identifier(new,"shirt",shirt_str,"Shirt",sizeof(shirt_str));
 	add_xml_identifier(new,"pants",pants_str,"Pants",sizeof(pants_str));
 	add_xml_identifier(new,"boots",boots_str,"Boots",sizeof(boots_str));
@@ -1818,8 +1822,10 @@ void init_titles ()
 	add_xml_identifier (titles_str, "l_mark_filter", label_mark_filter, "Mark filter", sizeof(label_mark_filter));
 #ifdef OTHER_LIFE
 	add_xml_identifier (titles_str, "game_version", game_version_str, "Other-Life Version %d.%d.%d%s", sizeof(game_version_str));
+	add_xml_identifier (titles_str, "game_version_prefix", game_version_prefix_str, "Other-Life Version", sizeof(game_version_prefix_str));
 #else
 	add_xml_identifier (titles_str, "game_version", game_version_str, "Eternal Lands Version %d.%d.%d%s", sizeof(game_version_str));
+	add_xml_identifier (titles_str, "game_version_prefix", game_version_prefix_str, "Eternal Lands Version", sizeof(game_version_prefix_str));
 #endif
 	add_xml_identifier (titles_str, "b_send", button_send, "Send", sizeof(button_send));
 	add_xml_identifier (titles_str, "item_list_name", item_list_name_str, "Enter list name", sizeof(item_list_name_str));
