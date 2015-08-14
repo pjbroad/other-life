@@ -1,9 +1,8 @@
 /*
 	Provide item description and emu lookup from a data file.
 
-	Using the file from http://el.other-life.com/downloads/item_info.txt
-	The file should be stored in the datadir or updates directory and is
-	read when first needed.
+	Uses the file item_info.txt, stored in the datadir or updates
+	directory which is read when first needed.
 
 	Functions provide descriptions and emu for items based on their image
 	and unique id.  If unique id are not enabled (#item_uid) and so only
@@ -110,6 +109,7 @@ namespace Item_Info
 			void load(void);
 			std::vector<Item *> the_list;
 			static std::string empty_str;
+			static std::string item_info_filename;
 			bool load_tried, shown_help;
 			Item *last_item;
 			class Count
@@ -130,6 +130,7 @@ namespace Item_Info
 
 
 	std::string List::empty_str;
+	std::string List::item_info_filename = "item_info.txt";
 
 
 	//	Clean up memory on exit
@@ -225,11 +226,11 @@ namespace Item_Info
 	{
 		load_tried = true;
 		std::ifstream in;
-		std::string fname = std::string(get_path_updates()) + std::string("item_info.txt");
+		std::string fname = std::string(get_path_updates()) + item_info_filename;
 		in.open(fname.c_str());
 		if (!in)
 		{
-			fname = std::string(datadir) + std::string("item_info.txt");
+			fname = std::string(datadir) + item_info_filename;
 			in.clear();
 			in.open(fname.c_str());
 			if (!in)
@@ -255,11 +256,8 @@ namespace Item_Info
 			return;
 		if (!info_available())
 		{
-			std::string url("Download from: http://el.other-life.com/downloads/item_info.txt");
-			find_all_url(url.c_str(), url.size());
-			LOG_TO_CONSOLE(c_red1, "Could not load the item information file.");
-			LOG_TO_CONSOLE(c_red1, url.c_str());
-			LOG_TO_CONSOLE(c_red1, "Save the file in the data or updates/x_y_z directory then restart.");
+			std::string message = "Could not load the item information file: " + item_info_filename;
+			LOG_TO_CONSOLE(c_red1, message.c_str());
 		}
 		if (!item_uid_enabled)
 			LOG_TO_CONSOLE(c_red1, "Use #item_uid (set to 1) to enable unique item information.");

@@ -262,6 +262,8 @@ char
 	/*multiplayer.c*/
 	connect_to_server_str[50],
 	reconnect_str[50],
+	test_server_connect_str[40],
+	server_connect_test_failed_str[40],
 	alt_x_quit[50],
 	license_check[150], 
 	/*new_character.c*/
@@ -1411,6 +1413,8 @@ void init_help()
 	add_xml_identifier (misc, "invalid_spell", invalid_spell_str, "Invalid spell", sizeof (invalid_spell_str));
 	add_xml_identifier(misc,"connect",connect_to_server_str,"Connecting to Server...",sizeof(connect_to_server_str));
 	add_xml_identifier(misc,"reconnect",reconnect_str,"Press any key to try again.",sizeof(reconnect_str));
+	add_xml_identifier(misc,"test_server_connect",test_server_connect_str,"Testing server connection...",sizeof(test_server_connect_str));
+	add_xml_identifier(misc,"server_connect_test_failed",server_connect_test_failed_str,"server connection test failed",sizeof(server_connect_test_failed_str));
 	add_xml_identifier (misc, "x_quit", alt_x_quit, "Press Alt-x to close the game", sizeof (alt_x_quit));
 	add_xml_identifier(misc,"license",license_check,"Entropy says: U R 2 g00d 2 r34d +h3 license.txt?\nBTW, that license.txt file is actually there for a reason.",sizeof(license_check));
 	add_xml_identifier(misc,"session_reset_help",session_reset_help,"Double-click to reset session information",sizeof(session_reset_help));
@@ -1626,7 +1630,7 @@ void init_help()
 	add_xml_identifier(misc, "cm_item_list_selected", cm_item_list_selected_str, "Edit quantity\n--\nDelete", sizeof(cm_item_list_selected_str));
 	add_xml_identifier(misc, "cm_item_list_names", cm_item_list_names_str, "Create new list\nRename active list\n--\nDelete active list\n--\nReload from file", sizeof(cm_item_list_names_str));
 	add_xml_identifier(misc, "cm_stats_bar_base", cm_stats_bar_base_str, "--\nAdd Bar\nRemove Bar", sizeof(cm_stats_bar_base_str));
-	add_xml_identifier(misc, "cm_recipe_menu", cm_recipe_menu_str, "Add additional recipe row\nClear selected recipe\nSort recipes by name", sizeof(cm_recipe_menu_str));
+	add_xml_identifier(misc, "cm_recipe_menu", cm_recipe_menu_str, "Add additional recipe row\nClear selected recipe\nDelete selected recipe\nSort recipes by name", sizeof(cm_recipe_menu_str));
 	add_xml_identifier(misc, "cm_manuwin_menu", cm_manuwin_menu_str, "\n--\nDisable key presses for window", sizeof(cm_manuwin_menu_str));
 	add_xml_identifier(misc, "cm_encycl_base", cm_encycl_base_str, "Encyclopedia Index\nSearch Encyclopedia Titles\nRepeat Last Search\nBookmark This Page\nUnbookmark This Page\nClear Bookmarks", sizeof(cm_encycl_base_str));
 	

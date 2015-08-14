@@ -177,6 +177,8 @@ void draw_scene()
 			update_hud_timer();
 			/* check if we need to do buff duration requests */
 			check_then_do_buff_duration_request();
+			/* check if we are doing a server connection test */
+			check_if_testing_server_connection();
 			/* until next time */
 			last_half_second_timer = current_time;
 		}
@@ -309,8 +311,8 @@ void clamp_camera(void)
 	if(new_zoom_level > max_zoom_level){
 		new_zoom_level = max_zoom_level;
 		camera_zoom_duration = 0;
-	} else if(new_zoom_level < 0.5f) {
-		new_zoom_level = 0.5f;
+	} else if(new_zoom_level < 0.3f) {
+		new_zoom_level = 0.3f;
 		camera_zoom_duration = 0;
 	}
 }

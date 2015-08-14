@@ -6,6 +6,7 @@
 #include "achievements.h"
 #include "actors.h"
 #include "asc.h"
+#include "books.h"
 #include "buddy.h"
 #include "chat.h"
 #include "console.h"
@@ -616,6 +617,10 @@ int filter_or_ignore_text (char *text_to_add, int len, int size, Uint8 channel)
 		else if (strstr(text_to_add+1, "Today is a special day:")) {
 			set_today_is_special_day();
 		}
+		else if (strstr(text_to_add+1, "You'd need a pair of binoculars to read the book from here - get closer!")) {
+			if (book_opened == -1)
+				return 0;
+		}
 		else {
 			static Uint32 last_time[] = { 0, 0 };
 			static int done_one[] = { 0, 0 };
@@ -660,6 +665,12 @@ int filter_or_ignore_text (char *text_to_add, int len, int size, Uint8 channel)
 	/* put #mpm in a popup box, on top of all else */
 	if ((channel == CHAT_MODPM) && (my_strncompare(text_to_add+1, "[Mod PM from", 12))) {
 		display_server_popup_win(text_to_add);
+	}
+
+	// look for astrology messages
+	if((channel == CHAT_SERVER) && is_astrology_message (text_to_add))
+	{
+		return 0;
 	}
 
 	//Make sure we don't check our own messages.
@@ -758,12 +769,6 @@ int filter_or_ignore_text (char *text_to_add, int len, int size, Uint8 channel)
 			}
 			add_buddy_confirmation (name);
 		}
-	}
-
-	// look for astrology messages
-	if((channel == CHAT_SERVER) && is_astrology_message (text_to_add))
-	{
-		return 0;
 	}
 
 	// filter any naughty words out

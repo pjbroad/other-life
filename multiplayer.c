@@ -99,6 +99,9 @@ int server_time_stamp= 0;
 int client_time_stamp= 0;
 int client_server_delta_time= 0;
 
+/* if non-zero, we are testing the connection, waiting for a return ping from the server */
+static Uint32 testing_server_connection_time = 0;
+
 int yourself= -1;
 
 int last_sit= 0;
@@ -947,18 +950,21 @@ void process_message_from_server (const Uint8 *in_data, int data_length)
 				  break;
 				}
 				items = in_data[3];
-				if (data_length - 4  == items * 8 )
+
+				// only consider changing item_uid_enabled if we can be sure
+				if ((items > 0) && ((data_length - 4) > 0))
 				{
-					item_uid_enabled = 0;
+					if (data_length - 4 == items * 8 )
+						item_uid_enabled = 0;
+					else if (data_length - 4 == items * 10 )
+						item_uid_enabled = 1;
+					//printf("HERE_YOUR_INVENTORY item_uid_enabled=%d\n", item_uid_enabled);
+				}
+
+				if (item_uid_enabled == 0)
 					plen = 8;
-				}
-				else if (data_length - 4  == items * 10 )
-				{
-					item_uid_enabled = 1;
-					plen = 10;
-				}
 				else
-				plen = 8;
+					plen = 10;
 
 				if (data_length - 4 != items * plen)
 				{
@@ -1352,6 +1358,7 @@ void process_message_from_server (const Uint8 *in_data, int data_length)
 				  LOG_WARNING("CAUTION: Possibly forged SYNC_CLOCK packet received.\n");
 				  break;
 				}
+				testing_server_connection_time = 0;
 				safe_snprintf(str, sizeof(str), "%s: %i ms",server_latency, SDL_GetTicks()-SDL_SwapLE32(*((Uint32 *)(in_data+3))));
 				LOG_TO_CONSOLE(c_green1,str);
 			}
@@ -2314,6 +2321,49 @@ void process_message_from_server (const Uint8 *in_data, int data_length)
 		}
 }
 
+
+/* Set the state to *disconnected from the server*, showing messages and recording time. */
+void enter_disconnected_state(char *message)
+{
+	char str[256];
+	short tgm = real_game_minute;
+	safe_snprintf(str, sizeof(str), "<%1d:%02d>: %s [%s]", tgm/60, tgm%60,
+		disconnected_from_server, (message != NULL) ?message : "Grue?");
+	LOG_TO_CONSOLE(c_red2, str);
+	LOG_TO_CONSOLE(c_red2, alt_x_quit);
+	disconnected = 1;
+#ifdef NEW_SOUND
+	stop_all_sounds();
+	do_disconnect_sound();
+#endif // NEW_SOUND
+	disconnect_time = SDL_GetTicks();
+}
+
+
+/* Initiates a test for server connection, the client will enter the disconnected state if needed */
+void start_testing_server_connection(void)
+{
+	LOG_TO_CONSOLE(c_green1, test_server_connect_str);
+	testing_server_connection_time = SDL_GetTicks();
+	command_ping(NULL,0);
+}
+
+
+/* Called from the main thread 500 ms timer, check if testing server connection */
+void check_if_testing_server_connection(void)
+{
+	if (testing_server_connection_time > 0)
+	{
+		Uint32 current_time = SDL_GetTicks();
+		if ((current_time - testing_server_connection_time) > 10000)
+		{
+			testing_server_connection_time = 0;
+			enter_disconnected_state(server_connect_test_failed_str);
+		}
+	}
+}
+
+
 static void process_data_from_server(queue_t *queue)
 {
 	/* enough data present for the length field ? */
@@ -2346,18 +2396,9 @@ static void process_data_from_server(queue_t *queue)
 				}
 			}
 			else { /* sizeof (tcp_in_data) - 3 < size */
-				LOG_TO_CONSOLE(c_red2, packet_overrun);
-
-				LOG_TO_CONSOLE(c_red2, disconnected_from_server);
-				LOG_TO_CONSOLE(c_red2, alt_x_quit);
 				LOG_ERROR ("Packet overrun, protocol = %d, size = %u\n", pData[0], size);
 				in_data_used = 0;
-				disconnected = 1;
-#ifdef NEW_SOUND
-				stop_all_sounds();
-				do_disconnect_sound();
-#endif // NEW_SOUND
-				disconnect_time = SDL_GetTicks();
+				enter_disconnected_state(packet_overrun);
 			}
 		} while (3 <= in_data_used);
 
@@ -2392,21 +2433,8 @@ int get_message_from_server(void *thread_args)
 			process_data_from_server(queue);
 		}
 		else { /* 0 >= received (EOF or some error) */
-			char str[256];
-			short tgm = real_game_minute;
-			if (received)
-				safe_snprintf(str, sizeof(str), "<%1d:%02d>: %s: [%s]", tgm/60, tgm%60, disconnected_from_server, SDLNet_GetError());
-		 	else
-				safe_snprintf(str, sizeof(str), "<%1d:%02d>: %s", tgm/60, tgm%60, disconnected_from_server);
-			LOG_TO_CONSOLE(c_red2, str);
-			LOG_TO_CONSOLE(c_red2, alt_x_quit);
 			in_data_used = 0;
-			disconnected = 1;
-#ifdef NEW_SOUND
-			stop_all_sounds();
-			do_disconnect_sound();
-#endif // NEW_SOUND
-			disconnect_time = SDL_GetTicks();
+			enter_disconnected_state((received)?SDLNet_GetError():NULL);
 		}
 	}
 

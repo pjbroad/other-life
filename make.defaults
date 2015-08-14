@@ -24,6 +24,8 @@ FEATURES += NEW_TEXTURES		# Enables the new texture loading and caching system (
 FEATURES += FASTER_MAP_LOAD		# Enables optimizations to speed up the process of switching between maps
 FEATURES += FASTER_STARTUP		# An attempt to reduce the startup time of EL somewhat
 FEATURES += MIDDLE_MOUSE_PASTE	# Paste using the middle mouse button from the primary buffer on X systems
+# new for 1.9.4 release
+#FEATURES += NEW_EYES			# Support for different eye colors, needs new data files
 
 ### Testing options (these options are possible for the next release and should be tested) ###
 #FEATURES += ANTI_ALIAS			# allows to enable/disable anti-aliasing in ini
@@ -31,12 +33,12 @@ FEATURES += MIDDLE_MOUSE_PASTE	# Paste using the middle mouse button from the pr
 #FEATURES += EXT_ACTOR_DICT		# Removes remaining hard-coded actor def dictionaries - requires updated actor defs files (http://el.grug.redirectme.net/actor_defs.zip)
 #FEATURES += NEW_ALPHA			# (undocumented)
 #FEATURES += USE_SIMD			# Enables usage of simd instructions
-#FEATURES += NEW_EYES			# Support for different eye colors, needs new data files
 
 ### Machine specific options (fixes or performance enhancements) ###
 #FEATURES += EL_BIG_ENDIAN		# Enable big-endian code (automatically detected for OSX)
 #FEATURES += NO_PF_MACRO		# Use a function instead of a macro for pf_get_tile()
 #FEATURES += SIMPLE_LOD			# enable a simplistic distance culling to improve performance
+#FEATURES += SOUND_FORK_BUGFIX	# needed for current linux static build to prevent crash when forking in url.c after F2 press and sound/music enabled
 
 ### Debug options ###
 #FEATURES += CONTEXT_MENUS_TEST		# Enable "#cmtest" command to help test/demo the context menu code
