@@ -11,29 +11,31 @@
 void handle_extended_protocol_message(const Uint8 *in_data, int data_length)
 {
 	char info[1024];
-	int i;
 
 	switch (in_data[0])
 	{
 		case OL_GENERIC_DATA:
 			{
 				Uint8 action;
-				Uint16 group, subgroup, start, data_type, a_length, a_width;
+				Uint16 group, subgroup, start, a_length, a_width;
 
 				action = in_data[3];
 				group = SDL_SwapLE16(*(Uint16 *)(in_data+4));
 				subgroup = SDL_SwapLE16(*(Uint16 *)(in_data+6));
 				start = SDL_SwapLE16(*(Uint16 *)(in_data+8));
-				data_type = SDL_SwapLE16(*(Uint16 *)(in_data+10));
 				a_length = SDL_SwapLE16(*(Uint16 *)(in_data+12));
 				a_width = SDL_SwapLE16(*(Uint16 *)(in_data+14));
 #if 0
-				safe_snprintf(info, sizeof(info), "Got OL_GENERIC_DATA message. LENGTH: %u/%i, Action: %u, GROUP: %u, SUBGROUP: %u, Start Entry: %u, Data type: %u, ARRAY Length: %u, ARRAY Width: %u",SDL_SwapLE16(*(Uint16 *)(in_data+1)), data_length, action, group, subgroup, start, data_type, a_length, a_width);
-				LOG_TO_CONSOLE(c_green1, info);
-				for(i=0; i<SDL_SwapLE16(*(Uint16 *)(in_data+12)); i++)
 				{
-					safe_snprintf(info, sizeof(info), "%u", SDL_SwapLE32(*(Uint32 *)(in_data+16+i*4)));
+					int i;
+					Uint16 data_type = SDL_SwapLE16(*(Uint16 *)(in_data+10));
+					safe_snprintf(info, sizeof(info), "Got OL_GENERIC_DATA message. LENGTH: %u/%i, Action: %u, GROUP: %u, SUBGROUP: %u, Start Entry: %u, Data type: %u, ARRAY Length: %u, ARRAY Width: %u",SDL_SwapLE16(*(Uint16 *)(in_data+1)), data_length, action, group, subgroup, start, data_type, a_length, a_width);
 					LOG_TO_CONSOLE(c_green1, info);
+					for(i=0; i<SDL_SwapLE16(*(Uint16 *)(in_data+12)); i++)
+					{
+						safe_snprintf(info, sizeof(info), "%u", SDL_SwapLE32(*(Uint32 *)(in_data+16+i*4)));
+						LOG_TO_CONSOLE(c_green1, info);
+					}
 				}
 #endif
 				if(action == 1 && group == 0 && subgroup == 16)

@@ -71,7 +71,7 @@ void parse_xattribs(xmlNode *node)
 		{
 			if(num_xattribs < MAX_XATTRIBS)
 			{
-				get_item_string_value(xattribs[num_xattribs].name, sizeof(xattribs[num_xattribs].name), def, "name");
+				get_item_string_value(xattribs[num_xattribs].name, sizeof(xattribs[num_xattribs].name), def, (const unsigned char*)"name");
 				num_xattribs++;
 			}
 			else
@@ -142,7 +142,7 @@ void draw_statx(int len, int x, int y, xattrib_struct xattr)
         char str[9];
         safe_snprintf(str,sizeof(str),"%2i/%-2i",xattr.current,xattr.base);
         str[8]=0;
-        draw_stat_final(len,x,y,xattr.name,str);
+        draw_stat_final(len,x,y,(const unsigned char*)xattr.name,str);
 }
 
 #endif

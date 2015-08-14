@@ -248,7 +248,9 @@ void check_then_do_buff_duration_request(void)
 	/* else if there is no active request but we have one queued, make the server request */
 	else if (!last_requested_duration && requested_durations)
 	{
+#ifndef OTHER_LIFE
 		Uint8 str[4];
+#endif
 
 		last_requested_duration = 1;
 		while (!(requested_durations & last_requested_duration))

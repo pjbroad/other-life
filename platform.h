@@ -12,9 +12,7 @@
 // gcc, Sun Studio and Visual Studio.
 // Throw in ia64 as well, though I doubt anyone will play EL on that.
 #if defined (__x86_64__) || defined (_M_X64) || defined (__ia64__) || defined (_M_IA64)
- #ifndef X86_64
-//  #define X86_64
- #endif
+ #define X86_64
 #endif
 
 #ifdef FASTER_STARTUP
