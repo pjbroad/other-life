@@ -58,7 +58,7 @@ int dark_channeltext = 0;
 static int is_special_day = 0;
 int today_is_special_day(void) { return is_special_day; };
 void set_today_is_special_day(void) { is_special_day = 1; };
-void clear_today_is_special_day(void) { is_special_day = 0; };
+void clear_today_is_special_day(void) { is_special_day = 0; is_acid_rain_day = 0; };
 
 /* functions to count, return and clear the number of PM or MODPM seen */
 static int seen_pm_count = 0;
