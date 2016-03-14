@@ -20,6 +20,7 @@ extern int camera_rotation_duration;
 extern float camera_tilt_speed;
 extern int camera_tilt_duration;
 extern int normal_animation_timer;
+extern int weather_text;
 
 extern float normal_camera_deceleration;
 extern float camera_rotation_deceleration;

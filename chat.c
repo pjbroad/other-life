@@ -282,11 +282,12 @@ void init_chat_channels(void)
 	}
 }
 
-void clear_input_line (void)
+void clear_input_line(void)
 {
 	input_text_line.data[0] = '\0';
 	input_text_line.len = 0;
-	if(input_widget != NULL) {
+	if (input_widget != NULL)
+	{
 		text_field *field = input_widget->widget_info;
 		field->cursor = 0;
 		field->cursor_line = 0;
@@ -294,10 +295,9 @@ void clear_input_line (void)
 		if(use_windowed_chat != 2) {
 			widget_resize(input_widget->window_id, input_widget->id, input_widget->len_x, field->y_space*2+DEFAULT_FONT_Y_LEN*input_widget->size);
 		}
-	}
-	/* Hide the game win input widget */
-	if(input_widget->window_id == game_root_win) {
-		widget_set_flags(game_root_win, input_widget->id, INPUT_DEFAULT_FLAGS|WIDGET_DISABLED);
+		/* Hide the game win input widget */
+		if(input_widget->window_id == game_root_win)
+			widget_set_flags(game_root_win, input_widget->id, INPUT_DEFAULT_FLAGS|WIDGET_DISABLED);
 	}
 	history_reset();
 }
@@ -1113,40 +1113,52 @@ int current_tab = 0;
 int tab_bar_width = 0;
 int tab_bar_height = 18;
 
-void add_chan_name(int no, char * name, char * desc)
+static chan_name *create_chan_name(int no, const char* name, const char* desc)
 {
-	chan_name *entry;
-	int len;
-
-	if(((entry = malloc(sizeof(*entry))) == NULL)
-		||((entry->description = malloc(strlen(desc)+1)) == NULL)
-		||((entry->name = malloc(strlen(name)+1)) == NULL)) {
-		LOG_ERROR("Memory allocation error reading channel list");
-		return;
+	chan_name *entry = malloc(sizeof(*entry));
+	if (!entry)
+		return NULL;
+	if ( !(entry->description = strdup(desc)) )
+	{
+		free(entry);
+		return NULL;
+	}
+	if ( !(entry->name = strdup(name)) )
+	{
+		free(entry->description);
+		free(entry);
+		return NULL;
 	}
 	entry->channel = no;
-	safe_strncpy(entry->name, name, strlen(name) + 1);
-	safe_strncpy(entry->description, desc, strlen(desc) + 1);
+	return entry;
+}
+
+static chan_name *add_chan_name(int no, const char * name, const char * desc)
+{
+	chan_name *entry = create_chan_name(no, name, desc);
+	int len;
+
+	if (!entry)
+	{
+		LOG_ERROR("Memory allocation error reading channel list");
+		return NULL;
+	}
 	queue_push(chan_name_queue, entry);
 	len = chan_name_queue->nodes-CS_MAX_DISPLAY_CHANS;
 	if(len > 0 && chan_sel_scroll_id == -1 && chan_sel_win != -1) {
 		chan_sel_scroll_id = vscrollbar_add_extended (chan_sel_win, 0, NULL, 165, 20, 20, 163, 0, 1.0, newcol_r, newcol_g, newcol_b, 0, 1, len);
 	}
+
+	return entry;
 }
 
-void add_spec_chan_name(int no, char * name, char * desc)
+static void add_spec_chan_name(int no, const char* name, const char* desc)
 {
-	chan_name *entry;
-	if(((entry = malloc(sizeof(*entry))) == NULL)
-		||((entry->description = malloc(strlen(desc)+1)) == NULL)
-		||((entry->name = malloc(strlen(name)+1)) == NULL)){
-			LOG_ERROR("Memory allocation error reading channel list");
-			return;
-		}
-	entry->channel = no;
-	safe_strncpy(entry->name, name, strlen(name) + 1);
-	safe_strncpy(entry->description, desc, strlen(desc) + 1);
-	pseudo_chans[no]=entry;
+	chan_name *entry = create_chan_name(no, name, desc);
+	if (entry)
+		pseudo_chans[no] = entry;
+	else
+		LOG_ERROR("Memory allocation error reading channel list");
 }
 
 void generic_chans(void)
@@ -1182,11 +1194,10 @@ void init_channel_names(void)
 	char *channelname;
 	char *channeldesc;
 	int channelno;
-	
+
 	// Temp info
 	xmlChar *attrib;
-	int attriblen;
-	
+
 	queue_initialise(&chan_name_queue);
 
 	// Load the file, depending on WINDOWS = def|undef
@@ -1222,10 +1233,10 @@ void init_channel_names(void)
 		generic_chans();
 		return;
 	}
-	
+
 	// Load first child node
 	cur = cur->xmlChildrenNode;
-	
+
 	// Loop while we have a node, copying ATTRIBS, etc
 	while (cur != NULL)	{
 		if(cur->type != XML_ELEMENT_NODE) {
@@ -1238,14 +1249,11 @@ void init_channel_names(void)
 				xmlFree (attrib);
 				continue;
 			}
-			attriblen = strlen ((char*)attrib);
-			if (attriblen < 1) {
+			if (xmlStrlen(attrib) < 1) {
 				LOG_ERROR (xml_bad_node);
 				xmlFree (attrib);
 				continue;
 			}
-			/*channelname = malloc (attriblen)+1;
-			my_xmlStrncopy (&channelname, attrib, attriblen);*/
 			channelname = (char*)xmlStrdup(attrib);
 			xmlFree (attrib);
 
@@ -1256,8 +1264,7 @@ void init_channel_names(void)
 				xmlFree (attrib);
 				continue;
 			}
-			attriblen = strlen ((char*)attrib);
-			if (attriblen < 1) {
+			if (xmlStrlen(attrib) < 1) {
 				LOG_ERROR (xml_bad_node);
 				xmlFree (attrib);
 				continue;
@@ -1272,11 +1279,8 @@ void init_channel_names(void)
 				continue;
 			}
 			attrib = cur->children->content;
-			attriblen = strlen ((char*)attrib);
-			/*channeldesc = malloc (attriblen)+1;
-			my_xmlStrncopy (&channeldesc, attrib, attriblen);*/
 			channeldesc = (char*)xmlStrdup(attrib);
-			
+
 			// Add it.
 			add_spec_chan_name(channelno, channelname, channeldesc);
 			free(channelname);
@@ -1289,15 +1293,14 @@ void init_channel_names(void)
 				xmlFree (attrib);
 				continue;
 			}
-			attriblen = strlen ((char*)attrib);
-			if (attriblen < 1){
+			if (xmlStrlen(attrib) < 1){
 				LOG_ERROR (xml_bad_node);
 				xmlFree (attrib);
 				continue;
 			}
 			channelno = atoi ((char*)attrib);
 			xmlFree (attrib);
-			
+
 			// Get the name.
 			attrib = xmlGetProp (cur, (xmlChar*)"name");
 			if (attrib == NULL){
@@ -1305,17 +1308,14 @@ void init_channel_names(void)
 				xmlFree (attrib);
 				continue;
 			}
-			attriblen = strlen ((char*)attrib);
-			if (attriblen < 1){
+			if (xmlStrlen(attrib) < 1){
 				LOG_ERROR (xml_bad_node);
 				xmlFree (attrib);
 				continue;
 			}
-			/*channelname = malloc (attriblen)+1;
-			my_xmlStrncopy (&channelname, attrib, attriblen);*/
 			channelname = (char*)xmlStrdup(attrib);
 			xmlFree (attrib);
-			
+
 			// Get the description.
 			if (cur->children == NULL) {
 				free (channelname);
@@ -1327,11 +1327,8 @@ void init_channel_names(void)
 				continue;
 			}
 			attrib = cur->children->content;
-			/*attriblen = strlen (attrib);
-			channeldesc = malloc (attriblen);
-			my_xmlStrncopy (&channeldesc, attrib, attriblen);*/
 			channeldesc = (char*)xmlStrdup(attrib);
-			
+
 			// Add it.
 			add_chan_name(channelno, channelname, channeldesc);
 			free(channelname);
@@ -1538,8 +1535,6 @@ int tab_bar_button_click (widget_list *w, int mx, int my, Uint32 flags)
 	return 1;
 }
 
-char tmp_tab_label[20];
-
 chan_name *tab_label (Uint8 chan)
 {
 	//return pointer after stepping through chan_name_queue
@@ -1547,6 +1542,8 @@ chan_name *tab_label (Uint8 chan)
 	node_t *step = queue_front_node(chan_name_queue);
 	char name[255];
 	char desc[255];
+	chan_name *res;
+
 	switch (chan)
 	{
 		case CHAT_ALL:	return pseudo_chans[2];
@@ -1581,15 +1578,16 @@ chan_name *tab_label (Uint8 chan)
 		}
 	}
 	//we didn't find it, so we use the generic version
-	safe_snprintf (name, sizeof(name), pseudo_chans[0]->name, cnr);
-	safe_snprintf (desc, sizeof(desc), pseudo_chans[0]->description, cnr);
-	add_chan_name(cnr,name,desc);
+	safe_snprintf(name, sizeof(name), pseudo_chans[0]->name, cnr);
+	safe_snprintf(desc, sizeof(desc), pseudo_chans[0]->description, cnr);
+	res = add_chan_name(cnr, name, desc);
 
-	if(chan_sel_scroll_id >= 0 && steps > 8) {
+	if (chan_sel_scroll_id >= 0 && steps > 8) {
 		vscrollbar_set_bar_len(chan_sel_win, chan_sel_scroll_id, steps-8);
 		//we're adding another name to the queue, so the window scrollbar needs to be adusted
 	}
-	return step->next->data;
+
+	return res;
 }
 
 unsigned int chan_int_from_name(char * name, int * return_length)
@@ -1849,7 +1847,7 @@ int add_tab_button (Uint8 channel)
 			// already there
 			return itab;
 	}
-	
+
 	if (tabs_in_use >= MAX_CHAT_TABS)
 		// no more room. Shouldn't happen anyway.
 		return -1;
@@ -1863,23 +1861,23 @@ int add_tab_button (Uint8 channel)
 	label = chan->name;
 	tabs[tabs_in_use].description = chan->description;
 
-	tabs[tabs_in_use].button = button_add_extended (tab_bar_win, cur_button_id++, NULL, tab_bar_width, 0, 0, tab_bar_height, 0, 0.75, newcol_r, newcol_g, newcol_b, label);
+	tabs[tabs_in_use].button = button_add_extended(tab_bar_win, cur_button_id++, NULL, tab_bar_width, 0, 0, tab_bar_height, BUTTON_SQUARE, 0.75, newcol_r, newcol_g, newcol_b, label);
 	if(channel == CHAT_HIST || channel == CHAT_LIST) {
 		//a couple of special cases
-		widget_set_OnClick (tab_bar_win, tabs[itab].button, tab_special_click);
-		widget_set_color (tab_bar_win, tabs[itab].button, 0.5f, 0.75f, 1.0f);
+		widget_set_OnClick (tab_bar_win, tabs[tabs_in_use].button, tab_special_click);
+		widget_set_color (tab_bar_win, tabs[tabs_in_use].button, 0.5f, 0.75f, 1.0f);
 	} else {
 		//general case
-		widget_set_OnClick (tab_bar_win, tabs[itab].button, tab_bar_button_click);
+		widget_set_OnClick (tab_bar_win, tabs[tabs_in_use].button, tab_bar_button_click);
 	}
-	widget_set_OnMouseover (tab_bar_win, tabs[itab].button, chan_tab_mouseover_handler);
-	widget_set_type(tab_bar_win, tabs[itab].button, &square_button_type);
-	// Handlers for the 'x'
-	// Make sure it's a CHANNEL first
-	if(tabs[itab].channel >= firstchannel && tabs[itab].channel <= lastchannel)
-	{
-		widget_set_OnDraw (tab_bar_win, tabs[itab].button, draw_tab_details);
-	}
+	widget_set_OnMouseover (tab_bar_win, tabs[tabs_in_use].button, chan_tab_mouseover_handler);
+ 	// Handlers for the 'x'
+ 	// Make sure it's a CHANNEL first
+	if(tabs[tabs_in_use].channel == CHAT_CHANNEL1 || tabs[tabs_in_use].channel == CHAT_CHANNEL2 ||
+		tabs[tabs_in_use].channel == CHAT_CHANNEL3)
+ 	{
+ 		widget_set_OnDraw (tab_bar_win, tabs[tabs_in_use].button, draw_tab_details);
+ 	}
 	tab_bar_width += widget_get_width (tab_bar_win, tabs[tabs_in_use].button)+1;
 	resize_window (tab_bar_win, tab_bar_width, tab_bar_height);
 

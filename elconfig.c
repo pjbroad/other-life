@@ -337,20 +337,6 @@ static void change_show_action_bar(int * var)
 		init_stats_display();
 }
 
-static void change_indicators_var(int * var)
-{
-	*var= !*var;
-	if (*var)
-	{
-		if (indicators_win < 0)
-			init_hud_indicators();
-		else
-			show_window(indicators_win);
-	}
-	else
-		hide_window(indicators_win);
-}
-
 void change_minimap_scale(float * var, float * value)
 {
 	int shown = 0;
@@ -1430,6 +1416,7 @@ void switch_vidmode(int *pointer, int mode)
 			case 6:
 				window_width=1600;
 				window_height=1200;
+				return;
 			case 7:
 				window_width=1280;
 				window_height=800;
@@ -1917,7 +1904,7 @@ static void init_ELC_vars(void)
 	add_var(OPT_BOOL,"show_stats_in_hud","sstats",&show_stats_in_hud,change_var,0,"Stats In HUD","Toggle showing stats in the HUD",HUD);
 	add_var(OPT_BOOL,"show_statbars_in_hud","sstatbars",&show_statbars_in_hud,change_var,0,"StatBars In HUD","Toggle showing statbars in the HUD. Needs Stats in HUD",HUD);
 	add_var(OPT_BOOL,"show_action_bar","ssactionbar",&show_action_bar,change_show_action_bar,0,"Action Points Bar in HUD","Show the current action points level in a stats bar on the bottom HUD.",HUD);
-	add_var(OPT_BOOL,"show_indicators","showindicators",&show_indicators,change_indicators_var,1,"Show Status Indicators in HUD","Show status indicators for special day, harvesting and poision.",HUD);
+	add_var(OPT_BOOL,"show_indicators","showindicators",&show_hud_indicators,toggle_hud_indicators_window,1,"Show Status Indicators in HUD","Show status indicators for special day (left click to show day), harvesting, poision and message count (left click to zero). Right-click the window for settings.",HUD);
 	add_var(OPT_BOOL,"logo_click_to_url","logoclick",&logo_click_to_url,change_var,0,"Logo Click To URL","Toggle clicking the LOGO opening a browser window",HUD);
 	add_var(OPT_STRING,"logo_link", "logolink", LOGO_URL_LINK, change_string, 128, "Logo Link", "URL when clicking the logo", HUD);
 	add_var(OPT_BOOL,"show_help_text","shelp",&show_help_text,change_var,1,"Help Text","Enable tooltips.",HUD);
@@ -2308,12 +2295,9 @@ int write_el_ini ()
 #endif // !WINDOWS
 	int nlines= 0, maxlines= 0, iline, ivar;
 	input_line *cont= NULL;
-	input_line last_line;
+	const char *last_line;
 	FILE *file;
-	short *written = NULL;
-
-	// Prevent duplicate entries by remembering which we have written
-	written = calloc(our_vars.no, sizeof(short));
+	short *written;
 
 	// first check if we need to change anything
 	//
@@ -2335,10 +2319,11 @@ int write_el_ini ()
 		if (!our_vars.var[ivar]->saved)
 		{
 			size_t i;
-			for (i=0; i<our_vars.no; i++)
+			for (i = ivar+1; i < our_vars.no; i++)
+			{
 				if (strcmp(our_vars.var[ivar]->name, our_vars.var[i]->name) == 0)
-					if (our_vars.var[i]->saved)
-						our_vars.var[i]->saved = 0;
+					our_vars.var[i]->saved = 0;
+			}
 		}
 	}
 
@@ -2357,17 +2342,21 @@ int write_el_ini ()
 				cont= realloc (cont, maxlines * sizeof (input_line));
 			}
 		}
-		fclose (file);
+		fclose(file);
 	}
 
 	// Now write the contents of the file, updating those variables that have been changed
 	file = open_file_config(INIFILE, "w");
 	if(file == NULL){
 		LOG_ERROR("%s: %s \"%s\": %s\n", reg_error_str, cant_open_file, INIFILE, strerror(errno));
+		free(cont);
 		return 0;
 	}
 
-	strcpy(last_line, "");
+	// Prevent duplicate entries by remembering which we have written
+	written = calloc(our_vars.no, sizeof(short));
+
+	last_line = "";
 	for (iline= 0; iline < nlines; iline++)
 	{
 		if (cont[iline][0] != '#')
@@ -2387,7 +2376,7 @@ int write_el_ini ()
 			if (ivar >= 0)
 				written[ivar] = 1;
 		}
-		strcpy(last_line, cont[iline]);
+		last_line = cont[iline];
 	}
 
 	// now write all variables that still haven't been saved yet
@@ -2567,6 +2556,10 @@ int onclick_checkbox_handler(widget_list *widget, int mx, int my, Uint32 flags)
 			break;
 		}
 	}
+
+	if (!option)
+		// shouldn't happen
+		return 0;
 
 	if (option->type == OPT_BOOL)
 	{

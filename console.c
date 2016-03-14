@@ -735,9 +735,8 @@ int command_calc(char *text, int len)
 	double res;
 	char str[100];
 	int calcerr;
-	
-	res = calc_exp(text);
-	calcerr = calc_geterror();
+
+	res = calc_exp(text, &calcerr);
 	switch (calcerr){
 		case CALCERR_OK:
 			if (trunc(res)==res) safe_snprintf (str,sizeof(str), "%s = %.0f",text,res);
@@ -762,6 +761,22 @@ int command_calc(char *text, int len)
 			break;
 		case CALCERR_LOPSYNTAX:
 			safe_snprintf (str,sizeof(str), "%s = Bad argument for L", text);
+			LOG_TO_CONSOLE (c_orange1, str);
+			break;
+		case CALCERR_EOPSYNTAX:
+			safe_snprintf (str,sizeof(str), "%s = Bad argument for E", text);
+			LOG_TO_CONSOLE (c_orange1, str);
+			break;
+		case CALCERR_NOPSYNTAX:
+			safe_snprintf (str,sizeof(str), "%s = Bad argument for N", text);
+			LOG_TO_CONSOLE (c_orange1, str);
+			break;
+		case CALCERR_ZOPSYNTAX:
+			safe_snprintf (str,sizeof(str), "%s = Bad argument for Z", text);
+			LOG_TO_CONSOLE (c_orange1, str);
+			break;
+		case CALCERR_QOPSYNTAX:
+			safe_snprintf (str,sizeof(str), "%s = Bad argument for Q", text);
 			LOG_TO_CONSOLE (c_orange1, str);
 			break;
 	}
@@ -945,11 +960,10 @@ int command_ver(char *text, int len)
 	return 1;
 }
 
-int command_ignore(char *text, int len)
+int command_ignore(const char *text, int len)
 {
 	char name[MAX_USERNAME_LENGTH];
 	int i;
-	Uint8 ch='\0';
 	int result;
 
 	while (isspace(*text))
@@ -957,12 +971,9 @@ int command_ignore(char *text, int len)
 
 	for (i = 0; i < MAX_USERNAME_LENGTH - 1; i++)
 	{
-		ch = text[i];
+		Uint8 ch = text[i];
 		if (ch == ' ' || ch == '\0')
-		{
-			ch = '\0';
 			break;
-		}
 		name[i] = ch;
 	}
 	name[i] = '\0';
@@ -1294,19 +1305,18 @@ int command_log_conn_data(char *text, int len)
 // TODO: make this automatic or a better command, m is too short
 int command_msg(char *text, int len)
 {
-	int no;//, m=-1;
+	int no;
 
 	// find first space, then skip any spaces
 	text = getparams(text);
-	if(my_strncompare(text, "all", 3)) {
-		for(no = 0; no < pm_log.ppl; no++) {
-			print_message(no);
-		}
-	} else {
+	if(my_strncompare(text, "all", 3))
+	{
+		print_all_messages();
+	}
+	else
+	{
 		no = atoi(text) - 1;
-		if(no < pm_log.ppl && no >= 0) {
-			print_message(no);
-		}
+		print_message(no);
 	}
 	return 1;
 }

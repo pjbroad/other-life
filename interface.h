@@ -16,7 +16,6 @@ extern "C" {
 #define MAX_USERNAME_LENGTH (15 + 1)
 
 extern int have_a_map;  /*!< flag indicating whether a map is available or not */
-extern int auto_camera; /*!< if this is true, we are using the auto camera */
 
 /*! \name Action types */
 /*! @{ */
@@ -63,17 +62,12 @@ extern int im_other_player_view_hp_bar; /*!< indicates whether health bars of  o
 extern int im_other_player_banner_bg; /*!< indicates whether other players banners background should be displayed or not in instance mode*/
 extern int im_other_player_show_banner_on_damage;  /*!< indicates whether  other players name and hp should appear for a while if player gets damage in instance mode*/
 
-extern char username_box_selected; /*!< true, if the cursor is currently in the username input field */
-extern char password_box_selected; /*!< true, if the cursor is currently in the password input field */
-
 extern char username_str[20]; /*!< the username of the actor */
 extern char password_str[20]; /*!< the password of the actor */
 extern char display_password_str[20]; /*!< a string that will be displayed when entering a password */
 
 extern int cons_text;
 extern int icons_text;
-extern int hud_text;
-extern int weather_text;
 
 extern int ranging_lock;
 extern int auto_disable_ranging_lock;
@@ -354,7 +348,7 @@ void delete_mark_on_map_on_mouse_position();
  *
  * \pre If the position is outside the map area, this function will return without performing any actions.
  */
-int put_mark_on_position(int map_x, int map_y, char * name);
+int put_mark_on_position(int map_x, int map_y, const char * name);
 
 /*!
  * \ingroup interfaces
@@ -379,7 +373,7 @@ void put_mark_on_map_on_mouse_position();
  *
  * \pre If we don't have an active actor, this function won't perform any actions further actions.
  */
-int put_mark_on_current_position(char *name);
+int put_mark_on_current_position(const char *name);
 
 /*!
  * \ingroup interfaces

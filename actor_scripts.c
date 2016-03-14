@@ -1609,10 +1609,6 @@ void next_command()
 								targeted_z_rot=(actors_list[i]->que[0]-move_n)*45.0f;
 								rotation_angle=get_rotation_vector(z_rot,targeted_z_rot);
 								actors_list[i]->rotate_z_speed=rotation_angle/360.0;
-								if(auto_camera && actors_list[i]->actor_id==yourself){
-									camera_rotation_speed=rotation_angle/1000.0;
-									camera_rotation_duration=1000;
-								}
 
 								actors_list[i]->rotate_time_left=360;
 								actors_list[i]->rotating=1;
@@ -2608,28 +2604,35 @@ void flag_emote_frames(emote_data *emote,emote_frame *frame){
 			for(k=0;k<2;k++)
 				if(emote->anims[i][j][k]==frame)
 					emote->anims[i][j][k]=NULL;
-			
 }
-void free_emote_data(void *data){
-	emote_data *emote=data;
-	emote_frame *head,*frame,*tf;
-	int i,j,k;
-	if (!emote) return;
-	for(i=0;i<EMOTE_ACTOR_TYPES;i++)
-		for(j=0;j<4;j++)
-			for(k=0;k<2;k++) {
-				head=emote->anims[i][j][k];
-				if(!head) continue;
-				frame=head;
-				while(frame){
-					tf=frame->next;
+
+void free_emote_data(void *data)
+{
+	emote_data *emote = data;
+	emote_frame *head, *frame, *tf;
+	int i, j, k;
+	if (!emote)
+		return;
+
+	for (i = 0; i < EMOTE_ACTOR_TYPES; i++)
+	{
+		for (j = 0; j < 4; j++)
+		{
+			for (k = 0; k < 2; k++)
+			{
+				head = emote->anims[i][j][k];
+				if (!head)
+					continue;
+
+				flag_emote_frames(emote, head);
+
+				for (frame = head, tf = head->next; tf; frame = tf, tf = tf->next)
 					free(frame);
-					frame=tf;	
-				}
-				flag_emote_frames(emote,head);
+				free(frame);
 			}
+		}
+	}
 	free(emote);
-		
 }
 
 emote_data *new_emote(int id){
@@ -2942,13 +2945,13 @@ int parse_actor_shirt(actor_types *act, const xmlNode *cfg, const xmlNode *defau
 		const xmlNode *default_node = get_default_node(cfg, defaults);
 
 		if(default_node){
-			if(shirt->arms_name==NULL || *shirt->arms_name=='\0')
+			if (*shirt->arms_name=='\0')
 				get_item_string_value(shirt->arms_name, sizeof(shirt->arms_name), default_node, (xmlChar*)"arms");
-			if(shirt->model_name==NULL || *shirt->model_name=='\0'){
+			if (*shirt->model_name=='\0'){
 				get_item_string_value(shirt->model_name, sizeof(shirt->model_name), default_node, (xmlChar*)"mesh");
 				shirt->mesh_index= cal_load_mesh(act, shirt->model_name, "shirt");
 			}
-			if(shirt->torso_name==NULL || *shirt->torso_name=='\0')
+			if (*shirt->torso_name=='\0')
 				get_item_string_value(shirt->torso_name, sizeof(shirt->torso_name), default_node, (xmlChar*)"torso");
 		}
 	}
@@ -3080,9 +3083,9 @@ int parse_actor_legs (actor_types *act, const xmlNode *cfg, const xmlNode *defau
 		const xmlNode *default_node = get_default_node(cfg, defaults);
 
 		if(default_node){
-			if(legs->legs_name==NULL || *legs->legs_name=='\0')
+			if (*legs->legs_name=='\0')
 				get_item_string_value(legs->legs_name, sizeof(legs->legs_name), default_node, (xmlChar*)"skin");
-			if(legs->model_name==NULL || *legs->model_name=='\0'){
+			if (*legs->model_name=='\0'){
 				get_item_string_value(legs->model_name, sizeof(legs->model_name), default_node, (xmlChar*)"mesh");
 				legs->mesh_index= cal_load_mesh(act, legs->model_name, "legs");
 			}
@@ -3843,13 +3846,13 @@ int parse_actor_frames (actor_types *act, const xmlNode *cfg, const xmlNode *def
 {
 	const xmlNode *item;
 	char str[255];
-	int ok = 1, index;
+	int ok = 1;
 
 	if (cfg == NULL) return 0;
 
 	for (item = cfg; item; item = item->next) {
 		if (item->type == XML_ELEMENT_NODE) {
-			index = -1;
+			int index = -1;
 			if (xmlStrcasecmp (item->name, (xmlChar*)"CAL_IDLE_GROUP") == 0) {
 				get_string_value (str,sizeof(str),item);
      				//act->cal_walk_frame=cal_load_anim(act,str);
@@ -4008,8 +4011,8 @@ int parse_actor_frames (actor_types *act, const xmlNode *cfg, const xmlNode *def
 					, get_int_property(item, "duration")
 					);
 					hash_add(act->emote_frames, (void*)(NULL+j), (void*)anim);					
+					continue;
 				}
-				continue;
 			}
 
 			if (index >= 0)
@@ -4022,10 +4025,6 @@ int parse_actor_frames (actor_types *act, const xmlNode *cfg, const xmlNode *def
 #endif	//NEW_SOUND
 					, get_int_property(item, "duration")
 					);
-
-
-
-
 			}
 			else if (index != -2)
 			{
@@ -4209,9 +4208,10 @@ int parse_actor_boots (actor_types *act, const xmlNode *cfg, const xmlNode *defa
 		const xmlNode *default_node = get_default_node(cfg, defaults);
 
 		if(default_node){
-			if(boots->boots_name==NULL || *boots->boots_name=='\0')
+			if (*boots->boots_name=='\0')
 				get_item_string_value(boots->boots_name, sizeof(boots->boots_name), default_node, (xmlChar*)"skin");
-			if(boots->model_name==NULL || *boots->model_name=='\0'){
+			if (*boots->model_name=='\0')
+			{
 				get_item_string_value(boots->model_name, sizeof(boots->model_name), default_node, (xmlChar*)"mesh");
 				boots->mesh_index= cal_load_mesh(act, boots->model_name, "boots");
 			}
@@ -4500,7 +4500,6 @@ int parse_actor_script(const xmlNode *cfg)
 		);
 		LOG_ERROR(str);
 	}
-	ok= 1;
 	act->actor_type= act_idx;	// memorize the ID & name to help in debugging
 	safe_strncpy(act->actor_name, get_string_property(cfg, "type"), sizeof(act->actor_name));
 	actor_check_string(act, "actor", "name", act->actor_name);

@@ -42,20 +42,12 @@
 
 #define DEFAULT_CONTMAPS_SIZE 20
 
-/* NOTE: This file contains implementations of the following, currently unused, and commented functions:
- *          Look at the end of the file.
- *
- * void draw_menu_title_bar(int, int, int);
- */
-
 int mouse_x = 0;
 int mouse_y = 0;
 int right_click = 0;
 int middle_click = 0;
 int left_click = 0;
 
-char username_box_selected=1;
-char password_box_selected=0;
 char username_str[20]={0};
 char password_str[20]={0};
 char display_password_str[20]={0};
@@ -63,7 +55,6 @@ int username_text_length=0;
 int password_text_length=0;
 
 int have_a_map=0;
-int auto_camera=0;
 int view_health_bar=1;
 int view_ether_bar=0;
 int view_names=1;
@@ -90,9 +81,9 @@ int action_mode=ACTION_WALK;
 
 Uint32 click_time=0;
 
-GLdouble model_mat[16];
-GLdouble projection_mat[16];
-GLint viewport[4];
+static GLdouble model_mat[16];
+static GLdouble projection_mat[16];
+static GLint viewport[4];
 
 // Grum: attempt to work around bug in Ati linux drivers.
 int ati_click_workaround = 0;
@@ -1199,7 +1190,7 @@ void draw_game_map (int map, int mouse_mini)
 }
 
 
-int put_mark_on_position(int map_x, int map_y, char * name)
+int put_mark_on_position(int map_x, int map_y, const char * name)
 {
 		if (map_x < 0
 		|| map_x >= tile_map_size_x*6
@@ -1233,51 +1224,19 @@ int put_mark_on_position(int map_x, int map_y, char * name)
 
 void put_mark_on_map_on_mouse_position()
 {
-		if (pf_get_mouse_position(mouse_x, mouse_y, &mark_x, &mark_y)) {
-				/* Lachesis: reusing available code from pathfinder.c
-        int min_mouse_x = (window_width-hud_x)/6;
-        int min_mouse_y = 0;
-
-        int max_mouse_x = min_mouse_x+((window_width-hud_x)/1.5);
-        int max_mouse_y = window_height - hud_y;
-
-        int screen_map_width = max_mouse_x - min_mouse_x;
-        int screen_map_height = max_mouse_y - min_mouse_y;
-
-        // FIXME (Malaclypse): should be moved above the screen_map_* init, to avoid additional computation
-        if (mouse_x < min_mouse_x
-        || mouse_x > max_mouse_x
-        || mouse_y < min_mouse_y
-        || mouse_y > max_mouse_y) {
-                return;
-        }
-
-        mark_x = ((mouse_x - min_mouse_x) * tile_map_size_x * 6) / screen_map_width;
-        mark_y = (tile_map_size_y * 6) - ((mouse_y * tile_map_size_y * 6) / screen_map_height);
-				*/
-        adding_mark = 1;
-		}
+	if (pf_get_mouse_position(mouse_x, mouse_y, &mark_x, &mark_y))
+		adding_mark = 1;
 }
-int put_mark_on_current_position(char *name)
+int put_mark_on_current_position(const char *name)
 {
 	actor *me = get_our_actor ();
 
 	if (me != NULL)
-	{	
+	{
 		if (put_mark_on_position(me->x_tile_pos, me->y_tile_pos, name))
 			return 1;
-		/* Lachesis: reusing available code
-		marks[max_mark].x = me->x_tile_pos;
-		marks[max_mark].y = me->y_tile_pos;
-		memset(marks[max_mark].text,0,500);
-		
-		my_strncp(marks[max_mark].text,name,500);
-		marks[max_mark].text[strlen(marks[max_mark].text)]=0;
-		max_mark++;
-		save_markings();
-		*/
 	}
-	return 0;		
+	return 0;
 }
 
 void delete_mark_on_map_on_mouse_position()
@@ -1382,68 +1341,3 @@ void resize_all_root_windows (Uint32 w, Uint32 h)
 	resize_newchar_hud_window();
 #endif
 }
-
-/* currently UNUSED
-void draw_menu_title_bar(int x, int y, int x_len)
-{
-	float u_first_start=(float)31/256;
-	float u_first_end=0;
-	float v_first_start=1.0f-(float)160/256;
-	float v_first_end=1.0f-(float)175/256;
-
-	float u_middle_start=(float)32/256;
-	float u_middle_end=(float)63/256;
-	float v_middle_start=1.0f-(float)160/256;
-	float v_middle_end=1.0f-(float)175/256;
-
-	float u_last_start=0;
-	float u_last_end=(float)31/256;
-	float v_last_start=1.0f-(float)160/256;
-	float v_last_end=1.0f-(float)175/256;
-
-	int segments_no;
-	int i;
-
-	glColor3f(1.0f,1.0f,1.0f);
-	//ok, now draw that shit...
-	segments_no=x_len/32;
-
-	get_and_set_texture_id(icons_text);
-	glEnable(GL_ALPHA_TEST);
-    glAlphaFunc(GL_GREATER,0.03f);
-	glBegin(GL_QUADS);
-
-	glTexCoord2f(u_first_end,v_first_start);
-	glVertex3i(x,y,0);
-	glTexCoord2f(u_first_end,v_first_end);
-	glVertex3i(x,y+16,0);
-	glTexCoord2f(u_first_start,v_first_end);
-	glVertex3i(x+32,y+16,0);
-	glTexCoord2f(u_first_start,v_first_start);
-	glVertex3i(x+32,y,0);
-
-	for(i=1;i<segments_no-1;i++)
-		{
-			glTexCoord2f(u_middle_end,v_middle_start);
-			glVertex3i(x+i*32,y,0);
-			glTexCoord2f(u_middle_end,v_middle_end);
-			glVertex3i(x+i*32,y+16,0);
-			glTexCoord2f(u_middle_start,v_middle_end);
-			glVertex3i(x+i*32+32,y+16,0);
-			glTexCoord2f(u_middle_start,v_middle_start);
-			glVertex3i(x+i*32+32,y,0);
-		}
-
-	glTexCoord2f(u_last_end,v_last_start);
-	glVertex3i(x+i*32,y,0);
-	glTexCoord2f(u_last_end,v_last_end);
-	glVertex3i(x+i*32,y+16,0);
-	glTexCoord2f(u_last_start,v_last_end);
-	glVertex3i(x+i*32+32,y+16,0);
-	glTexCoord2f(u_last_start,v_last_start);
-	glVertex3i(x+i*32+32,y,0);
-
-	glEnd();
-	glDisable(GL_ALPHA_TEST);
-}
-*/

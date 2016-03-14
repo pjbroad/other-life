@@ -79,6 +79,24 @@ extern int emote_filter; //used to ignore text lines of emotes only
 extern int summoning_filter; //used to ignore text lines of summoning messages
 
 /*!
+ * \brief get the current value for seen PM and MODPM message
+ *
+ *	This count just increases until the clear function is called, the AFK
+ * 	state does not impact the count.
+ *
+ * \retval int the current count
+ * \callgraph
+ */
+extern int get_seen_pm_count(void);
+
+/*!
+ * \brief set the current value for seen PM and MODPM message to zero
+ *
+ * \callgraph
+ */
+extern void clear_seen_pm_count(void);
+
+/*!
  * \brief Allocate the character buffer for a text_message
  *
  *	Allocates memory for the character buffer of text_message \a msg, 
@@ -414,18 +432,6 @@ void console_move_page_down();
  * \callgraph
  */
 void console_move_page_up();
-
-// XXX FIXME (Grum): obsolete
-///*!
-// * \ingroup interface_console
-// * \brief displays the console text
-// *
-// *      Switches to console mode and displays the txt.
-// *
-// * \callgraph
-// */
-//void display_console_text();
-
 
 /*!
  * \ingroup text_font

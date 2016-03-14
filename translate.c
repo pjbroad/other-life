@@ -194,9 +194,13 @@ char
 	cm_action_points_str[30],
 	hud_timer_cm_str[100],
 	hud_timer_popup_title_str[25],
-	day_indicator_str[40],
-	harvest_indicator_str[40],
-	poison_indicator_str[40],
+	/* hud_indicators.cpp */
+	no_indicators_str[20],
+	cm_indicators_str[85],
+	day_indicator_str[60],
+	harvest_indicator_str[60],
+	poison_indicator_str[60],
+	messages_indicator_str[60],
 	/*loginwin.c*/
 	login_username_str[20],
 	login_password_str[20],
@@ -866,6 +870,7 @@ void * add_xml_group(int type, int no, ...)
 			grp=(group_id*)calloc(no,sizeof(group_id));
 			for(;i<no;i++)
 				safe_snprintf (grp[i].xml_id, sizeof (grp[i].xml_id), "%s", va_arg (ap, char*));
+			va_end(ap);
 			return grp;
 		}
 		case DIGROUP: {
@@ -873,6 +878,7 @@ void * add_xml_group(int type, int no, ...)
 			grp=(group_id_di*)calloc(no,sizeof(group_id_di));
 			for(;i<no;i++)
 				safe_snprintf (grp[i].xml_id, sizeof (grp[i].xml_id), "%s", va_arg (ap, char*));
+			va_end(ap);
 			return grp;
 		}
 #ifdef ELC
@@ -881,10 +887,12 @@ void * add_xml_group(int type, int no, ...)
 			grp=(group_stat*)calloc(no,sizeof(group_stat));
 			for(;i<no;i++)
 				safe_snprintf (grp[i].xml_id, sizeof (grp[i].xml_id), "%s", va_arg (ap, char*));
+			va_end(ap);
 			return grp;
 		}
 #endif
 		default: 
+			va_end(ap);
 			return NULL;
 	}
 }
@@ -954,16 +962,14 @@ void save_named_strings(const group_id *groups, size_t num_groups, const char *g
 		if (strcmp(groups[j].xml_id, group_name) == 0)
 		{
 			named_strings = (string_group*)realloc(named_strings, (num_named_strings+1) * sizeof(string_group));
-			named_strings[num_named_strings].name = (char *)malloc(sizeof(char *) * (strlen(group_name) + 1));
-			strcpy(named_strings[num_named_strings].name, group_name);
+			named_strings[num_named_strings].name = strdup(group_name);
 
 			named_strings[num_named_strings].num_strings = groups[j].no;
 			named_strings[num_named_strings].strings = (named_string*)malloc(sizeof(named_string) * groups[j].no);
 
 			for (i=0; i<groups[j].no; i++)
 			{
-				named_strings[num_named_strings].strings[i].name = (char *)malloc(sizeof(char *) * (strlen(groups[j].strings[i]->xml_id) + 1));
-				strcpy(named_strings[num_named_strings].strings[i].name, groups[j].strings[i]->xml_id);
+				named_strings[num_named_strings].strings[i].name = strdup(groups[j].strings[i]->xml_id);
 				named_strings[num_named_strings].strings[i].string = groups[j].strings[i]->var;
 			}
 
@@ -1473,9 +1479,12 @@ void init_help()
 	add_xml_identifier(misc,"cm_action_points",cm_action_points_str,"Show Action Points Bar",sizeof(cm_action_points_str));
 	add_xml_identifier(misc,"hud_timer_cm",hud_timer_cm_str,"Change Mode\nKeep State\n--\nStart/Stop\nSet Time\nReset Time\n--\nShow Help",sizeof(hud_timer_cm_str));
 	add_xml_identifier(misc,"hud_timer_popup_title",hud_timer_popup_title_str,"Time (in seconds)",sizeof(hud_timer_popup_title_str));
-	add_xml_identifier(misc,"day indicator",day_indicator_str,"S||Special Day||Ordinary Day",sizeof(day_indicator_str));
-	add_xml_identifier(misc,"harvest_indicator",harvest_indicator_str,"H||Harvesting||Not Harvesting",sizeof(harvest_indicator_str));
-	add_xml_identifier(misc,"poison_indicator",poison_indicator_str,"P||Poisoned||Not Poisoned",sizeof(poison_indicator_str));
+	add_xml_identifier(misc,"no_indicators",no_indicators_str,"No Indicators",sizeof(no_indicators_str));
+	add_xml_identifier(misc,"cm_indicators",cm_indicators_str,"--\nMovable Window\nBackground On\nBorder On\n--\nReset Position\n\n--\n",sizeof(cm_indicators_str));
+	add_xml_identifier(misc,"day_indicator",day_indicator_str,"S||Special Day||Ordinary Day||Special Days",sizeof(day_indicator_str));
+	add_xml_identifier(misc,"harvest_indicator",harvest_indicator_str,"H||Harvesting||Not Harvesting||Harvesting Status",sizeof(harvest_indicator_str));
+	add_xml_identifier(misc,"poison_indicator",poison_indicator_str,"P||Poisoned||Not Poisoned||Poison Status",sizeof(poison_indicator_str));
+	add_xml_identifier(misc,"messages_indicator",messages_indicator_str,"M||Recent Messages||No Messages||Message Count",sizeof(messages_indicator_str));
 	add_xml_identifier(misc,"dc_note_rm",dc_note_remove,"Double-click to remove this category",sizeof(dc_note_remove));
 	add_xml_identifier(misc,"note_saved",note_saved,"Your notes have been saved",sizeof(note_saved));
 	add_xml_identifier(misc,"note_save_failed",note_save_failed,"Failed to save your notes!",sizeof(note_save_failed));
@@ -1626,7 +1635,7 @@ void init_help()
 	add_xml_identifier(misc, "cm_npcname_menu", cm_npcname_menu_str, "Copy NPC Name\nSet Map Mark", sizeof(cm_npcname_menu_str));
 	add_xml_identifier(misc, "cm_dialog_copy_menu", cm_dialog_copy_menu_str, "Exclude Responses\nRemove Newlines", sizeof(cm_dialog_copy_menu_str));
 	add_xml_identifier(misc, "cm_minimap_menu", cm_minimap_menu_str, "--\nRotate Minimap\nPin Minimap\nOpen On Start", sizeof(cm_minimap_menu_str));
-	add_xml_identifier(misc, "cm_user_menu", cm_user_menu_str, "--\nShow Title\nDraw Border\nSmall Font\nStandard Menus\n--\nShow Commands\n--\nReload Menus\nDisable Menus", sizeof(cm_user_menu_str));
+	add_xml_identifier(misc, "cm_user_menu", cm_user_menu_str, "--\nMovable Window\nBorder On\nSmall Font\nStandard Menus\n--\nShow Commands\n--\nReload Menus\nDisable Menus", sizeof(cm_user_menu_str));
 	add_xml_identifier(misc, "cm_item_list_selected", cm_item_list_selected_str, "Edit quantity\n--\nDelete", sizeof(cm_item_list_selected_str));
 	add_xml_identifier(misc, "cm_item_list_names", cm_item_list_names_str, "Create new list\nRename active list\n--\nDelete active list\n--\nReload from file", sizeof(cm_item_list_names_str));
 	add_xml_identifier(misc, "cm_stats_bar_base", cm_stats_bar_base_str, "--\nAdd Bar\nRemove Bar", sizeof(cm_stats_bar_base_str));
