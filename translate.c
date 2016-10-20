@@ -862,6 +862,7 @@ void * add_xml_group(int type, int no, ...)
 			grp=(group_id*)calloc(no,sizeof(group_id));
 			for(;i<no;i++)
 				safe_snprintf (grp[i].xml_id, sizeof (grp[i].xml_id), "%s", va_arg (ap, char*));
+			va_end(ap);
 			return grp;
 		}
 		case DIGROUP: {
@@ -869,6 +870,7 @@ void * add_xml_group(int type, int no, ...)
 			grp=(group_id_di*)calloc(no,sizeof(group_id_di));
 			for(;i<no;i++)
 				safe_snprintf (grp[i].xml_id, sizeof (grp[i].xml_id), "%s", va_arg (ap, char*));
+			va_end(ap);
 			return grp;
 		}
 #ifdef ELC
@@ -877,6 +879,7 @@ void * add_xml_group(int type, int no, ...)
 			grp=(group_stat*)calloc(no,sizeof(group_stat));
 			for(;i<no;i++)
 				safe_snprintf (grp[i].xml_id, sizeof (grp[i].xml_id), "%s", va_arg (ap, char*));
+			va_end(ap);
 			return grp;
 		}
 #endif

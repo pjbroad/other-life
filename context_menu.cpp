@@ -352,7 +352,7 @@ namespace cm
 			{
 				window_info *win = window_info_from_id(window_id);
 				widget_list *wid = widget_find(window_id, it->second.widget_id);
-				assert(wid!=NULL || win!=NULL);
+				assert(wid!=NULL && win!=NULL);
 				if ((mouse_x > win->cur_x + wid->pos_x) && (mouse_x <= win->cur_x + wid->pos_x + wid->len_x) &&
 		    		(mouse_y > win->cur_y + wid->pos_y) && (mouse_y <= win->cur_y + wid->pos_y + wid->len_y))
 					return show_direct(it->second.cm_id, window_id, it->second.widget_id);
