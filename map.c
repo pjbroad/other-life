@@ -425,7 +425,7 @@ void save_markings()
       char marks_file[256];
       int i;
 
-	safe_snprintf (marks_file, sizeof (marks_file), "maps/%s.txt", strrchr (map_file_name,'/') + 1);
+	safe_snprintf (marks_file, sizeof (marks_file), "%s.txt", map_file_name);
 
 	fp = open_file_config(marks_file,"w");
 	if ( fp == NULL ){
