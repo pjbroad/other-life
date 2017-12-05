@@ -611,7 +611,7 @@ void switch_to_chat_tab(int id, char click)
 
 	if (channels[active_tab].chan_nr >= firstchannel && channels[active_tab].chan_nr <= lastchannel)
 		send_active_channel (channels[active_tab].chan_nr);
-		recolour_messages(display_text_buffer);
+	recolour_messages(display_text_buffer);
 }
 
 void change_to_current_chat_tab(const char *input)

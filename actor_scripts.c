@@ -10,6 +10,7 @@
 #include "cursors.h"
 #include "draw_scene.h"
 #include "errors.h"
+#include "gamewin.h"
 #include "global.h"
 #include "hud.h"
 #include "init.h"
@@ -1320,16 +1321,16 @@ void next_command()
 
 					if (actors_list[i]->in_aim_mode == 0) {
 						missiles_log_message("%s (%d): enter in aim mode", actors_list[i]->actor_name, actors_list[i]->actor_id);
-					//if(actors_list[i]->actor_id==yourself) printf("%i, enter aim 0\n",thecount);
-					if(actors_list[i]->attached_actor>=0){
-						if (!ACTOR(i)->horse_rotated) {rotate_actor_and_horse_range(i,-1); ACTOR(i)->horse_rotated=1;}						//set the horse aim mode
-						actors_list[actors_list[i]->attached_actor]->in_aim_mode=1;
-						//stop_attachment(i); //add a wait
-						//we could start a horse_ranged_in
-						set_on_idle(actors_list[i]->attached_actor);
-						cal_actor_set_anim(i,actors_defs[actor_type].weapon[actors_list[i]->cur_weapon].cal_frames[cal_weapon_range_in_held_frame]);
-					} else
-						cal_actor_set_anim(i,actors_defs[actor_type].weapon[actors_list[i]->cur_weapon].cal_frames[cal_weapon_range_in_frame]);
+						//if(actors_list[i]->actor_id==yourself) printf("%i, enter aim 0\n",thecount);
+						if(actors_list[i]->attached_actor>=0){
+							if (!ACTOR(i)->horse_rotated) {rotate_actor_and_horse_range(i,-1); ACTOR(i)->horse_rotated=1;}						//set the horse aim mode
+							actors_list[actors_list[i]->attached_actor]->in_aim_mode=1;
+							//stop_attachment(i); //add a wait
+							//we could start a horse_ranged_in
+							set_on_idle(actors_list[i]->attached_actor);
+							cal_actor_set_anim(i,actors_defs[actor_type].weapon[actors_list[i]->cur_weapon].cal_frames[cal_weapon_range_in_held_frame]);
+						} else
+							cal_actor_set_anim(i,actors_defs[actor_type].weapon[actors_list[i]->cur_weapon].cal_frames[cal_weapon_range_in_frame]);
 						
 						actors_list[i]->cal_h_rot_start = 0.0;
 						actors_list[i]->cal_v_rot_start = 0.0;
@@ -2079,11 +2080,7 @@ void add_command_to_actor(int actor_id, unsigned char command)
 		switch(command) {
 		case enter_combat:
 			act->async_fighting= 1;
-			if(ranging_lock && auto_disable_ranging_lock)
-			{
-				ranging_lock= 0;
-				LOG_TO_CONSOLE(c_green1, ranginglock_disabled_str);
-			}
+			check_to_auto_disable_ranging_lock();
 			break;
 		case leave_combat:
 			act->async_fighting= 0;
