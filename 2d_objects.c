@@ -1090,11 +1090,10 @@ void set_2d_object (Uint8 display, const void *ptr, int len)
 		while(len >= sizeof(*id_ptr)){
 			Uint32 obj_id = SDL_SwapLE32(id_ptr[idx]);
 			
-			if(obj_id < MAX_OBJ_2D && obj_2d_list[obj_id]){
+			if(obj_id < MAX_OBJ_2D && obj_2d_list[obj_id])
 				obj_2d_list[obj_id]->display= display;
-				idx++;
-				len-= sizeof(*id_ptr);
-			}
+			idx++;
+			len-= sizeof(*id_ptr);
 		}
 	}
 }
@@ -1120,11 +1119,10 @@ void state_2d_object (Uint8 state, const void *ptr, int len)
 		while(len >= sizeof(*id_ptr)){
 			Uint32 obj_id = SDL_SwapLE32(id_ptr[idx]);
 			
-			if(obj_id < MAX_OBJ_2D && obj_2d_list[obj_id]){
+			if(obj_id < MAX_OBJ_2D && obj_2d_list[obj_id])
 				obj_2d_list[obj_id]->state= state;
-				idx++;
-				len -= sizeof (*id_ptr);
-			}
+			idx++;
+			len -= sizeof (*id_ptr);
 		}
 	}
 }
