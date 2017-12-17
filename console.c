@@ -16,6 +16,7 @@
 #include "gamewin.h"
 #include "global.h"
 #include "hud.h"
+#include "hud_quickspells_window.h"
 #include "ignore.h"
 #include "icon_window.h"
 #include "init.h"
@@ -44,9 +45,7 @@
 #include "io/elpathwrapper.h"
 #include "io/elfilewrapper.h"
 #include "calc.h"
-#ifdef TEXT_ALIASES
 #include "text_aliases.h"
-#endif
 //only for debugging command #add_emote <actor name> <emote id>, can be removed later
 #include "actor_scripts.h"
 #include "emotes.h"
@@ -226,7 +225,6 @@ struct compl_str tab_complete(const text_message *input, unsigned int cursor_pos
 		const char *input_string = (char*)input->data;
 		int count;
 		short retries;
-		node_t *step;
 
 		if(!have_last_complete) {
 			if(cursor_pos > 0 &&
@@ -304,13 +302,13 @@ struct compl_str tab_complete(const text_message *input, unsigned int cursor_pos
 					}
 				break;
 				case CHANNEL:
-					for(step = queue_front_node(chan_name_queue), count = 0; step->next != NULL; step = step->next) {
-						if(strncasecmp(((chan_name*)(step->data))->name, last_complete, strlen(last_complete)) == 0) {
+					for(set_first_tab_channel(), count = 0; get_tab_channel_name() != NULL; set_next_tab_channel()) {
+						if(strncasecmp(get_tab_channel_name(), last_complete, strlen(last_complete)) == 0) {
 							/* Yay! The chan-name begins with the string we're searching for. */
 							if(count > last_str_count) {
 								/* We found something we haven't returned earlier, let's return it. */
 								last_str_count = count++;
-								return_value.str = ((chan_name*)(step->data))->name;
+								return_value.str = get_tab_channel_name();
 								break;
 							}
 							count++;
@@ -406,14 +404,12 @@ int test_for_console_command(char *text, int length)
 		return 0;
 	} else {
 		int cmd_len;
-#ifdef TEXT_ALIASES
 		/* Handle numeric shortcuts */
 		if ( isdigit(text[0]) ) {
 			if ( process_text_alias(text,length) >= 0 ) {
 				return 1;
 			}
 		}
-#endif
 		/* Look for a matching command */
 		for(i = 0; i < command_count; i++) {
 			cmd_len = strlen(commands[i].command);
@@ -1406,20 +1402,9 @@ int command_accept_buddy(char *text, int len)
 	/* This command is here to make sure the requests queue is up to date */
 	text = getparams(text);
 	/* Make sure a name is given */
-	if(*text && !queue_isempty(buddy_request_queue)) {
-		node_t *node = queue_front_node(buddy_request_queue);
-
-		/* Search for the node in the queue */
-		while(node != NULL) {
-			if(strcasecmp(text, node->data) == 0) {
-				/* This is the node we're looking for, delete it */
-				queue_delete_node(buddy_request_queue, node);
-				break;
-			}
-			node = node->next;
-		}
-	}
-	return 0;
+	if(*text)
+		accept_buddy_console_command(text);
+	return 0; // also pass to server
 }
 
 
@@ -1494,32 +1479,6 @@ static int command_cast_spell(char *text, int len)
 		send_spell(str, index);
 	else
 		LOG_TO_CONSOLE(c_red2, invalid_spell_string_str);
-	
-	return 1;
-}
-
-
-/* show the last spell name and message bytes */
-static int command_show_spell(char *text, int len)
-{
-	int i;
-	char out_str[128];
-	char mess_str[64];
-	
-	/* trap if we have no last spell or other invalid strings */
-	if (!*last_spell_name || strlen(last_spell_name)>59 || last_spell_len>30 || last_spell_len<=0)
-	{
-		LOG_TO_CONSOLE(c_green2, no_spell_to_show_str);
-		return 1;
-	}
-	
-	/* create the message body string, each byte in hex */
-	for(i=0; i<last_spell_len; i++)
-		sprintf(&mess_str[2*i], "%02x", last_spell_str[i]);	
-	mess_str[last_spell_len*2] = 0;
-
-	safe_snprintf(out_str, sizeof(out_str), "%s %s", last_spell_name, mess_str );
-	LOG_TO_CONSOLE(c_green2, out_str);
 	
 	return 1;
 }
@@ -1621,7 +1580,7 @@ int save_local_data(char * text, int len){
 	if (write_ini_on_exit) write_el_ini ();
 	// save notepad contents if the file was loaded
 	if (notepad_loaded) notepad_save_file();
-	save_exploration_map();
+	//save_exploration_map();
 	flush_counters();
 	// for the new questlog, this actually just saves any pending changes
 	// should be renamed when NEW_QUESTLOG #def is removed
@@ -1770,11 +1729,9 @@ add_command("horse", &horse_cmd);
 #ifdef CONTEXT_MENUS_TEST
 	add_command("cmtest", &cm_test_window);
 #endif
-#ifdef TEXT_ALIASES
 	add_command("alias", &alias_command);
 	add_command("unalias", &unalias_command);
 	add_command("aliases", &aliases_command);
-#endif
 	add_command("ckdata", &command_ckdata);
 	add_command(cmd_reload_icons, &reload_icon_window);
 	add_command(cmd_open_url, &command_open_url);

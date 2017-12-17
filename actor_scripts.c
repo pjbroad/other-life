@@ -12,7 +12,7 @@
 #include "errors.h"
 #include "gamewin.h"
 #include "global.h"
-#include "hud.h"
+#include "hud_statsbar_window.h"
 #include "init.h"
 #include "interface.h"
 #include "missiles.h"
@@ -36,9 +36,7 @@
 #include "io/elfilewrapper.h"
 #include "io/cal3d_io_wrapper.h"
 #include "actor_init.h"
-#ifdef	NEW_TEXTURES
 #include "textures.h"
-#endif	/* NEW_TEXTURES */
 
 #ifndef EXT_ACTOR_DICT
 const dict_elem skin_color_dict[] =
@@ -602,14 +600,9 @@ void move_to_next_frame()
 						missiles_log_message("%s (%d): leaving range mode finished!\n",
 											 actors_list[i]->actor_name, actors_list[i]->actor_id);
 
-#ifndef	NEW_TEXTURES
-						// then we do all the item changes that have been delayed
-						flush_delayed_item_changes(actors_list[i]);
-#endif	/* NEW_TEXTURES */
 					}
 				}
 			}
-#ifdef	NEW_TEXTURES
 			if (actors_list[i]->in_aim_mode == 0)
 			{
 				if (actors_list[i]->is_enhanced_model != 0)
@@ -631,7 +624,6 @@ void move_to_next_frame()
 					actors_list[i]->delay_texture_item_changes = 1;
 				}
 			}
-#endif	/* NEW_TEXTURES */
 
 			// we change the idle animation only when the previous one is finished
 			if (actors_list[i]->stand_idle && actors_list[i]->anim_time >= actors_list[i]->cur_anim.duration - 0.2)
@@ -1713,9 +1705,8 @@ void next_command()
 void free_actor_data(int actor_index)
 {
 	actor *act = actors_list[actor_index];
-    if(act->calmodel!=NULL)
-        model_delete(act->calmodel);
-#ifdef	NEW_TEXTURES
+	if(act->calmodel!=NULL)
+		model_delete(act->calmodel);
 	if(act->remapped_colors)
 	{
 		free_actor_texture(act->texture_id);
@@ -1723,19 +1714,11 @@ void free_actor_data(int actor_index)
 	if (act->is_enhanced_model)
 	{
 		free_actor_texture(act->texture_id);
-
-	        if (act->body_parts)
+		if (act->body_parts)
 		{
 			free(act->body_parts);
 		}
 	}
-#else	/* NEW_TEXTURES */
-    if(act->remapped_colors) glDeleteTextures(1,&act->texture_id);
-    if(act->is_enhanced_model){
-        glDeleteTextures(1,&act->texture_id);
-        if(act->body_parts)free(act->body_parts);
-    }
-#endif	/* NEW_TEXTURES */
 #ifdef NEW_SOUND
     stop_sound(act->cur_anim_sound_cookie);
     act->cur_anim_sound_cookie = 0;
@@ -3014,9 +2997,9 @@ int parse_actor_skin (actor_types *act, const xmlNode *cfg, const xmlNode *defau
 		const xmlNode *default_node= get_default_node(cfg, defaults);
 
 		if(default_node){
-			if(skin->hands_name==NULL || *skin->hands_name=='\0')
+			if(*skin->hands_name=='\0')
 				get_item_string_value(skin->hands_name, sizeof(skin->hands_name), default_node, (xmlChar*)"hands");
-			if(skin->head_name==NULL || *skin->head_name=='\0')
+			if(*skin->head_name=='\0')
 				get_item_string_value(skin->head_name, sizeof(skin->head_name), default_node, (xmlChar*)"head");
 		}
 	}
@@ -3360,10 +3343,10 @@ int parse_actor_weapon(actor_types *act, const xmlNode *cfg, const xmlNode *defa
 		const xmlNode *default_node= get_default_node(cfg, defaults);
 
 		if(default_node){
-			if(weapon->skin_name==NULL || *weapon->skin_name=='\0')
+			if(*weapon->skin_name=='\0')
 				get_item_string_value(weapon->skin_name, sizeof(weapon->skin_name), default_node, (xmlChar*)"skin");
 			if(type_idx!=GLOVE_FUR && type_idx!=GLOVE_LEATHER){ // these dont have meshes
-				if(weapon->model_name==NULL || *weapon->model_name=='\0'){
+				if(*weapon->model_name=='\0'){
 					get_item_string_value(weapon->model_name, sizeof(weapon->model_name), default_node, (xmlChar*)"mesh");
 					weapon->mesh_index= cal_load_weapon_mesh(act, weapon->model_name, "weapon");
 				}
@@ -3418,11 +3401,11 @@ int parse_actor_body_part (actor_types *act, body_part *part, const xmlNode *cfg
 
 	// check for default entries, if found, use them to fill in missing data
 	if(default_node){
-		if(part->skin_name==NULL || *part->skin_name=='\0')
+		if(*part->skin_name=='\0')
 			if(strcmp(part_name, "head")){ // heads don't have separate skins here
 				get_item_string_value(part->skin_name, sizeof(part->skin_name), default_node, (xmlChar*)"skin");
 			}
-		if(part->model_name==NULL || *part->model_name=='\0'){
+		if(*part->model_name=='\0'){
 			get_item_string_value(part->model_name, sizeof(part->model_name), default_node, (xmlChar*)"mesh");
 			if(strcmp("shield",part_name)==0)
 				part->mesh_index= cal_load_weapon_mesh(act, part->model_name, part_name);
@@ -3656,7 +3639,7 @@ int parse_actor_shield_part (actor_types *act, shield_part *part, const xmlNode 
 
 	// check for default entries, if found, use them to fill in missing data
 	if(default_node){
-		if(part->model_name==NULL || *part->model_name=='\0'){
+		if(*part->model_name=='\0'){
 			get_item_string_value(part->model_name, sizeof(part->model_name), default_node, (xmlChar*)"mesh");
 			part->mesh_index= cal_load_weapon_mesh(act, part->model_name, "shield");
 		}
@@ -4825,9 +4808,7 @@ void init_actor_defs()
 	// initialize the whole thing to zero
 	memset (actors_defs, 0, sizeof (actors_defs));
 	memset (attached_actors_defs, 0, sizeof (attached_actors_defs));
-#ifdef	NEW_TEXTURES
 	set_invert_v_coord();
-#endif	/* NEW_TEXTURES */
 	read_actor_defs ("actor_defs", "actor_defs.xml");
 }
 

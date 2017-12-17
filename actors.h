@@ -145,10 +145,6 @@ typedef struct
 	char neck_tex[MAX_FILE_PATH];
 	char cape_tex[MAX_FILE_PATH];
 	char hands_tex_save[MAX_FILE_PATH];
-#ifndef	NEW_TEXTURES
-	char has_alpha;//is there alpha masking?
-#endif	/* NEW_TEXTURES */
-
 	/*! \} */
 
 	/*! \name Specifies the glow of each worn item*/
@@ -798,6 +794,20 @@ actor *	get_actor_ptr_from_id( int actor_id );
 void end_actors_lists(void);
 
 int on_the_move (const actor *act);
+
+/*!
+ * \ingroup display_actors
+ * \brief   Return actor close clicked coords.
+ *
+ * \param tile_x the x coord of the clicked tile
+ * \param tile_y the y coord of the clicked tile
+ * \param max_distance the maximum distance between the clicked coord and the actor
+ *
+ * \callgraph
+ * \retval the actor id or -1 for no actor
+ *
+ */
+int get_closest_actor(int tile_x, int tile_y, float max_distance);
 
 /*!
  * \ingroup	display_actors

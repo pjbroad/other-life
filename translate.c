@@ -350,7 +350,7 @@ char
 	restart_now_label[20],
 	abort_restart_label[20],
 	/* context menu strings */
-	cm_quickspell_menu_str[50],
+	cm_quickspell_menu_str[150],
 	cm_textedit_menu_str[100],
 	cm_quickbar_menu_str[150],
 	cm_hud_menu_str[270],
@@ -1340,7 +1340,6 @@ void init_errors()
 	add_xml_identifier(video,"invalid",invalid_video_mode,"Stop playing with the configuration file and select valid modes!",sizeof(invalid_video_mode));
 
 	//Rule errors
-	add_xml_identifier(rules,"proceed",you_can_proceed,"Read the rules and you can play in %d sec",sizeof(you_can_proceed));
 	add_xml_identifier(rules,"proceed",you_can_proceed,"Read the rules and you can play in %d seconds",sizeof(you_can_proceed));
 	add_xml_identifier(rules,"ready",accepted_rules,"Read the rules and click on \"I Accept\" to play!",sizeof(accepted_rules));
 	add_xml_identifier(rules,"accept",accept_label,"I Accept",sizeof(accept_label));
@@ -1538,11 +1537,7 @@ void init_help()
 	add_xml_identifier(new,"confirmcreate",error_confirm_create_char,"Click done again to create a character with that name and appearance.",sizeof(error_confirm_create_char));
 	add_xml_identifier(new,"newcharwarning",newchar_warning,"Character creation screen",sizeof(newchar_warning));
 	add_xml_identifier(new,"newcharcusthelp",newchar_cust_help,"Click the eye icon below to customize your character.",sizeof(newchar_cust_help)); // it pains me to spell customize with a z:(
-#ifndef NEW_NEW_CHAR_WINDOW
-	add_xml_identifier(new,"newcharcredhelp",newchar_cred_help,"Click the person icon below to choose your character name and password.",sizeof(newchar_cred_help));
-#else
 	add_xml_identifier(new,"newcharcredhelp",newchar_cred_help,"When ready, click \"Done\" to choose your character name and password.",sizeof(newchar_cred_help));
-#endif
 	add_xml_identifier(new,"newchardonehelp",newchar_done_help,"When ready, click \"Done\" to create your character and enter the game.",sizeof(newchar_done_help));
 	add_xml_identifier(new,"wrongpass",invalid_pass,"Invalid password!",sizeof(invalid_pass));
 	add_xml_identifier(new,"showpass",show_password,"Show password",sizeof(show_password));
@@ -1590,7 +1585,7 @@ void init_help()
 	add_xml_identifier(buddy, "name", buddy_name_str, "Name:", sizeof(buddy_name_str));
 	add_xml_identifier(buddy, "name_desc", buddy_long_name_str, "The name of your buddy", sizeof(buddy_long_name_str));
 	add_xml_identifier(buddy, "color", buddy_type_str, "Color:", sizeof(buddy_type_str));
-	add_xml_identifier(buddy, "color_desc", buddy_long_type_str, "The color you want your buddy to appear in in the list", sizeof(buddy_long_type_str));
+	add_xml_identifier(buddy, "color_desc", buddy_long_type_str, "The color you want your buddy to appear in the list", sizeof(buddy_long_type_str));
 	add_xml_identifier(buddy, "add", buddy_add_str, "Add buddy", sizeof(buddy_add_str));
 	add_xml_identifier(buddy, "change", buddy_change_str, "Change buddy", sizeof(buddy_change_str));
 	add_xml_identifier(buddy, "accept", buddy_accept_str, "Accept buddy", sizeof(buddy_accept_str));
@@ -1618,9 +1613,9 @@ void init_help()
 	add_xml_identifier(misc, "abort_restart", abort_restart_label, "Abort", sizeof(abort_restart_label));
 	
 	/* strings for context menus */
-	add_xml_identifier(misc, "cm_quickspell_menu", cm_quickspell_menu_str, "Move Up\nMove Down\nRemove\n", sizeof(cm_quickspell_menu_str));
+	add_xml_identifier(misc, "cm_quickspell_menu", cm_quickspell_menu_str, "Move Spell Up/Left\nMove Spell Down/Right\nRemove Spell\n--\nRelocatable Window\nMoveable Window\nRotate Window\n--\nReset Position", sizeof(cm_quickspell_menu_str));
 	add_xml_identifier(misc, "cm_textedit_menu", cm_textedit_menu_str, "Cut\nCopy\nPaste\n--\nDate\nTime\nCoords", sizeof(cm_textedit_menu_str));
-	add_xml_identifier(misc, "cm_quickbar_menu", cm_quickbar_menu_str, "Quickbar Relocatable\nQuickbar Draggable\nReset Quickbar Position\nFlip Quickbar\nEnable Quickbar Menu\n", sizeof(cm_quickbar_menu_str));
+	add_xml_identifier(misc, "cm_quickbar_menu", cm_quickbar_menu_str, "Enable Quickbar Menu\n--\nRelocatable Window\nMoveable Window\nRotate Window\n--\nReset Position", sizeof(cm_quickbar_menu_str));
 	add_xml_identifier(misc, "cm_hud_menu", cm_hud_menu_str, "Show Stats\nShow Stats Bars\nShow Knowledge Bar\nShow Timer\nShow Digital Clock\nShow Analogue Clock\nShow Seconds\nShow FPS\nShow Indicators\nEnable Quickbar Menu\n--\nShow Minimap\nShow Ranging Stats\n--\nEnable Sound Effects\nEnable Music\n--\nCopy Location", sizeof(cm_hud_menu_str));
 	add_xml_identifier(misc, "cm_banner_menu", cm_banner_menu_str, "Show Names\nShow Health Bars\nShow Health Numbers\nShow Ether Bar\nShow Ether Numbers\nEnable Instance Mode\nShow Speech Bubbles\nEnable Banner Background\nSit Lock\nRanging Lock\n--\nDisable This Menu\n", sizeof(cm_banner_menu_str));
 	add_xml_identifier(misc, "cm_title_menu", cm_title_menu_str, "Hide Windows\nOpaque Background\nWindows On Top\n", sizeof(cm_title_menu_str));

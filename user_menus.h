@@ -55,6 +55,13 @@ void toggle_user_menus(int *enable);
  */
 void reload_user_menus(void);
 
+/*!
+ * \ingroup user_menus
+ * \brief free memory from user menus
+ *
+ */
+void destroy_user_menus(void);
+
 #ifdef __cplusplus
 }
 #endif

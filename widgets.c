@@ -26,6 +26,7 @@
 #include "sound.h"
 
 static size_t cm_edit_id = CM_INIT_VALUE;
+#define DEFAULT_TAB_RADIUS 8 //* the radius used for rounded tabs
 
 typedef struct {
 	char text[256];
@@ -60,6 +61,7 @@ typedef struct {
 	Uint16 x;
 	Uint16 y;
 	int width;
+	int height;
 	int value;
 }multiselect_button;
 
@@ -73,6 +75,7 @@ typedef struct {
 	Uint16 max_height;
 	Uint16 actual_height;
 	Uint32 scrollbar;
+	int scrollbar_width;
 	int win_id;
 	float highlighted_red;
 	float highlighted_green;
@@ -80,7 +83,6 @@ typedef struct {
 }multiselect;
 
 Uint32 widget_id = 0x0000FFFF;
-static const int multiselect_button_height = 22;
 
 int ReadXMLWindow(xmlNode * a_node);
 int ParseWindow (xmlNode *node);
@@ -90,6 +92,7 @@ int GetWidgetType (const char *w);
 int disable_double_click = 0;
 
 // Forward declarations for widget types;
+static int label_resize (widget_list *w, int width, int height);
 static int free_widget_info (widget_list *widget);
 static int checkbox_click(widget_list *W, int mx, int my, Uint32 flags);
 static int vscrollbar_click(widget_list *W, int mx, int my, Uint32 flags);
@@ -101,6 +104,7 @@ static int text_field_click(widget_list *w, int mx, int my, Uint32 flags);
 static int text_field_drag(widget_list *w, int mx, int my, Uint32 flags, int dx, int dy);
 static int text_field_resize (widget_list *w, int width, int height);
 static int text_field_destroy(widget_list *w);
+static int text_field_move(widget_list *w, int pos_x, int pos_y);
 static int pword_field_draw(widget_list *w);
 static int multiselect_draw(widget_list *widget);
 static int multiselect_click(widget_list *widget, int mx, int my, Uint32 flags);
@@ -109,18 +113,18 @@ static int spinbutton_draw(widget_list *widget);
 static int spinbutton_click(widget_list *widget, int mx, int my, Uint32 flags);
 static int spinbutton_keypress(widget_list *widget, int mx, int my, Uint32 key, Uint32 unikey);
 
-static const struct WIDGET_TYPE label_type = { NULL, label_draw, NULL, NULL, NULL, NULL, NULL, free_widget_info };
-static const struct WIDGET_TYPE image_type = { NULL, image_draw, NULL, NULL, NULL, NULL, NULL, free_widget_info };
-static const struct WIDGET_TYPE checkbox_type = { NULL, checkbox_draw, checkbox_click, NULL, NULL, NULL, NULL, free_widget_info };
-static const struct WIDGET_TYPE round_button_type = { NULL, button_draw, NULL, NULL, NULL, NULL, NULL, free_widget_info };
-static const struct WIDGET_TYPE square_button_type = { NULL, square_button_draw, NULL, NULL, NULL, NULL, NULL, free_widget_info };
-static const struct WIDGET_TYPE progressbar_type = { NULL, progressbar_draw, NULL, NULL, NULL, NULL, NULL, free_widget_info };
-static const struct WIDGET_TYPE vscrollbar_type = { NULL, vscrollbar_draw, vscrollbar_click, vscrollbar_drag, NULL, NULL, NULL, free_widget_info };
-static const struct WIDGET_TYPE tab_collection_type = { NULL, tab_collection_draw, tab_collection_click, NULL, NULL, tab_collection_resize, tab_collection_keypress, free_tab_collection };
-static const struct WIDGET_TYPE text_field_type = { NULL, text_field_draw, text_field_click, text_field_drag, NULL, text_field_resize, text_field_keypress, text_field_destroy };
-static const struct WIDGET_TYPE pword_field_type = { NULL, pword_field_draw, pword_field_click, NULL, NULL, NULL, pword_keypress, free_widget_info };
-static const struct WIDGET_TYPE multiselect_type = { NULL, multiselect_draw, multiselect_click, NULL, NULL, NULL, NULL, free_multiselect };
-static const struct WIDGET_TYPE spinbutton_type = { NULL, spinbutton_draw, spinbutton_click, spinbutton_click, NULL, NULL, spinbutton_keypress, free_multiselect };
+static const struct WIDGET_TYPE label_type = { NULL, label_draw, NULL, NULL, NULL, label_resize, NULL, free_widget_info, NULL };
+static const struct WIDGET_TYPE image_type = { NULL, image_draw, NULL, NULL, NULL, NULL, NULL, free_widget_info, NULL };
+static const struct WIDGET_TYPE checkbox_type = { NULL, checkbox_draw, checkbox_click, NULL, NULL, NULL, NULL, free_widget_info, NULL };
+static const struct WIDGET_TYPE round_button_type = { NULL, button_draw, NULL, NULL, NULL, NULL, NULL, free_widget_info, NULL };
+static const struct WIDGET_TYPE square_button_type = { NULL, square_button_draw, NULL, NULL, NULL, NULL, NULL, free_widget_info, NULL };
+static const struct WIDGET_TYPE progressbar_type = { NULL, progressbar_draw, NULL, NULL, NULL, NULL, NULL, free_widget_info, NULL };
+static const struct WIDGET_TYPE vscrollbar_type = { NULL, vscrollbar_draw, vscrollbar_click, vscrollbar_drag, NULL, NULL, NULL, free_widget_info, NULL };
+static const struct WIDGET_TYPE tab_collection_type = { NULL, tab_collection_draw, tab_collection_click, NULL, NULL, tab_collection_resize, tab_collection_keypress, free_tab_collection, NULL };
+static const struct WIDGET_TYPE text_field_type = { NULL, text_field_draw, text_field_click, text_field_drag, NULL, text_field_resize, text_field_keypress, text_field_destroy, text_field_move };
+static const struct WIDGET_TYPE pword_field_type = { NULL, pword_field_draw, pword_field_click, NULL, NULL, NULL, pword_keypress, free_widget_info, NULL };
+static const struct WIDGET_TYPE multiselect_type = { NULL, multiselect_draw, multiselect_click, NULL, NULL, NULL, NULL, free_multiselect, NULL };
+static const struct WIDGET_TYPE spinbutton_type = { NULL, spinbutton_draw, spinbutton_click, spinbutton_click, NULL, NULL, spinbutton_keypress, free_multiselect, NULL };
 
 // <--- Common widget functions ---
 widget_list * widget_find(int window_id, Uint32 widget_id)
@@ -276,9 +280,13 @@ int widget_move(int window_id, Uint32 widget_id, Uint16 x, Uint16 y)
 {
 	widget_list *w = widget_find(window_id, widget_id);
 	if(w){
+		int res = 1;
 		w->pos_x = x;
 		w->pos_y = y;
-		return 1;
+		if (w->type != NULL)
+			if (w->type->move != NULL)
+				res = w->type->move (w, x, y);
+		return res;
 	}
 	return 0;
 }
@@ -614,8 +622,8 @@ int widget_handle_keypress (widget_list *widget, int mx, int my, Uint32 key, Uin
 // Label
 int label_add_extended(int window_id, Uint32 wid, int (*OnInit)(), Uint16 x, Uint16 y, Uint32 Flags, float size, float r, float g, float b, const char *text)
 {
-	Uint16 len_x = (Uint16)(strlen (text) * 11 * 1.0);
-	Uint16 len_y = (Uint16)(18 * 1.0);
+	Uint16 len_x = (Uint16)(strlen (text) * DEFAULT_FONT_X_LEN * size);
+	Uint16 len_y = (Uint16)(DEFAULT_FONT_Y_LEN * size);
 
 	label *T = (label *) calloc (1, sizeof(label));
 	safe_snprintf (T->text, sizeof(T->text), "%s", text);
@@ -638,6 +646,18 @@ int label_draw(widget_list *W)
 	return 1;
 }
 
+static int label_resize (widget_list *w, int width, int height)
+{
+	if(w){
+		label *l = (label *)w->widget_info;
+		if (l) {
+			w->len_x = (width > 0) ?width :(Uint16)(strlen (l->text) * DEFAULT_FONT_X_LEN * w->size);
+			w->len_y = (height > 0) ?height :(Uint16)(DEFAULT_FONT_Y_LEN * w->size);
+		}
+	}
+	return 1;
+}
+
 int label_set_text(int window_id, Uint32 widget_id, const char *text)
 {
 	widget_list *w = widget_find(window_id, widget_id);
@@ -656,13 +676,8 @@ int image_add_extended(int window_id, Uint32 wid,  int (*OnInit)(), Uint16 x, Ui
 	image *T = calloc (1, sizeof (image));
 	T->u1 = u1;
 	T->u2 = u2;
-#ifdef	NEW_TEXTURES
 	T->v1 = -v1;
 	T->v2 = -v2;
-#else	/* NEW_TEXTURES */
-	T->v1 = v1;
-	T->v2 = v2;
-#endif	/* NEW_TEXTURES */
 	T->id = id;
 	T->alpha = alpha;
 
@@ -677,11 +692,7 @@ int image_add(int window_id, int (*OnInit)(), int id, Uint16 x, Uint16 y, Uint16
 int image_draw(widget_list *W)
 {
 	image *i = (image *)W->widget_info;
-#ifdef	NEW_TEXTURES
 	bind_texture(i->id);
-#else	/* NEW_TEXTURES */
-	get_and_set_texture_id(i->id);
-#endif	/* NEW_TEXTURES */
 	glColor3f(W->r, W->g, W->b);
 	if (i->alpha > -1) {
 		glEnable(GL_ALPHA_TEST);
@@ -717,13 +728,8 @@ int image_set_uv(int window_id, Uint32 widget_id, float u1, float v1, float u2, 
 		image *l = (image *) w->widget_info;
 		l->u1 = u1;
 		l->u2 = u2;
-#ifdef	NEW_TEXTURES
 		l->v1 = -v1;
 		l->v2 = -v2;
-#else	/* NEW_TEXTURES */
-		l->v1 = v1;
-		l->v2 = v2;
-#endif	/* NEW_TEXTURES */
 		return 1;
 	}
 	return 0;
@@ -815,14 +821,28 @@ int safe_button_click(Uint32 *last_click)
 
 int button_add_extended(int window_id, Uint32 wid, int (*OnInit)(), Uint16 x, Uint16 y, Uint16 lx, Uint16 ly, Uint32 Flags, float size, float r, float g, float b, const char *text)
 {
-	Uint16 len_x = lx > 0 ? lx : (Uint16)(strlen(text) * 11 * size) + 2*BUTTONRADIUS*size;
-	Uint16 len_y = ly > 0 ? ly : (Uint16)(18 * size) + 12*size;
+	Uint16 len_x = lx > 0 ? lx : (Uint16)(strlen(text) * DEFAULT_FONT_X_LEN * size) + 2*BUTTONRADIUS*size;
+	Uint16 len_y = ly > 0 ? ly : (Uint16)(DEFAULT_FONT_Y_LEN * size) + 12*size;
 	const struct WIDGET_TYPE *type = (Flags & BUTTON_SQUARE) ? &square_button_type : &round_button_type;
 
 	button *T = calloc (1, sizeof(button));
 	safe_snprintf (T->text, sizeof(T->text), "%s", text);
 
 	return widget_add (window_id, wid, OnInit, x, y, len_x, len_y, Flags, size, r, g, b, type, T, NULL);
+}
+
+int button_resize(int window_id, Uint32 wid, Uint16 lx, Uint16 ly, float size)
+{
+	widget_list *w = widget_find(window_id, wid);
+	if (w)
+	{
+		button *l = (button *)w->widget_info;
+		Uint16 len_x = lx > 0 ? lx : (Uint16)(strlen(l->text) * DEFAULT_FONT_X_LEN * size) + 2 * BUTTONRADIUS * size;
+		Uint16 len_y = ly > 0 ? ly : (Uint16)(DEFAULT_FONT_Y_LEN * size) + (DEFAULT_FONT_X_LEN+1) * size;
+		w->size = size;
+		return widget_resize(window_id, wid, len_x, len_y);
+	}
+	return 0;
 }
 
 int button_add(int window_id, int (*OnInit)(), const char *text, Uint16 x, Uint16 y)
@@ -833,18 +853,7 @@ int button_add(int window_id, int (*OnInit)(), const char *text, Uint16 x, Uint1
 int button_draw(widget_list *W)
 {
 	button *l = (button *)W->widget_info;
-// 0ctane: I suspect the below section was a reminant from the original button drawing routine below
-/*	float extra_space = (W->len_x - get_string_width((unsigned char*)l->text)*W->size)/2.0f;
-	if(extra_space < 0) {
-		extra_space = 0;
-	}*/
-
-#ifdef NEW_NEW_CHAR_WINDOW
 	draw_smooth_button(l->text, W->size, W->pos_x, W->pos_y, W->len_x-2*BUTTONRADIUS*W->size, 1, W->r, W->g, W->b, W->Flags & BUTTON_ACTIVE, 0.32f, 0.23f, 0.15f, 0.0f);
-#else
-	draw_smooth_button(l->text, W->size, W->pos_x, W->pos_y, W->len_x-2*BUTTONRADIUS*W->size, 1, W->r, W->g, W->b, 0, 0.0f, 0.0f, 0.0f, 0.0f);
-#endif
-	
 	return 1;
 }
 
@@ -869,7 +878,7 @@ int square_button_draw(widget_list *W)
 	glEnd();
 
 	glEnable(GL_TEXTURE_2D);
-	draw_string_zoomed(W->pos_x + 2 + extra_space + gx_adjust, W->pos_y + 2 + gy_adjust, (unsigned char *)l->text, 1, W->size);
+	draw_string_zoomed(W->pos_x + 2 + extra_space + gx_adjust, W->pos_y + (W->len_y - DEFAULT_FONT_Y_LEN * W->size) / 2 + 1 + gy_adjust, (unsigned char *)l->text, 1, W->size);
 #ifdef OPENGL_TRACE
 CHECK_GL_ERRORS();
 #endif //OPENGL_TRACE
@@ -987,6 +996,11 @@ int vscrollbar_draw(widget_list *W)
 {
 	int drawn_bar_len = 0;
 	vscrollbar *c = (vscrollbar *)W->widget_info;
+	float scale = (float)W->len_x / (float)ELW_BOX_SIZE;
+	int arrow_size = (int)(0.5 + ELW_BOX_SIZE/4.0 * scale);
+	int bar_x_space = (int)(0.5 + (ELW_BOX_SIZE/4.0 + 2.0) * scale);
+	int bar_y_space = (int)(0.5 + (6.0*ELW_BOX_SIZE/4.0 + ELW_BOX_SIZE) * scale);
+
 	glDisable(GL_TEXTURE_2D);
 	if(W->r!=-1.0)
 		glColor3f(W->r, W->g, W->b);
@@ -1001,14 +1015,14 @@ int vscrollbar_draw(widget_list *W)
 
 	// scrollbar arrows
 	glBegin (GL_LINES);
-	glVertex3i(W->pos_x + 5 + gx_adjust, W->pos_y + 10 + gy_adjust,0);
-	glVertex3i(W->pos_x + 10 + gx_adjust, W->pos_y + 5 + gy_adjust,0);
-	glVertex3i(W->pos_x + 10 + gx_adjust, W->pos_y + 5 + gy_adjust,0);
-	glVertex3i(W->pos_x + 15 + gx_adjust, W->pos_y + 10 + gy_adjust,0);
-	glVertex3i(W->pos_x + 5 + gx_adjust, W->pos_y + W->len_y - 10 + gy_adjust,0);
-	glVertex3i(W->pos_x + 10 + gx_adjust, W->pos_y + W->len_y - 5 + gy_adjust,0);
-	glVertex3i(W->pos_x + 10 + gx_adjust, W->pos_y + W->len_y - 5 + gy_adjust,0);
-	glVertex3i(W->pos_x + 15 + gx_adjust, W->pos_y + W->len_y - 10 + gy_adjust,0);
+	glVertex3i(W->pos_x + arrow_size + gx_adjust, W->pos_y + 2*arrow_size + gy_adjust,0);
+	glVertex3i(W->pos_x + 2*arrow_size + gx_adjust, W->pos_y + arrow_size + gy_adjust,0);
+	glVertex3i(W->pos_x + 2*arrow_size + gx_adjust, W->pos_y + arrow_size + gy_adjust,0);
+	glVertex3i(W->pos_x + 3*arrow_size + gx_adjust, W->pos_y + 2*arrow_size + gy_adjust,0);
+	glVertex3i(W->pos_x + arrow_size + gx_adjust, W->pos_y + W->len_y - 2*arrow_size + gy_adjust,0);
+	glVertex3i(W->pos_x + 2*arrow_size + gx_adjust, W->pos_y + W->len_y - arrow_size + gy_adjust,0);
+	glVertex3i(W->pos_x + 2*arrow_size + gx_adjust, W->pos_y + W->len_y - arrow_size + gy_adjust,0);
+	glVertex3i(W->pos_x + 3*arrow_size + gx_adjust, W->pos_y + W->len_y - 2*arrow_size + gy_adjust,0);
 	glEnd();
 
 	if (c->bar_len > 0)
@@ -1020,10 +1034,10 @@ int vscrollbar_draw(widget_list *W)
 			glColor3f(W->r/3, W->g/3, W->b/3);
 	}
 	glBegin(GL_QUADS);
-	glVertex3i(W->pos_x + 7 + gx_adjust, W->pos_y + 15 + (c->pos*((float)(W->len_y-50)/drawn_bar_len)) + gy_adjust, 0);
-	glVertex3i(W->pos_x + W->len_x - 7 + gx_adjust, W->pos_y +  15 + (c->pos*((float)(W->len_y-50)/drawn_bar_len)) + gy_adjust, 0);
-	glVertex3i(W->pos_x + W->len_x - 7 + gx_adjust, W->pos_y + 35 + (c->pos*((float)(W->len_y-50)/drawn_bar_len)) + gy_adjust, 0);
-	glVertex3i(W->pos_x + 7 + gx_adjust, W->pos_y + 35 + (c->pos*((float)(W->len_y-50)/drawn_bar_len)) + gy_adjust, 0);
+	glVertex3i(W->pos_x + bar_x_space + gx_adjust, W->pos_y + 3*arrow_size + (c->pos*((float)(W->len_y-bar_y_space)/drawn_bar_len)) + gy_adjust, 0);
+	glVertex3i(W->pos_x + W->len_x - bar_x_space + gx_adjust, W->pos_y + 3*arrow_size + (c->pos*((float)(W->len_y-bar_y_space)/drawn_bar_len)) + gy_adjust, 0);
+	glVertex3i(W->pos_x + W->len_x - bar_x_space + gx_adjust, W->pos_y + 7*arrow_size + (c->pos*((float)(W->len_y-bar_y_space)/drawn_bar_len)) + gy_adjust, 0);
+	glVertex3i(W->pos_x + bar_x_space + gx_adjust, W->pos_y + 7*arrow_size + (c->pos*((float)(W->len_y-bar_y_space)/drawn_bar_len)) + gy_adjust, 0);
 	glEnd();
 
 	glEnable(GL_TEXTURE_2D);
@@ -1035,18 +1049,21 @@ CHECK_GL_ERRORS();
 
 int vscrollbar_click(widget_list *W, int mx, int my, Uint32 flags)
 {
+	float scale = (float)W->len_x / (float)ELW_BOX_SIZE;
+	int arrow_size = (int)(0.5 + ELW_BOX_SIZE/4.0 * scale);
+	int bar_y_space = (int)(0.5 + (6*ELW_BOX_SIZE/4.0 + ELW_BOX_SIZE) * scale);
 	vscrollbar *b = (vscrollbar *)W->widget_info;
-	if ( my < 15 || (flags & ELW_WHEEL_UP) )
+	if ( my < 3*arrow_size || (flags & ELW_WHEEL_UP) )
 	{
 		b->pos -= b->pos_inc;
 	}
-	else if (my > W->len_y - 15 || (flags & ELW_WHEEL_DOWN) )
+	else if (my > W->len_y - 3*arrow_size || (flags & ELW_WHEEL_DOWN) )
 	{
 		b->pos += b->pos_inc;
 	}
 	else
 	{
-		b->pos = (my - 25)/((float)(W->len_y-50)/b->bar_len);
+		b->pos = (my - 5*arrow_size)/((float)(W->len_y-bar_y_space)/b->bar_len);
 	}
 
 	if (b->pos < 0) b->pos = 0;
@@ -1216,6 +1233,11 @@ int tab_collection_get_nr_tabs (int window_id, Uint32 widget_id)
 	return -1;
 }
 
+int tab_collection_calc_tab_height(float size)
+{
+	return (int)(0.5 + DEFAULT_FONT_Y_LEN * 2.0 * size);
+}
+
 int tab_set_label_color_by_id (int window_id, Uint32 col_id, int tab_id, float r, float g, float b)
 {
 	widget_list *w = widget_find (window_id, col_id);
@@ -1309,7 +1331,7 @@ int tab_collection_draw (widget_list *w)
 	int h;
 
 	if (!w) return 0;
-	
+
 	col = (tab_collection *) w->widget_info;
 	
 	h = col->tag_height;
@@ -1440,9 +1462,11 @@ int tab_collection_draw (widget_list *w)
 			glColor3f (col->tabs[itab].label_r, col->tabs[itab].label_g, col->tabs[itab].label_b); 
 			
 		if (col->tabs[itab].closable)
-			draw_string_zoomed (xstart+h+gx_adjust, ytagbot-SMALL_FONT_Y_LEN-2+gy_adjust, (unsigned char *)col->tabs[itab].label, 1, w->size);
+			draw_string_zoomed (xstart + (w->size * DEFAULT_FONT_X_LEN) / 2 + h + gx_adjust,
+				ytagtop + (h - (w->size * DEFAULT_FONT_Y_LEN)) / 2 + gy_adjust, (unsigned char *)col->tabs[itab].label, 1, w->size);
 		else
-			draw_string_zoomed (xstart+4+gx_adjust, ytagbot-SMALL_FONT_Y_LEN-2+gy_adjust, (unsigned char *)col->tabs[itab].label, 1, w->size);
+			draw_string_zoomed (xstart + (w->size * DEFAULT_FONT_X_LEN) / 2 + gx_adjust,
+				ytagtop + (h - (w->size * DEFAULT_FONT_Y_LEN)) / 2 + gy_adjust, (unsigned char *)col->tabs[itab].label, 1, w->size);
 		glDisable(GL_TEXTURE_2D);
 
 		xstart = xend;
@@ -1564,19 +1588,41 @@ static int tab_collection_click(widget_list *W, int x, int y, Uint32 flags)
 	return 0;
 }
 
-int tab_collection_resize (widget_list *W, Uint32 width, Uint32 height)
+int tab_collection_resize (widget_list *w, Uint32 width, Uint32 height)
 {
-	Uint16 win_height;
+	tab_collection *col;
+	int itab;
+
+	if (w == NULL || (col = (tab_collection *) w->widget_info) == NULL)
+		return 0;
+
+	col->tag_height = tab_collection_calc_tab_height(w->size);
+	col->button_size = (9 * col->tag_height) / 10;
+
+	for (itab=0; itab<col->nr_tabs; itab++)
+	{
+		col->tabs[itab].tag_width = w->size * DEFAULT_FONT_X_LEN + (w->size * DEFAULT_FONT_X_LEN * (float)get_string_width((unsigned char*)col->tabs[itab].label) / 12.0f);
+		if (col->tabs[itab].closable) 
+			col->tabs[itab].tag_width += col->tag_height;
+	}
+
+	for (itab = 0; itab < col->nr_tabs; itab++)
+		resize_window (col->tabs[itab].content_id, width, height);
+
+	return 1;
+}
+
+int tab_collection_move (widget_list *W, Uint32 pos_x, Uint32 pos_y)
+{
 	tab_collection *col;
 	int itab;
 
 	if (W == NULL || (col = (tab_collection *) W->widget_info) == NULL)
 		return 0;
-	
-	win_height = height > col->tag_height ? height - col->tag_height : 0;
+
 	for (itab = 0; itab < col->nr_tabs; itab++)
-		resize_window (col->tabs[itab].content_id, width, win_height);
-	
+		move_window(col->tabs[itab].content_id, W->window_id, 0, pos_x, pos_y);
+
 	return 1;
 }
 
@@ -1647,7 +1693,7 @@ static int tab_collection_keypress(widget_list *W, int mx, int my, Uint32 key, U
 	return 0;	
 }
 
-int tab_collection_add_extended (int window_id, Uint32 wid, int (*OnInit)(), Uint16 x, Uint16 y, Uint16 lx, Uint16 ly, Uint32 Flags, float size, float r, float g, float b, int max_tabs, Uint16 tag_height)
+int tab_collection_add_extended (int window_id, Uint32 wid, int (*OnInit)(), Uint16 x, Uint16 y, Uint16 lx, Uint16 ly, Uint32 Flags, float size, float r, float g, float b, int max_tabs)
 {
 	int itab;
 	tab_collection *T = calloc (1, sizeof (tab_collection));
@@ -1657,8 +1703,8 @@ int tab_collection_add_extended (int window_id, Uint32 wid, int (*OnInit)(), Uin
 	for (itab = 0; itab < T->max_tabs; itab++)
 		T->tabs[itab].content_id = -1;
 	T->nr_tabs = 0;
-	T->tag_height = tag_height;
-	T->button_size = (9 * tag_height) / 10;
+	T->tag_height = tab_collection_calc_tab_height(size);
+	T->button_size = (9 * T->tag_height) / 10;
 	T->cur_tab = 0;
 	T->tab_offset = 0;
 	T->tab_last_visible = 0;
@@ -1666,9 +1712,9 @@ int tab_collection_add_extended (int window_id, Uint32 wid, int (*OnInit)(), Uin
 	return widget_add (window_id, wid, OnInit, x, y, lx, ly, Flags, size, r, g, b, &tab_collection_type, T, NULL);
 }
 
-int tab_collection_add (int window_id, int (*OnInit)(), Uint16 x, Uint16 y, Uint16 lx, Uint16 ly, Uint16 tag_height)
+int tab_collection_add (int window_id, int (*OnInit)(), Uint16 x, Uint16 y, Uint16 lx, Uint16 ly)
 {
-	return tab_collection_add_extended (window_id, widget_id++, OnInit, x, y, lx, ly, 0, 1.0, -1.0, -1.0, -1.0, 0, tag_height);
+	return tab_collection_add_extended (window_id, widget_id++, OnInit, x, y, lx, ly, 0, 1.0, -1.0, -1.0, -1.0, 0);
 }
 
 int tab_add (int window_id, Uint32 col_id, const char *label, Uint16 tag_width, int closable, Uint32 flags)
@@ -1676,10 +1722,10 @@ int tab_add (int window_id, Uint32 col_id, const char *label, Uint16 tag_width, 
 	widget_list *w = widget_find(window_id, col_id);
 	tab_collection *col;
 	int nr;
-	
+
 	if (w == NULL || (col = (tab_collection *) w->widget_info) == NULL)
 		return 0;
-	
+
 	nr = col->nr_tabs++;
 	if (nr >= col->max_tabs)
 	{		
@@ -1705,7 +1751,7 @@ int tab_add (int window_id, Uint32 col_id, const char *label, Uint16 tag_width, 
 	else
 	{
 		// compute tag width from label width
-		col->tabs[nr].tag_width = 10 + ((float)w->size * (DEFAULT_FONT_X_LEN * (float)get_string_width((unsigned char*)col->tabs[nr].label)/12.0f));
+		col->tabs[nr].tag_width = w->size * DEFAULT_FONT_X_LEN + (w->size * DEFAULT_FONT_X_LEN * (float)get_string_width((unsigned char*)col->tabs[nr].label) / 12.0f);
 		if (col->tabs[nr].closable) 
 			col->tabs[nr].tag_width += col->tag_height;
 	}
@@ -1745,83 +1791,6 @@ void _text_field_set_nr_lines (widget_list *w, int nr_lines)
 			tf->update_bar = 0;
 		}
 	}
-}
-
-int skip_message (const text_message *msg, Uint8 filter)
-{
-	int skip = 0;
-	int channel = msg->chan_idx;
-	if (filter == FILTER_ALL) return 0;
-	if (channel != filter)
-	{
-		switch (channel)
-		{
-			case CHAT_LOCAL:    skip = local_chat_separate;    break;
-			case CHAT_PERSONAL: skip = personal_chat_separate; break;
-			case CHAT_GM:       skip = guild_chat_separate;    break;
-			case CHAT_SERVER:   skip = server_chat_separate;   break;
-			case CHAT_MOD:      skip = mod_chat_separate;      break;
-			case CHAT_MODPM:    skip = 0;                      break;
-			default:            skip = 1;
-		}
-	}
-#if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
-	if(loadsofchannels == 3)
-	{
-		switch(channel) {
-			case CHAT_CHANNEL1:
-			case CHAT_CHANNEL2:
-			case CHAT_CHANNEL3:
-				skip = (msg->channel != active_channels[filter - CHAT_CHANNEL1]);
-		}
-	}
-	else
-	{
-		switch(channel) {
-			case CHAT_CHANNEL1:
-			case CHAT_CHANNEL2:
-			case CHAT_CHANNEL3:
-			case CHAT_CHANNEL4:
-			case CHAT_CHANNEL5:
-			case CHAT_CHANNEL6:
-			case CHAT_CHANNEL7:
-			case CHAT_CHANNEL8:
-			case CHAT_CHANNEL9:
-			case CHAT_CHANNEL10:
-			case CHAT_CHANNEL11:
-			case CHAT_CHANNEL12:
-			case CHAT_CHANNEL13:
-			case CHAT_CHANNEL14:
-			case CHAT_CHANNEL15:
-			case CHAT_CHANNEL16:
-			case CHAT_CHANNEL17:
-			case CHAT_CHANNEL18:
-			case CHAT_CHANNEL19:
-			case CHAT_CHANNEL20:
-			case CHAT_CHANNEL21:
-			case CHAT_CHANNEL22:
-			case CHAT_CHANNEL23:
-			case CHAT_CHANNEL24:
-			case CHAT_CHANNEL25:
-			case CHAT_CHANNEL26:
-			case CHAT_CHANNEL27:
-			case CHAT_CHANNEL28:
-			case CHAT_CHANNEL29:
-			case CHAT_CHANNEL30:
-			case CHAT_CHANNEL31:
-			case CHAT_CHANNEL32:
-				skip = (msg->channel != active_channels[filter - CHAT_CHANNEL1]);
-		}
-	}
-#else
-	switch (channel) {
-		case CHAT_CHANNEL1:
-		case CHAT_CHANNEL2:
-		case CHAT_CHANNEL3:
-			skip = (msg->channel != active_channels[filter - CHAT_CHANNEL1]);
-	}
-#endif // if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
-	return skip;
 }
 
 void text_field_find_cursor_line(text_field* tf)
@@ -2337,8 +2306,9 @@ static int text_field_resize (widget_list *w, int width, int height)
 	{
 		if (tf->scroll_id != -1)
 		{
-			widget_move (w->window_id, tf->scroll_id, w->pos_x + width - tf->scrollbar_width, w->pos_y);
+			tf->scrollbar_width = w->size * ELW_BOX_SIZE;
 			widget_resize (w->window_id, tf->scroll_id, tf->scrollbar_width, height);
+			widget_move (w->window_id, tf->scroll_id, w->pos_x + width - tf->scrollbar_width, w->pos_y);
 		}
 		if (tf->buffer != NULL)
 		{
@@ -2362,6 +2332,18 @@ static int text_field_resize (widget_list *w, int width, int height)
 
 	return 1;
 }
+
+static int text_field_move(widget_list *w, int pos_x, int pos_y)
+{
+	if (w)
+	{
+		text_field *tf = w->widget_info;
+		if (tf && tf->scroll_id != -1)
+			widget_move (w->window_id, tf->scroll_id, w->pos_x + w->len_x - tf->scrollbar_width, w->pos_y);
+	}
+	return 1;
+}
+
 
 static int insert_window_id = -1;
 static int insert_widget_id = -1;
@@ -2865,7 +2847,7 @@ int text_field_add_extended (int window_id, Uint32 wid, int (*OnInit)(), Uint16 
 	T->next_blink = TF_BLINK_DELAY;
 	if (Flags & TEXT_FIELD_SCROLLBAR)
 	{
-		T->scrollbar_width = ELW_BOX_SIZE;
+		T->scrollbar_width = size * ELW_BOX_SIZE;
 		T->scroll_id = vscrollbar_add_extended (window_id, widget_id++, NULL, x + lx-T->scrollbar_width, y, T->scrollbar_width, ly, 0, size, r, g, b, 0, 1, 1);		
 	}
 	else
@@ -3113,22 +3095,18 @@ int pword_keypress (widget_list *w, int mx, int my, Uint32 key, Uint32 unikey)
 	}
 
 	if (ch == SDLK_BACKSPACE) {
-		int i;
-
-		for(i = 0; pword->password[i] != '\0' && i < pword->max_chars; i++);
-		if(i > 0) {
+		int i = 0;
+		while(pword->password[i] != '\0' && i < pword->max_chars)
+			i++;
+		if(i > 0)
 			pword->password[i-1] = '\0';
-		}
-
 		return 1;
 	} else if (!alt_on && !ctrl_on && is_printable (ch) && ch != '`' ) {
-		int i;
-		
-		for(i = 0; pword->password[i] != '\0' && i < pword->max_chars-1; i++);
-		if(i >= 0) {
-			pword->password[i] = ch;
-			pword->password[i+1] = '\0';
-		}
+		int i = 0;
+		while(pword->password[i] != '\0' && i < pword->max_chars-2)
+			i++;
+		pword->password[i] = ch;
+		pword->password[i+1] = '\0';
 		return 1;
 	} else {
 		return 0;
@@ -3307,10 +3285,10 @@ static int multiselect_click(widget_list *widget, int mx, int my, Uint32 flags)
 	for(i = top_but; i < M->nr_buttons; i++)
 	{
 		button_y = M->buttons[i].y - start_y;
-		if (button_y > widget->len_y-multiselect_button_height)
+		if (button_y > widget->len_y - M->buttons[i].height)
 			break;
 		if((flags&ELW_LEFT_MOUSE || flags&ELW_RIGHT_MOUSE) && 
-			my > button_y && my < button_y+multiselect_button_height && mx > M->buttons[i].x && mx < M->buttons[i].x+M->buttons[i].width) {
+			my > button_y && my < button_y + M->buttons[i].height && mx > M->buttons[i].x && mx < M->buttons[i].x+M->buttons[i].width) {
 				M->selected_button = i;
 			do_click_sound();
 			return 1;
@@ -3343,9 +3321,9 @@ static int multiselect_draw(widget_list *widget)
 		for(i = top_but; i < M->nr_buttons; i++) {
 			button_y = M->buttons[i].y - start_y;
 			/* Check if the button can be fully drawn */
-			if(button_y > widget->len_y-multiselect_button_height)
+			if(button_y > widget->len_y - M->buttons[i].height)
 				break;
-			draw_smooth_button(M->buttons[i].text, widget->size, widget->pos_x+M->buttons[i].x, widget->pos_y+button_y, M->buttons[i].width-22, 1, r, g, b, (i == M->selected_button), hr, hg, hb, 0.5f);
+			draw_smooth_button(M->buttons[i].text, widget->size, widget->pos_x+M->buttons[i].x, widget->pos_y+button_y, M->buttons[i].width-2*BUTTONRADIUS*widget->size, 1, r, g, b, (i == M->selected_button), hr, hg, hb, 0.5f);
 		}
 	}
 	return 1;
@@ -3361,20 +3339,21 @@ int multiselect_button_add_extended(int window_id, Uint32 multiselect_id, Uint16
 	widget_list *widget = widget_find(window_id, multiselect_id);
 	multiselect *M = widget->widget_info;
 	int current_button = M->nr_buttons;
-	
+	int button_height = (int)(0.5 + 2.0 * BUTTONRADIUS * size);
+
 	if (text==NULL || strlen(text)==0) {
 		M->next_value++;
 		return current_button;
 	}
 
-	if(y+multiselect_button_height > widget->len_y && (!M->max_height || widget->len_y != M->max_height)) {
-		widget->len_y = y+multiselect_button_height;
+	if(y+button_height > widget->len_y && (!M->max_height || widget->len_y != M->max_height)) {
+		widget->len_y = y+button_height;
 	}
 
 	widget->size=size;
 
-	if (M->max_height && y+multiselect_button_height > M->actual_height) {
-		M->actual_height = y+multiselect_button_height;
+	if (M->max_height && y+button_height > M->actual_height) {
+		M->actual_height = y+button_height;
 	}
 	if(M->max_buttons == M->nr_buttons) {
 		/*Allocate space for more buttons*/
@@ -3389,43 +3368,46 @@ int multiselect_button_add_extended(int window_id, Uint32 multiselect_id, Uint16
 	M->buttons[current_button].x = x;
 	M->buttons[current_button].y = y;
 	M->buttons[current_button].width = (width == 0) ? widget->len_x : width;
+	M->buttons[current_button].height = button_height;
 	
 	M->nr_buttons++;
 	if(M->max_height && M->scrollbar == -1 && M->max_height < y) {
 		int i;
 
 		/* Add scrollbar */
-		M->scrollbar = vscrollbar_add_extended(window_id, widget_id++, NULL, widget->pos_x+widget->len_x-ELW_BOX_SIZE, widget->pos_y, ELW_BOX_SIZE, M->max_height, 0, 1.0, widget->r, widget->g, widget->b, 0, 1, M->max_height);
-		widget->len_x -= ELW_BOX_SIZE;
+		M->scrollbar = vscrollbar_add_extended(window_id, widget_id++, NULL, widget->pos_x+widget->len_x-M->scrollbar_width,
+			widget->pos_y, M->scrollbar_width, M->max_height, 0, 1.0, widget->r, widget->g, widget->b, 0, 1, M->max_height);
+		widget->len_x -= M->scrollbar_width + 2;
 		widget->len_y = M->max_height;
 		/* We don't want things to look ugly. */
 		for(i = 0; i < M->nr_buttons; i++) {
 			if(M->buttons[i].width > widget->len_x) {
-				M->buttons[i].width -= ELW_BOX_SIZE;
+				M->buttons[i].width -= M->scrollbar_width + 2;
 			}
 		}
 	}
 	
 	if (M->scrollbar != -1)
-		vscrollbar_set_bar_len(window_id, M->scrollbar, M->nr_buttons-widget->len_y/multiselect_button_height);
+		vscrollbar_set_bar_len(window_id, M->scrollbar, M->nr_buttons-widget->len_y/button_height);
 	
 	return current_button;
 }
 
 int multiselect_add_extended(int window_id, Uint32 wid, int (*OnInit)(), Uint16 x, Uint16 y, int width, Uint16 max_height, float size, float r, float g, float b, float hr, float hg, float hb, int max_buttons)
-  {
- 	multiselect *T = calloc (1, sizeof (multiselect));
-  	//Save info
- 	T->max_buttons = max_buttons > 0 ? max_buttons : 2;
- 	T->selected_button = 0;
+{
+	multiselect *T = calloc (1, sizeof (multiselect));
+	//Save info
+	T->max_buttons = max_buttons > 0 ? max_buttons : 2;
+	T->selected_button = 0;
 	T->next_value = 0;
- 	T->nr_buttons = 0;
- 	T->buttons = malloc(sizeof(*T->buttons) * T->max_buttons);
+	T->nr_buttons = 0;
+	T->buttons = malloc(sizeof(*T->buttons) * T->max_buttons);
 	T->max_height = max_height;
- 	T->scrollbar = -1;
- 	T->win_id = window_id;
- 	T->highlighted_red = hr;
- 	T->highlighted_green = hg;
+	T->scrollbar = -1;
+	T->scrollbar_width = ELW_BOX_SIZE * size;
+	T->win_id = window_id;
+	T->highlighted_red = hr;
+	T->highlighted_green = hg;
 	T->highlighted_blue = hb;
  
  	return widget_add (window_id, wid, OnInit, x, y, width, 0, 0, size, r, g, b, &multiselect_type, T, NULL);

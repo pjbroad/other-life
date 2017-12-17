@@ -1,16 +1,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <SDL/SDL_keysym.h>
+
 #include "gamewin.h"
-#include "2d_objects.h"
-#include "3d_objects.h"
+#include "actor_init.h"
 #include "actor_scripts.h"
 #include "achievements.h"
 #include "asc.h"
-#include "bags.h"
-#include "books.h"
 #include "buddy.h"
-#include "chat.h"
 #ifdef CLUSTER_INSIDES
 #include "cluster.h"
 #endif // CLUSTER_INSIDES
@@ -19,84 +16,74 @@
 #include "context_menu.h"
 #include "cursors.h"
 #include "dialogues.h"
-#include "draw_scene.h"
-#include "e3d.h"
 #include "elconfig.h"
+#include "emotes.h"
 #include "events.h"
-#include "filter.h"
-#include "gl_init.h"
-#include "global.h"
-#include "highlight.h"
-#include "hud.h"
-#include "icon_window.h"
-#include "init.h"
-#include "interface.h"
-#include "items.h"
-#include "lights.h"
-#include "manufacture.h"
-#include "map.h"
-#include "mapwin.h"
-#include "multiplayer.h"
-#include "particles.h"
-#include "paste.h"
-#include "pathfinder.h"
-#include "pm_log.h"
-#include "questlog.h"
-#include "reflection.h"
-#include "serverpopup.h"
-#include "shadows.h"
-#include "spells.h"
-#include "storage.h"
-#include "tabs.h"
-#include "textures.h"
-#include "tiles.h"
-#include "trade.h"
-#include "translate.h"
-#include "url.h"
-#include "weather.h"
-#ifdef DEBUG
-#include "sound.h"
-#include "special_effects.h"
-#endif
-#include "special_effects.h"
-#include "eye_candy_wrapper.h"
-#include "minimap.h"
-#ifdef PAWN
-#include "pawn/elpawn.h"
-#endif
-#include "sky.h"
-#include "missiles.h"
 #ifdef ECDEBUGWIN
 #include "eye_candy_debugwin.h"
 #endif
-#include "actor_init.h"
-#include "emotes.h"
-
-int game_root_win = -1;
-int gamewin_in_id = 4442;
-int use_old_clicker=0;
-float fps_average = 100.0;
-int include_use_cursor_on_animals = 0;
-int logo_click_to_url = 1;
-#ifdef OTHER_LIFE
-char LOGO_URL_LINK[128] = "http://www.other-life.com";
-#else
-char LOGO_URL_LINK[128] = "http://www.eternal-lands.com";
+#include "eye_candy_wrapper.h"
+#include "gl_init.h"
+#include "highlight.h"
+#include "hud.h"
+#include "hud_quickbar_window.h"
+#include "hud_quickspells_window.h"
+#include "init.h"
+#include "interface.h"
+#include "manufacture.h"
+#include "map.h"
+#include "minimap.h"
+#include "missiles.h"
+#include "multiplayer.h"
+#include "paste.h"
+#include "pathfinder.h"
+#ifdef PAWN
+#include "pawn/elpawn.h"
 #endif
+#include "pm_log.h"
+#include "questlog.h"
+#include "reflection.h"
+#include "shadows.h"
+#include "special_effects.h"
+#include "spells.h"
+#include "sky.h"
+#ifdef DEBUG
+#include "filter.h"
+#include "sound.h"
+#endif
+#include "storage.h"
+#include "tabs.h"
+#include "textures.h"
+#include "trade.h"
+#include "url.h"
+#include "weather.h"
+
+// exported
+int HUD_MARGIN_X = 64;
+int HUD_MARGIN_Y = 49;
+float fps_average = 100.0;
 int have_mouse = 0;
-int just_released_mouse = 0;
-int keep_grabbing_mouse = 0;
-#ifdef NEW_CURSOR
-int cursors_tex;
-#endif // NEW_CURSOR
+int game_root_win = -1;
+
+// configuration options exported
+int use_old_clicker=0;
+int include_use_cursor_on_animals = 0;
+int cm_banner_disabled = 0;
+int auto_disable_ranging_lock = 1;
+int attack_close_clicked_creature = 1;
+int open_close_clicked_bag = 1;
+
 #ifdef  DEBUG
 extern int e3d_count, e3d_total;    // LRNR:stats testing only
 #endif  //DEBUG
-int cm_banner_disabled = 0;
 
-int auto_disable_ranging_lock = 1;
-
+static Uint32 next_fps_time = 0;
+static int last_count = 0;
+static int keep_grabbing_mouse = 0;
 static int ranging_lock = 0;
+#ifdef NEW_CURSOR
+static int cursors_tex;
+#endif // NEW_CURSOR
 
 int ranging_lock_is_on(void)
 {
@@ -181,7 +168,7 @@ void draw_special_cursors(void)
 	{
 #ifdef NEW_CURSOR
 		glColor4f(1,1,1,1);
-		get_and_set_texture_id(cursors_tex);
+		bind_texture(cursors_tex);
 		if (big_cursors /* && !sdl_cursors */) {
 			float x = (current_cursor%8)/8.0;
 			float y = (1-current_cursor/8 + 5)/8.0;
@@ -317,7 +304,7 @@ void draw_special_cursors(void)
 		}
 
 		glColor4f(1,1,1,1);
-		get_and_set_texture_id(cursors_tex);
+		bind_texture(cursors_tex);
 		if(big_cursors){
 			float x = (current_cursor%8)/8.0;
 			float y = (1-current_cursor/8 + 5)/8.0;
@@ -364,7 +351,7 @@ void toggle_have_mouse(void)
 	}
 }
 
-void toggle_first_person()
+static void toggle_first_person()
 {
 	if (first_person == 0){
 		//rotate camera where actor is looking at
@@ -384,8 +371,11 @@ void toggle_first_person()
 }
 
 // This is the main part of the old check_cursor_change ()
-int mouseover_game_handler (window_info *win, int mx, int my)
+static int mouseover_game_handler (window_info *win, int mx, int my)
 {
+	if (hud_mouse_over(win, mx, my))
+		return 1;
+
 	if(object_under_mouse == -1)
 	{
 		if(spell_result==2){
@@ -522,7 +512,7 @@ int mouseover_game_handler (window_info *win, int mx, int my)
 }
 
 // this is the main part of the old check_mouse_click ()
-int click_game_handler(window_info *win, int mx, int my, Uint32 flags)
+static int click_game_handler(window_info *win, int mx, int my, Uint32 flags)
 {
 	int flag_alt = flags & ELW_ALT;
 	int flag_ctrl = flags & ELW_CTRL;
@@ -557,12 +547,8 @@ int click_game_handler(window_info *win, int mx, int my, Uint32 flags)
 		return 1;
 	}
 
-	if (mx > win->len_x - 64 && my < 54 ) // 10 pixels dead space to try to prevent accidental misclicks
-	{
-		if (logo_click_to_url)
-			open_web_link(LOGO_URL_LINK);
+	if (hud_click(win, mx, my, flags))
 		return 1;
-	}
 
 	LOCK_ACTORS_LISTS();
 	range_weapon_equipped = (your_actor &&
@@ -869,14 +855,12 @@ int click_game_handler(window_info *win, int mx, int my, Uint32 flags)
 				return 1;
 			if (thing_under_the_mouse == UNDER_MOUSE_PLAYER || thing_under_the_mouse == UNDER_MOUSE_NPC || thing_under_the_mouse == UNDER_MOUSE_ANIMAL)
 			{
-				int i;
 				str[0] = TOUCH_PLAYER;
 				*((int *)(str+1)) = SDL_SwapLE32((int)object_under_mouse);
 				my_tcp_send (my_socket, str, 5);
 
 				// clear the previous dialogue entries, so we won't have a left over from some other NPC
-				for (i=0; i<MAX_RESPONSES; i++)
-					dialogue_responces[i].in_use = 0;
+				clear_dialogue_responses();
 				return 1;
 			}
 			
@@ -961,36 +945,68 @@ int click_game_handler(window_info *win, int mx, int my, Uint32 flags)
 			// check to see if the coordinates are OUTSIDE the map
 			if (y < 0 || x < 0 || x >= tile_map_size_x*6 || y >= tile_map_size_y*6)
 				return 1;
+
+			if (attack_close_clicked_creature)
+			{
+				int closest_actor = get_closest_actor(x, y, 0.8f);
+				if (closest_actor != -1)
+				{
+					actor *this_actor = NULL;
+
+					if (you_sit && sit_lock && !flag_ctrl)
+					{
+						if(your_actor != NULL)
+							add_highlight(your_actor->x_tile_pos, your_actor->y_tile_pos, HIGHLIGHT_TYPE_LOCK);
+						return 1;
+					}
+
+					this_actor = get_actor_ptr_from_id(closest_actor);
+					if (this_actor != NULL)
+					{
+						Uint8 str[10];
+						add_highlight(this_actor->x_tile_pos, this_actor->y_tile_pos, HIGHLIGHT_TYPE_ATTACK_TARGET);
+						str[0] = ATTACK_SOMEONE;
+						*((int *)(str+1)) = SDL_SwapLE32((int)closest_actor);
+						my_tcp_send (my_socket, str, 5);
+						return 1;
+					}
+				}
+			}
+
+			if (open_close_clicked_bag && find_and_open_closest_bag(x, y, 0.8f))
+				return 1;
 			
 			add_highlight(x, y, HIGHLIGHT_TYPE_WALKING_DESTINATION);
 		
 #ifdef DEBUG // FOR DEBUG ONLY!
-            if (enable_client_aiming) {
-                if (flag_ctrl) {
-                    float target[3];
+			if (enable_client_aiming) {
+				if (flag_ctrl) {
+					float target[3];
                     
-                    target[0] = x * 0.5 + 0.25;
-                    target[1] = y * 0.5 + 0.25;
-                    target[2] = get_tile_height(x, y) + 1.2f;
+					target[0] = x * 0.5 + 0.25;
+					target[1] = y * 0.5 + 0.25;
+					target[2] = get_tile_height(x, y) + 1.2f;
                     
 					missiles_aim_at_xyz(yourself, target);
 					add_command_to_actor(yourself, aim_mode_reload);
 					missiles_fire_a_to_xyz(yourself, target);
-                }
-                else {
-                    char in_aim_mode;
-                    actor *cur_actor = get_actor_ptr_from_id(yourself);
-                    LOCK_ACTORS_LISTS();
-                    in_aim_mode = cur_actor->in_aim_mode;
-                    UNLOCK_ACTORS_LISTS();
-                    if (in_aim_mode == 1)
-                        add_command_to_actor(yourself, leave_aim_mode);
-                    move_to(x, y, 1);
-                }
-            }
-            else
-#endif // DEBUG
+				}
+				else {
+					char in_aim_mode;
+					actor *cur_actor = get_actor_ptr_from_id(yourself);
+					LOCK_ACTORS_LISTS();
+					in_aim_mode = cur_actor->in_aim_mode;
+					UNLOCK_ACTORS_LISTS();
+					if (in_aim_mode == 1)
+						add_command_to_actor(yourself, leave_aim_mode);
+					move_to(x, y, 1);
+				}
+			}
+			else
+				move_to (x, y, 1);
+#else
 			move_to (x, y, 1);
+#endif // DEBUG
 
 			return 1;
 		}
@@ -1001,9 +1017,76 @@ int click_game_handler(window_info *win, int mx, int my, Uint32 flags)
 	return 1;
 }
 
-Uint32 next_fps_time = 0;	// made global so the other modes can keep it from goin stale
-int last_count = 0;
-int display_game_handler (window_info *win)
+// common to console and map windows
+void display_handling_common(window_info *win)
+{
+	if(special_effects){
+		display_special_effects(0);
+	}
+
+	// remember the time stamp to improve FPS quality when switching modes
+	next_fps_time=cur_time+1000;
+	last_count=0;
+
+	ec_idle();
+
+	missiles_update();
+	update_camera();
+
+	draw_delay = 20;
+
+	if ((input_widget!= NULL) && (input_widget->window_id != win->window_id))
+		input_widget_move_to_win(win->window_id);
+}
+
+
+// common to console and map windows
+void return_to_gamewin_common(void)
+{
+	if (keep_grabbing_mouse)
+	{
+		toggle_have_mouse();
+		keep_grabbing_mouse=0;
+	}
+	hide_window (map_root_win);
+	hide_window (console_root_win);
+	show_window (game_root_win);
+	show_hud_windows();
+}
+
+static void draw_ingame_interface(window_info *win)
+{
+#ifdef OPENGL_TRACE
+CHECK_GL_ERRORS();
+#endif //OPENGL_TRACE
+#ifdef	OLD_CLOSE_BAG
+	// watch for closing a bag
+	if(ground_items_win >= 0)
+		{
+			int	old_view= view_ground_items;
+
+			view_ground_items= get_show_window(ground_items_win);
+			// watch for telling the server we need to close the bag
+			if(old_view && !view_ground_items)
+				{
+					unsigned char protocol_name;
+
+					protocol_name= S_CLOSE_BAG;
+					my_tcp_send(my_socket,&protocol_name,1);
+				}
+		}
+#endif	//OLD_CLOSE_BAG
+
+	draw_hud_interface(win);
+	display_spells_we_have();
+
+#ifdef OPENGL_TRACE
+CHECK_GL_ERRORS();
+#endif //OPENGL_TRACE
+}
+
+
+static int display_game_handler (window_info *win)
 {
 	static int main_count = 0;
 	static int times_FPS_below_3 = 0;
@@ -1031,8 +1114,6 @@ int display_game_handler (window_info *win)
 
 	main_count++;
 	last_count++;
-
-	//if (quickbar_win>0) windows_list.window[quickbar_win].displayed=1;
 
 	if (fps[0] < 5)
 	{
@@ -1295,26 +1376,25 @@ int display_game_handler (window_info *win)
 	if (show_fps)
 	{
 #ifdef	DEBUG
+		int y_cnt = 10;
 		actor *me = get_our_actor ();
 
 		glColor3f (1.0f, 1.0f, 1.0f);
 		if(me){
  			safe_snprintf((char*)str,sizeof(str),"Busy: %i",me->busy);
-	 		draw_string (400, 4, str, 1);
+	 		draw_string_zoomed (0, win->len_y - hud_y - (y_cnt--) * win->default_font_len_y, str, 1, win->current_scale);
 			safe_snprintf((char*)str,sizeof(str),"Command: %i",me->last_command);
- 			draw_string (400, 20, str, 1);
+ 			draw_string_zoomed (0, win->len_y - hud_y - (y_cnt--) * win->default_font_len_y, str, 1, win->current_scale);
 			safe_snprintf((char*)str,sizeof(str),"Coords: %-3i %3i",me->x_tile_pos, me->y_tile_pos);
- 			draw_string (550, 4, str, 1);
+ 			draw_string_zoomed (0, win->len_y - hud_y - (y_cnt--) * win->default_font_len_y, str, 1, win->current_scale);
 			safe_snprintf((char*)str,sizeof(str),"Coords: %.3g %.3g",me->x_pos, me->y_pos);
- 			draw_string (550, 20, str, 1);
+ 			draw_string_zoomed (0, win->len_y - hud_y - (y_cnt--) * win->default_font_len_y, str, 1, win->current_scale);
 		}
-		safe_snprintf ((char*)str, sizeof(str),"Lights: %i", show_lights);
-		draw_string (win->len_x-hud_x-105, 32, str, 1);
 
 		safe_snprintf((char*)str, sizeof(str), "lights: ambient=(%.2f,%.2f,%.2f,%.2f) diffuse=(%.2f,%.2f,%.2f,%.2f)",
 					  ambient_light[0], ambient_light[1], ambient_light[2], ambient_light[3],
 					  diffuse_light[0], diffuse_light[1], diffuse_light[2], diffuse_light[3]);
-		draw_string (0, win->len_y - hud_y - 65, str, 1);
+		draw_string_zoomed (0, win->len_y - hud_y - (y_cnt--) * win->default_font_len_y, str, 1, win->current_scale);
 		safe_snprintf((char*)str, sizeof(str), "weather: drops=%d/%d/%d/%d/%d/%d, int=%f, dty=%f, fog=%f",
 					  weather_get_drops_count(1),
 					  weather_get_drops_count(2),
@@ -1325,24 +1405,24 @@ int display_game_handler (window_info *win)
 					  weather_get_intensity(),
 					  weather_get_density(),
 					  skybox_fog_density);
-		draw_string (0, win->len_y - hud_y - 40, str, 1);
+		draw_string_zoomed (0, win->len_y - hud_y - (y_cnt--) * win->default_font_len_y, str, 1, win->current_scale);
+		//LRNR: stats testing
+		safe_snprintf ((char*)str, sizeof(str),"Lights: %i", show_lights);
+		draw_string_zoomed (0, win->len_y - hud_y - (y_cnt--) * win->default_font_len_y, str, 1, win->current_scale);
+		safe_snprintf((char*)str, sizeof(str), "E3D:%3d TOT:%3d", e3d_count, e3d_total);
+		draw_string_zoomed (0, win->len_y - hud_y - (y_cnt--) * win->default_font_len_y, str, 1, win->current_scale);
+		e3d_count= e3d_total= 0;
 #else	//DEBUG
 		glColor3f (1.0f, 1.0f, 1.0f);
 #endif	//DEBUG
 		safe_snprintf ((char*)str, sizeof(str), "FPS: %i", fps[0]);
-		draw_string (win->len_x-hud_x-95, 4, str, 1);
+		draw_string_zoomed (win->len_x - hud_x - 9 * win->default_font_len_x, 4 * win->current_scale, str, 1, win->current_scale);
 #ifndef OTHER_LIFE
 		safe_snprintf((char*)str, sizeof(str), "UVP: %d", use_animation_program);
-		draw_string (win->len_x-hud_x-95, 19, str, 1);
+		draw_string_zoomed (win->len_x - hud_x - 9 * win->default_font_len_x, 19 * win->current_scale, str, 1, win->current_scale);
 #endif
-#ifdef DEBUG
-		//LRNR: stats testing
-		safe_snprintf((char*)str, sizeof(str), "E3D:%3d TOT:%3d", e3d_count, e3d_total);
-		draw_string (win->len_x-hud_x-183, 49, str, 1);
-		e3d_count= e3d_total= 0;
-#endif //DEBUG
 	}
-	draw_spell_icon_strings();
+	draw_spell_icon_strings(win);
 
 	CHECK_GL_ERRORS ();
 	/* Draw the chat text */
@@ -1353,7 +1433,7 @@ int display_game_handler (window_info *win)
 		if (find_last_lines_time (&msg, &offset, filter, get_console_text_width()))
 		{
 			set_font(chat_font);	// switch to the chat font
-			draw_messages (10, use_windowed_chat == 1 ? 25 : 20, display_text_buffer, DISPLAY_TEXT_BUFFER_SIZE, filter, msg, offset, -1, get_console_text_width(), (int) (1 + lines_to_show * 18 * chat_zoom), chat_zoom, NULL);
+			draw_messages (get_tab_bar_x(), get_tab_bar_y(), display_text_buffer, DISPLAY_TEXT_BUFFER_SIZE, filter, msg, offset, -1, get_console_text_width(), (int) (1 + lines_to_show * DEFAULT_FONT_Y_LEN * chat_zoom), chat_zoom, NULL);
 			set_font (0);	// switch to fixed
 		}
 	}
@@ -1361,7 +1441,7 @@ int display_game_handler (window_info *win)
 	anything_under_the_mouse (0, UNDER_MOUSE_NO_CHANGE);
 	CHECK_GL_ERRORS ();
 
-	draw_ingame_interface ();
+	draw_ingame_interface (win);
 	
 	CHECK_GL_ERRORS ();
 
@@ -1623,6 +1703,12 @@ static void toggle_sit_stand()
 	str[1]=!you_sit;
 	my_tcp_send(my_socket,str,2);
 }
+
+void switch_action_mode(int mode)
+{
+	item_action_mode = qb_action_mode = action_mode = mode;
+}
+
 
 // keypress handler common to all in-game root windows (game_root_win, 
 // console_root_win, and map_root_win)
@@ -1910,15 +1996,15 @@ int keypress_root_common (Uint32 key, Uint32 unikey)
 	// set action modes
 	else if (key == K_WALK)
 	{
-		item_action_mode = qb_action_mode = action_mode = ACTION_WALK;
+		switch_action_mode(ACTION_WALK);
 	}
 	else if (key == K_LOOK)
 	{
-		item_action_mode = qb_action_mode = action_mode = ACTION_LOOK;
+		switch_action_mode(ACTION_LOOK);
 	}
 	else if (key == K_USE)
 	{
-		item_action_mode = qb_action_mode = action_mode = ACTION_USE;
+		switch_action_mode(ACTION_USE);
 	}
 	else if (key == K_AFK)
 	{
@@ -1954,75 +2040,11 @@ int keypress_root_common (Uint32 key, Uint32 unikey)
 	}
 	else if(key == K_NEXT_CHAT_TAB)
 	{
-		int next_tab;
-		widget_list *widget;
-		tab_collection *collection;
-		switch(use_windowed_chat)
-		{
-			case 1: //Tabs
-				if(current_tab == tabs_in_use-1)
-				{
-					next_tab = 2;
-				}
-				else
-				{
-					next_tab = current_tab + 1;
-				}
-				switch_to_tab(next_tab);
-			break;
-			case 2: //Window
-				widget = widget_find(chat_win, chat_tabcollection_id);
-				collection = widget->widget_info;
-				if(active_tab == collection->nr_tabs - 1)
-				{
-					next_tab = 2;
-				}
-				else
-				{
-					next_tab = active_tab + 1;
-				}
-				switch_to_chat_tab(channels[next_tab].tab_id, 0);
-			break;
-			default:
-				return 0;
-			break;
-		}
+		next_channel_tab();
 	}
 	else if(key == K_PREV_CHAT_TAB)
 	{
-		int next_tab;
-		widget_list *widget;
-		tab_collection *collection;
-		switch(use_windowed_chat)
-		{
-			case 1: //Tab
-				if(current_tab == 2)
-				{
-					next_tab = tabs_in_use-1;
-				}
-				else
-				{
-					next_tab = current_tab-1;
-				}
-				switch_to_tab(next_tab);
-				break;
-			case 2: //Window
-				widget = widget_find(chat_win, chat_tabcollection_id);
-				collection = widget->widget_info;
-				if(active_tab == 2)
-				{
-					next_tab = collection->nr_tabs - 1;
-				}
-				else
-				{
-					next_tab = active_tab - 1;
-				}
-				switch_to_chat_tab(channels[next_tab].tab_id, 0);
-			break;
-			default:
-				return 0;
-			break;
-		}
+		prev_channel_tab();
 	}
 	else if (key == K_WINDOWS_ON_TOP)
 	{
@@ -2103,7 +2125,7 @@ int text_input_handler (Uint32 key, Uint32 unikey)
 	return 1;
 }
 
-int keypress_game_handler (window_info *win, int mx, int my, Uint32 key, Uint32 unikey)
+static int keypress_game_handler (window_info *win, int mx, int my, Uint32 key, Uint32 unikey)
 {
 	Uint16 keysym = key & 0xffff;
 
@@ -2293,41 +2315,12 @@ int keypress_game_handler (window_info *win, int mx, int my, Uint32 key, Uint32 
 	}
 	else if (keysym == SDLK_F11)
 	{
-#ifdef	NEW_TEXTURES
 		unload_texture_cache();
-#else	/* NEW_TEXTURES */
-		int i;
-
-		for (i = 0; i < TEXTURE_CACHE_MAX; i++)
-		{
-			if(texture_cache[i].file_name[0])
-			{
-				glDeleteTextures(1,(GLuint*)&texture_cache[i].texture_id);
-				texture_cache[i].texture_id = 0;
-				CHECK_GL_ERRORS();
-			}
-		}
-		
-		//now, reload the textures
-		for (i=0; i < TEXTURE_CACHE_MAX; i++)
-		{
-			if(texture_cache[i].file_name[0] && !texture_cache[i].load_err)
-			{
-				int alpha = texture_cache[i].alpha;
-				if(alpha <= 0)
-					texture_cache[i].texture_id = load_bmp8_color_key (&(texture_cache[i]), alpha);
-				else 
-					texture_cache[i].texture_id = load_bmp8_fixed_alpha (&(texture_cache[i]), alpha);
-			}
-		}
-#endif	/* NEW_TEXTURES */
 	}
-#ifdef	NEW_TEXTURES
 	else if (keysym == SDLK_F12)
 	{
 		dump_texture_cache();
 	}
-#endif	/* NEW_TEXTURES */
 #endif	/* DEBUG */
 	// END OF TEST!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	else
@@ -2363,7 +2356,7 @@ void do_keypress(Uint32 key)
 	}
 }
 
-int show_game_handler (window_info *win) {
+static int show_game_handler (window_info *win) {
 	init_hud_interface (HUD_INTERFACE_GAME);
 	show_hud_windows();
 	if (use_windowed_chat == 1)
@@ -2375,7 +2368,7 @@ void create_game_root_window (int width, int height)
 {
 	if (game_root_win < 0)
 	{
-		game_root_win = create_window ("Game", -1, -1, 0, 0, width, height, ELW_TITLE_NONE|ELW_SHOW_LAST);
+		game_root_win = create_window ("Game", -1, -1, 0, 0, width, height, ELW_USE_UISCALE|ELW_TITLE_NONE|ELW_SHOW_LAST);
 		
 		set_window_handler (game_root_win, ELW_HANDLER_DISPLAY, &display_game_handler);
 		set_window_handler (game_root_win, ELW_HANDLER_CLICK, &click_game_handler);
@@ -2402,5 +2395,11 @@ void create_game_root_window (int width, int height)
 			widget_unset_flags (input_widget->window_id, input_widget->id, WIDGET_DISABLED);
 		}
 		resize_root_window();
+
+#ifdef NEW_CURSOR
+		cursors_tex = load_texture_cached("textures/cursors2.dds", tt_gui);
+		//Emajekral's hi-color & big cursor code
+		if (!sdl_cursors) SDL_ShowCursor(0);
+#endif // NEW_CURSOR
 	}
 }

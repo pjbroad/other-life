@@ -48,6 +48,7 @@ namespace cm
 			void show_lines(size_t my_id);
 			void set_data(void *data) { data_ptr = data; }
 			void *get_data(void) const { return data_ptr; }
+			float scaled_value(float val) const;
 
 		private:
 			int resize(void);
@@ -123,6 +124,7 @@ namespace cm
 			void showinfo(void);
 			void *get_data(size_t cm_id) const { if (!valid(cm_id)) return 0; return menus[cm_id]->get_data(); }
 			void set_data(size_t cm_id, void *data) { if (valid(cm_id)) menus[cm_id]->set_data(data); }
+			float get_current_scale(void) const { return windows_list.window[cm_window_id].current_scale; }
 
 		private:
 			class Region	//  Wrapper for window region activation area.
@@ -198,7 +200,7 @@ namespace cm
 		assert(instance_count++==0);
 		menus.resize(20,0);
 		if ((cm_window_id = create_window("Context Menu", -1, 0, 0, 0, 0, 0,
-				ELW_SWITCHABLE_OPAQUE|ELW_USE_BACKGROUND|ELW_USE_BORDER|ELW_ALPHA_BORDER)) == -1)
+				ELW_USE_UISCALE|ELW_SWITCHABLE_OPAQUE|ELW_USE_BACKGROUND|ELW_USE_BORDER|ELW_ALPHA_BORDER)) == -1)
 			return;
 		set_window_handler(cm_window_id, ELW_HANDLER_DISPLAY, (int (*)())&display_context_handler );
 		set_window_handler(cm_window_id, ELW_HANDLER_CLICK, (int (*)())&click_context_handler );
@@ -560,7 +562,7 @@ namespace cm
 	//  Calculate the height/width of the context menu and resize the window
 	int Menu::resize(void)
 	{
-		const float scale = zoom * DEFAULT_FONT_X_LEN / 12.0;
+		const float scale = scaled_value(DEFAULT_FONT_X_LEN / 12.0);
 		float fwidth = 0, fheight = 0;
 		for (size_t i=0; i<menu_lines.size(); i++)
 		{
@@ -571,11 +573,11 @@ namespace cm
 			if (str_width > fwidth)
 				fwidth = str_width;
 			if (menu_lines[i].is_separator)
-				fheight += zoom * DEFAULT_FONT_Y_LEN / 2;
+				fheight += scaled_value(DEFAULT_FONT_Y_LEN / 2.0);
 			else
-				fheight += zoom * DEFAULT_FONT_Y_LEN + line_sep;
+				fheight += scaled_value(DEFAULT_FONT_Y_LEN) + line_sep;
 		}
-		bool_tick_width = (menu_has_bools)? (bool_box_size()+text_border)*zoom : 0;
+		bool_tick_width = (menu_has_bools)? scaled_value(bool_box_size()+text_border) : 0;
 		fwidth += bool_tick_width + (border + text_border) * 2;
 		fheight += border * 2;
 		height = static_cast<int>(fheight+0.5);
@@ -597,6 +599,9 @@ namespace cm
 		// save the mouse position for the callback
 		int wx = opened_mouse_x = mouse_x;
 		int wy = opened_mouse_y = mouse_y;
+
+		// resize in case scaling changed
+		resize();
 
 		// move the window, one corner anchored to the mouse click position, so its on screen
 		if (wx+width > window_width)
@@ -645,7 +650,7 @@ namespace cm
 	{
 		CHECK_GL_ERRORS();
 		float currenty = border + line_sep;
-		float line_step = line_sep + DEFAULT_FONT_Y_LEN * zoom;
+		float line_step = line_sep + scaled_value(DEFAULT_FONT_Y_LEN);
 
 		selection = -1;
 		for (size_t i=0; i<menu_lines.size(); ++i)
@@ -675,7 +680,7 @@ namespace cm
 			if (menu_lines[i].is_separator)
 			{
 				int posx = border + text_border;
-				int posy = int(0.5 + currenty + DEFAULT_FONT_Y_LEN * zoom/4 - line_sep);
+				int posy = int(0.5 + currenty + scaled_value(DEFAULT_FONT_Y_LEN / 4.0) - line_sep);
 				glColor3f(grey_colour.r, grey_colour.g, grey_colour.b);
 				glDisable(GL_TEXTURE_2D);
 				glBegin(GL_LINES);
@@ -683,7 +688,7 @@ namespace cm
 				glVertex2i(win->len_x - posx, posy);
 				glEnd();
 				glEnable(GL_TEXTURE_2D);
-				currenty += DEFAULT_FONT_Y_LEN * zoom/2;
+				currenty += scaled_value(DEFAULT_FONT_Y_LEN / 2.0);
 			}
 
 			// ... or the menu line
@@ -699,7 +704,7 @@ namespace cm
 				{
 					int posx = border+text_border;
 					int posy = int(currenty+0.5);
-					int size = int(0.5 + bool_box_size() * zoom);
+					int size = int(0.5 + scaled_value(bool_box_size()));
 					glDisable(GL_TEXTURE_2D);
 					glBegin( *menu_lines[i].control_var ? GL_QUADS: GL_LINE_LOOP);
 					glVertex3i(posx, posy, 0);
@@ -711,7 +716,7 @@ namespace cm
 				}
 
 				// draw the text
- 				draw_string_zoomed(int(border+text_border+bool_tick_width+0.5), int(currenty+0.5), (unsigned char *)menu_lines[i].text.c_str(), 1, zoom);
+ 				draw_string_zoomed(int(border+text_border+bool_tick_width+0.5), int(currenty+0.5), (unsigned char *)menu_lines[i].text.c_str(), 1, scaled_value(1.0));
 				currenty += line_step;
 			}
 			
@@ -801,7 +806,13 @@ namespace cm
 				  << " " << ((menu_lines[i].is_separator) ?"separator":"normal") << std::endl;
 		}
 	}
-	
+
+	// calculate a scaled value
+	float Menu::scaled_value(float val) const
+	{
+		return val * container.get_current_scale() * zoom;
+	}
+
 
 } // end cm namespace
 

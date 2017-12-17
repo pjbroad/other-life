@@ -253,7 +253,6 @@ void change_map (const char *mapname)
 	if ( get_show_window (map_root_win) )
 	{
 		hide_window(map_root_win);
-		switch_from_game_map ();
 		show_window(game_root_win);
 	}
 #else // !MAP_EDITOR2
@@ -426,7 +425,7 @@ void save_markings()
       int i;
 
 	safe_snprintf (marks_file, sizeof (marks_file), "%s.txt", map_file_name);
-LOG_TO_CONSOLE(c_red2, map_file_name);
+	//LOG_TO_CONSOLE(c_red2, map_file_name);
 	fp = open_file_config(marks_file,"w");
 	if ( fp == NULL ){
 		LOG_ERROR("%s: %s \"%s\": %s\n", reg_error_str, cant_open_file, marks_file, strerror(errno));

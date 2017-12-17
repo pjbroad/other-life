@@ -2,27 +2,10 @@
 #define __BAGS_H__
 
 #include <SDL_types.h>
-#ifdef ONGOING_BAG_EFFECT
-#include "eye_candy_types.h"
-#endif // ONGOING_BAG_EFFECT
-
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#define NUM_BAGS 200
-#define ITEMS_PER_BAG 50
-
-typedef struct
-{
-	int x;
-	int y;
-	int obj_3d_id;
-#ifdef ONGOING_BAG_EFFECT
-	ec_reference ongoing_bag_effect_reference;
-#endif // ONGOING_BAG_EFFECT
-} bag;
 
 typedef struct
 {
@@ -32,19 +15,17 @@ typedef struct
 	Uint16 id; //server id
 } ground_item;
 
-extern int view_ground_items; /*!< flag that indicates whether we should display ground items or not */
-
-extern int ground_items_menu_x;
-extern int ground_items_menu_y;
-extern int ground_items_menu_x_len;
-extern int ground_items_menu_y_len;
-extern Uint32 ground_items_empty_next_bag;
-
 /*!
  * \name windows handlers
  */
 /*! @{ */
 extern int ground_items_win; /*!< ground items windows handler */
+extern int ground_items_menu_x; /*!< ground items windows x position */
+extern int ground_items_menu_y; /*!< ground items windows y position */
+extern int ground_items_visible_grid_cols; /*!< ground items window number of columns visible */
+extern int ground_items_visible_grid_rows; /*!< ground items window number of rows visible */
+extern int view_ground_items; /*!< flag that indicates whether we should display ground items or not */
+extern int items_auto_get_all; /*!< if set, bags opened from the invenriy window butto will be automatically picked up */
 /*! @} */
 
 /*!
@@ -138,7 +119,7 @@ void remove_bag(int which_bag);
  *
  * \callgraph
  */
-void remove_all_bags();
+void remove_all_bags(void);
 
 /*!
  * \ingroup item
@@ -155,12 +136,41 @@ void open_bag(int object_id);
 
 /*!
  * \ingroup item
- * \brief   Send messages to pick up all items in a ground bag.
+ * \brief   Handle the inventroy Get All button.
  *
- *      Send messages to pick up all items in a ground bag
- */
-void pick_up_all_items(void);
+ *      Handle the inventroy Get All button.
+ *
+ * \param x ground x position
+ * \param y ground y position
+ *
+*/
+void items_get_bag(int x, int y);
 
+/*!
+ * \ingroup item
+ * \brief   Common funciton for button strings.
+ *
+ *      Common funciton for buttons to split a six character string into two lines.
+ *
+ * \param in input string
+ * \param out output string
+ *
+ */
+void strap_word(char * in, char * out);
+
+/*!
+ * \ingroup item
+ * \brief   Open close clicked bag .
+ *
+ * \param tile_x the x coord of the clicked tile
+ * \param tile_y the y coord of the clicked tile
+ * \param max_distance the maximum distance between the clicked coord and the bag
+ *
+ * \callgraph
+ * \retval int 0 for off, non-zero on
+ *
+ */
+int find_and_open_closest_bag(int tile_x, int tile_y, float max_distance);
 
 #ifdef __cplusplus
 } // extern "C"

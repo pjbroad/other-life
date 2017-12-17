@@ -22,6 +22,7 @@
 #include "counters.h"
 #include "errors.h"
 #include "font.h"
+#include "elconfig.h"
 #include "elwindows.h"
 #include "gamewin.h"
 #include "gl_init.h"
@@ -39,13 +40,18 @@ namespace Indicators
 	class Vars
 	{
 		public:
-			static const float zoom(void) { return 1.0; }
-			static const int space(void) { return 5; }
-			static const int border(void) { return 2; }
+			static const float zoom(void) { return scale; }
+			static const int space(void) { return (int)(0.5 + scale * 5); }
+			static const int border(void) { return (int)(0.5 + scale * 2); }
 			static const float font_x(void) { return DEFAULT_FONT_X_LEN; }
 			static const float font_y(void) { return DEFAULT_FONT_Y_LEN; }
 			static const int y_len(void) { return static_cast<int>(border() + zoom() * font_y() + 0.5); }
+			static void set_scale(float new_scale) { scale = new_scale; }
+		private:
+			static float scale;
 	};
+
+	float Vars::scale = 1.0;
 
 	//	A class to hold the state for an individual, basic indicator.
 	//	Has a simple on / of state and no action.
@@ -128,7 +134,7 @@ namespace Indicators
 			int cm_handler(window_info *win, int widget_id, int mx, int my, int option);
 			void set_settings(unsigned int opts, unsigned int pos) { option_settings = opts; position_settings = pos; have_settings = true;}
 			void get_settings(unsigned int *opts, unsigned int *pos);
-			~Indicators_Container(void) { destroy(); }
+			void ui_scale_handler(window_info *win) { x_len = 0; y_len = 0; Vars::set_scale(win->current_scale); }
 		private:
 			void set_win_flag(Uint32 flag, int state);
 			void set_background(bool on) { background_on = on; set_win_flag(ELW_USE_BACKGROUND, background_on); }
@@ -254,6 +260,7 @@ namespace Indicators
 	//
 	static int display_indicators_handler(window_info *win) { container.draw(); return 1; }
 	static int mouseover_indicators_handler(window_info *win, int mx, int my) { if (my>=0) container.show_tooltip(win, mx); return 0; }
+	static int ui_scale_indicators_handler(window_info *win) { container.ui_scale_handler(win); return 1; }
 	static int click_indicators_handler(window_info *win, int mx, int my, Uint32 flags) { if (my>=0) container.click(mx, flags); return 1; }
 	static int cm_indicators_handler(window_info *win, int widget_id, int mx, int my, int option) { return container.cm_handler(win, widget_id, mx, my, option); }
 
@@ -276,7 +283,7 @@ namespace Indicators
 
 		x_len = static_cast<int>(Vars::font_x() * indicators.size() * Vars::zoom() +
 			2 * Vars::border() + 2 * Vars::space() * indicators.size() + 0.5);
-		y_len = static_cast<int>(Vars::border() + Vars::zoom() * Vars::font_y() + 0.5);
+		y_len = Vars::y_len();
 
 		if (indicators_win < 0)
 		{
@@ -296,8 +303,6 @@ namespace Indicators
 					flags >>= 1;
 				}
 			}
-			else
-				std::cerr << __PRETTY_FUNCTION__ << ": curious, do not have settings" << std::endl;
 		}
 		else if (!default_location)
 		{
@@ -310,8 +315,8 @@ namespace Indicators
 
 		if (indicators_win < 0)
 		{
-			indicators_win = create_window("Indicators", -1, 0, loc.first, loc.second, x_len, y_len, ELW_SHOW|ELW_ALPHA_BORDER|ELW_SWITCHABLE_OPAQUE);
-			if (indicators_win < 0)
+			indicators_win = create_window("Indicators", -1, 0, loc.first, loc.second, x_len, y_len, ELW_USE_UISCALE|ELW_SHOW|ELW_ALPHA_BORDER|ELW_SWITCHABLE_OPAQUE);
+			if (indicators_win < 0 || indicators_win >= windows_list.num_windows)
 			{
 				LOG_ERROR("%s: Failed to create indicators window\n", __FILE__ );
 				return;
@@ -319,6 +324,8 @@ namespace Indicators
 			set_window_handler(indicators_win, ELW_HANDLER_DISPLAY, (int (*)())&display_indicators_handler);
 			set_window_handler(indicators_win, ELW_HANDLER_MOUSEOVER, (int (*)())&mouseover_indicators_handler);
 			set_window_handler(indicators_win, ELW_HANDLER_CLICK, (int (*)())&click_indicators_handler);
+			set_window_handler(indicators_win, ELW_HANDLER_UI_SCALE, (int (*)())&ui_scale_indicators_handler);
+			ui_scale_indicators_handler(&windows_list.window[indicators_win]);
 
 			background_on = ((option_settings >> 25) & 1);
 			border_on = ((option_settings >> 26) & 1);
@@ -414,6 +421,7 @@ namespace Indicators
 		if (new_x_len != x_len)
 		{
 			x_len = new_x_len;
+			y_len = Vars::y_len();
 			resize_window (indicators_win, x_len, y_len);
 			if (default_location)
 			{
@@ -455,10 +463,10 @@ namespace Indicators
 		{
 			std::string tooltip("");
 			(*i)->get_tooltip(tooltip);
-			int x_offset = -static_cast<int>(Vars::border() + SMALL_FONT_X_LEN * (1 + tooltip.size()) + 0.5);
+			int x_offset = -static_cast<int>(Vars::border() + win->small_font_len_x * (1 + tooltip.size()) + 0.5);
 			if ((win->cur_x + x_offset) < 0)
 				x_offset = win->len_x;
-			show_help(tooltip.c_str(), x_offset, Vars::border());
+			show_help(tooltip.c_str(), x_offset, Vars::border(), win->current_scale);
 		}
 	}
 
@@ -514,12 +522,12 @@ namespace Indicators
 					cm_relocatable = 1;
 					default_location = false;
 					if (win->cur_y == 0)
-						move_window(win->window_id, -1, 0, win->cur_x, ELW_TITLE_HEIGHT);
+						move_window(win->window_id, -1, 0, win->cur_x, win->title_height);
 				}
-				if (win->cur_y == ELW_TITLE_HEIGHT)
+				if (win->cur_y == win->title_height)
 					move_window(win->window_id, -1, 0, win->cur_x, 0);
 				else if (win->cur_y == 0)
-					move_window(win->window_id, -1, 0, win->cur_x, ELW_TITLE_HEIGHT);
+					move_window(win->window_id, -1, 0, win->cur_x, win->title_height);
 				break;
 			case CMHI_BACKGROUND: set_background(background_on); break;
 			case CMHI_BORDER: set_border(border_on); break;

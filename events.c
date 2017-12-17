@@ -11,7 +11,6 @@
 #include "gl_init.h"
 #include "global.h"
 #include "interface.h"
-#include "items.h"
 #include "keys.h"
 #include "mapwin.h"
 #include "multiplayer.h"
@@ -23,9 +22,7 @@
 #ifdef PAWN
 #include "pawn/elpawn.h"
 #endif
-#ifdef	NEW_TEXTURES
 #include "textures.h"
-#endif	/* NEW_TEXTURES */	    
 
 #ifndef WINDOWS
 #include <SDL_syswm.h>
@@ -46,27 +43,6 @@ int meta_on;
 #ifdef OSX
 int osx_right_mouse_cam = 0;
 #endif
-
-void	quick_use(int use_id)
-{
-	Uint8 quick_use_str[3];
-	int	i;
-
-	for(i=0; i<ITEM_NUM_ITEMS; i++){
-		if(item_list[i].pos==use_id &&
-			item_list[i].quantity &&
-			item_list[i].use_with_inventory){
-				quick_use_str[0]= USE_INVENTORY_ITEM;
-				quick_use_str[1]= use_id;
-				quick_use_str[2]= i;
-				my_tcp_send(my_socket,quick_use_str,2);
-#ifdef NEW_SOUND
-				item_list[i].action = USE_INVENTORY_ITEM;
-#endif // NEW_SOUND
-				break;
-		}
-	}
-}
 
 int HandleEvent (SDL_Event *event)
 {
@@ -330,9 +306,7 @@ int HandleEvent (SDL_Event *event)
 #endif
 #ifdef	CUSTOM_UPDATE
 			case    EVENT_CUSTOM_UPDATE_COMPLETE:
-#ifdef	NEW_TEXTURES
 				unload_actor_texture_cache();
-#endif	/* NEW_TEXTURES */	    
 				break;
 #endif	/* CUSTOM_UPDATE */
 			}

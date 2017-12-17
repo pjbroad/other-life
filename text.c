@@ -16,9 +16,10 @@
 #include "filter.h"
 #include "gl_init.h"
 #include "global.h"
-#include "hud.h"
+#include "hud_misc_window.h"
 #include "highlight.h"
 #include "init.h"
+#include "items.h"
 #include "lights.h"
 #include "misc.h"
 #include "multiplayer.h"
@@ -78,9 +79,6 @@ ec_reference harvesting_effect_reference = NULL;
 int afk_snd_warning = 0;
 #endif
 
-/* forward declaration */
-void put_small_colored_text_in_box (Uint8 color, const Uint8 *text_to_add, int len, int pixels_limit, char *buffer);
-
 void alloc_text_message_data (text_message *msg, int size)
 {
 	msg->data = size > 0 ? calloc (size, 1) : NULL;
@@ -132,24 +130,6 @@ void cleanup_text_buffers(void)
 	free_text_message_data (&input_text_line);
 	for(i = 0; i < DISPLAY_TEXT_BUFFER_SIZE; i++)
 		free_text_message_data (display_text_buffer + i);
-}
-
-void update_text_windows (text_message * pmsg)
-{
-	if (console_root_win >= 0) update_console_win (pmsg);
-	switch (use_windowed_chat) {
-		case 0:
-			rewrap_message(pmsg, chat_zoom, get_console_text_width(), NULL);
-			lines_to_show += pmsg->wrap_lines;
-			if (lines_to_show > 10) lines_to_show = 10;
-			break;
-		case 1:
-			update_tab_bar (pmsg);
-			break;
-		case 2:
-			update_chat_window (pmsg, 1);
-			break;
-	}
 }
 
 void open_chat_log(){
@@ -288,19 +268,7 @@ void send_input_text_line (char *line, int line_len)
 	int len;
 	Uint8 ch;
 
-	switch(use_windowed_chat)
-	{
-		case 1:
-			if(tabs[current_tab].channel != CHAT_ALL) {
-				change_to_current_tab(line);
-			}
-		break;
-		case 2:
-			if(channels[active_tab].chan_nr != CHAT_ALL) {
-				change_to_current_chat_tab(line);
-			}
-		break;
-	}
+	change_to_channel_tab(line);
 
 	if ( caps_filter && line_len > 4 && my_isupper (line, -1) )
 		my_tolower (line);
@@ -642,7 +610,7 @@ int filter_or_ignore_text (char *text_to_add, int len, int size, Uint8 channel)
 				if(your_actor != NULL)
 					add_highlight(your_actor->x_tile_pos,your_actor->y_tile_pos, HIGHLIGHT_SOFT_FAIL);
 				/* suppress further messages within for 5 seconds of last */
-				if (done_one[match_index] && (abs(new_time - last_time[match_index]) < 5000))
+				if (done_one[match_index] && ((new_time - last_time[match_index]) < 5000))
 					return 0;
 				done_one[match_index] = 1;
 				last_time[match_index] = new_time;
@@ -1134,12 +1102,12 @@ void put_colored_text_in_buffer (Uint8 color, Uint8 channel, const Uint8 *text_t
 	return;
 }
 
-void put_small_text_in_box (const Uint8 *text_to_add, int len, int pixels_limit, char *buffer)
+void put_small_text_in_box_zoomed (const Uint8 *text_to_add, int len, int pixels_limit, char *buffer, float text_zoom)
 {
-	put_small_colored_text_in_box (c_grey1, text_to_add, len, pixels_limit, buffer);
+	put_small_colored_text_in_box_zoomed (c_grey1, text_to_add, len, pixels_limit, buffer, text_zoom);
 }
 
-void put_small_colored_text_in_box (Uint8 color, const Uint8 *text_to_add, int len, int pixels_limit, char *buffer)
+void put_small_colored_text_in_box_zoomed (Uint8 color, const Uint8 *text_to_add, int len, int pixels_limit, char *buffer, float text_zoom)
 {
 	int i;
 	Uint8 cur_char;
@@ -1151,7 +1119,7 @@ void put_small_colored_text_in_box (Uint8 color, const Uint8 *text_to_add, int l
 		buffer[last_text++] = to_color_char (color);
 
 	//see if the text fits on the screen
-	x_chars_limit = pixels_limit / 8;
+	x_chars_limit = pixels_limit / (int)(0.5 + SMALL_FONT_X_LEN * text_zoom);
 	if (len <= x_chars_limit)
 	{
 		for (i = 0; i < len; i++)

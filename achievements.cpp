@@ -1,6 +1,6 @@
 /*
 	Display windows showing players achievement icons and text.
- 
+
 	Author bluap/pjbroad (an unusually chilly) November 2010
 */
 
@@ -25,9 +25,7 @@
 #include "text.h"
 #include "textures.h"
 #include "io/elfilewrapper.h"
-#ifdef	NEW_TEXTURES
 #include "image_loading.h"
-#endif	/* NEW_TEXTURES */
 
 /*
  *	TO DO
@@ -48,7 +46,7 @@ class Achievement
 		const std::string & get_title(void) const { return title; }
 		size_t get_id(void) const { return image_id; }
 		static const size_t npos;
-		void prepare(int win_x, int border);
+		void prepare(int win_x, int font_x, int border);
 		size_t get_num_lines(void) const { return lines.size(); }
 	private:
 		std::string text;
@@ -86,7 +84,7 @@ void Achievement::show(std::ostream & out) const
 
 //	Process the main text into lines that fix into the pop-up window
 //
-void Achievement::prepare(int win_x, int border)
+void Achievement::prepare(int win_x, int font_x, int border)
 {
 	if (prepared)
 		return;
@@ -95,8 +93,8 @@ void Achievement::prepare(int win_x, int border)
 	int col = 0;
 	std::string::size_type last_space = 0;
 	std::string::size_type start = 0;
-	int chars_per_line = (win_x - 2 * border) / static_cast<int>(SMALL_FONT_X_LEN);
-	
+	int chars_per_line = (win_x - 2 * border) / font_x;
+
 	for (std::string::size_type i=0; i<text.size(); i++)
 	{
 		if (is_color(text[i]))
@@ -131,6 +129,7 @@ class Achievements_Window
 		void open(int win_pos_x, int win_pos_y);
 		void open_child(void);
 		int display_handler(window_info *win);
+		void ui_scale_handler(window_info *win);
 		bool shown(void) const { return get_show_window(main_win_id); }
 		void hide(void) const { hide_window(main_win_id); }
 		void set_mouse_over(int mx, int my) { win_mouse_x = mx; win_mouse_y = my; }
@@ -169,15 +168,20 @@ class Achievements_System
 		static Achievements_System * get_instance(void);
 		void show(void) const;
 		int texture(size_t index) const;
-		void hide_all(void) const;
+		bool hide_all(void) const;
 		int get_size(void) const { return size; }
-		int get_display(void) const { return display; }
+		void set_current_scale(float scale) { current_scale = scale; }
+		float get_current_scale(void) const { return current_scale; }
+		int get_font_x(void) const { return static_cast<int>(0.5 + SMALL_FONT_X_LEN * current_scale); }
+		int get_font_y(void) const { return static_cast<int>(0.5 + SMALL_FONT_Y_LEN * current_scale); }
+		int get_display(void) const { return static_cast<int>(0.5 + display * current_scale); }
+		int get_y_win_offset(void) const { return static_cast<int>(0.5 + y_win_offset * current_scale); }
 		int get_per_row(void) const { return per_row; }
 		int get_max_rows(void) const { return max_rows; }
-		int get_border(void) const { return border; }
-		int main_win_x(void) const { return per_row * display + 3 * border; }
+		int get_border(void) const { return static_cast<int>(0.5 + border * current_scale); }
+		int main_win_x(void) const { return per_row * get_display() + 3 * get_border(); }
 		int get_child_win_x(void) const;
-		int get_child_win_y(void) const { return static_cast<int>(SMALL_FONT_Y_LEN) * (1 + max_detail_lines) + 2 * border; }
+		int get_child_win_y(void) const { return get_font_y() * (1 + max_detail_lines) + 2 * get_border(); }
 		const std::string & get_prev(void) const { return prev; }
 		const std::string & get_next(void) const { return next; }
 		const std::string & get_close(void) const { return close; }
@@ -193,7 +197,7 @@ class Achievements_System
 		std::list<Achievements_Window *> windows;
 		std::vector<Uint32> last_data;
 		std::vector<int> textures;
-		int size, display;
+		int size, display, y_win_offset;
 		int per_row, min_rows, max_rows, border;
 		std::string prev, next, close;
 		std::string too_many, xml_fail, texture_fail;
@@ -203,6 +207,7 @@ class Achievements_System
 		size_t max_windows;
 		int win_pos_x, win_pos_y;
 		bool control_used;
+		float current_scale;
 };
 
 
@@ -251,7 +256,7 @@ bool is_window_coord_top(int window_id, int coord_x, int coord_y)
 //	the global settings and the textures.
 //
 Achievements_System::Achievements_System(void)
- : size(32), display(32), per_row(5), min_rows(1), max_rows(12), border(2),
+ : size(32), display(32), y_win_offset(10), per_row(5), min_rows(1), max_rows(12), border(2),
 	prev("[<]"), next("[>]"), close("[close]"),
 	too_many("Too many achievement windows open already"),
 	xml_fail("Failed to load achievement data"),
@@ -262,7 +267,7 @@ Achievements_System::Achievements_System(void)
 	next_help("Next page"),
 	prev_help("Previous page"),
 	max_title_len(0),
-	max_detail_lines(2), max_windows(15), win_pos_x(100), win_pos_y(50), control_used(false)
+	max_detail_lines(2), max_windows(15), win_pos_x(100), win_pos_y(50), control_used(false), current_scale(1.0)
 {
 	xmlDocPtr doc;
 	xmlNodePtr cur;
@@ -363,17 +368,12 @@ Achievements_System::Achievements_System(void)
 		else if (!xmlStrcasecmp(cur->name, (const xmlChar *)"texture"))
 		{
 			char *path = (char*)(cur->children ? cur->children->content : NULL);
-#ifdef	NEW_TEXTURES
 			char buffer[1024];
 
 			if (check_image_name(path, sizeof(buffer), buffer) == 1)
 			{
 				textures.push_back(load_texture_cached(buffer, tt_gui));
 			}
-#else	/* NEW_TEXTURES */
-			if(path && el_custom_file_exists(path))
-				textures.push_back(load_texture_cache(path, 0));
-#endif	/* NEW_TEXTURES */
 		}
 	}
 	xmlFreeDoc(doc);
@@ -416,7 +416,7 @@ int Achievements_System::texture(size_t index) const
 //	Return the width of the popup window
 int Achievements_System::get_child_win_x(void) const
 {
-	int proposed = static_cast<int>(SMALL_FONT_X_LEN) * max_title_len + 2 * border;
+	int proposed = get_font_x() * max_title_len + 2 * get_border();
 	if (proposed > main_win_x())
 		return proposed;
 	else
@@ -499,12 +499,18 @@ void Achievements_System::new_name(const char *player_name, int len)
 }
 
 
-//	Ctrl-click close on any window closes them all
+//	Ctrl-click close on any window closes them all, hides now but destroys later
 //
-void Achievements_System::hide_all(void) const
+bool Achievements_System::hide_all(void) const
 {
+	bool return_value = false;
 	for (std::list<Achievements_Window *>::const_iterator i = windows.begin(); i!= windows.end(); ++i)
+	{
+		if ((*i)->shown())
+			return_value = true;
 		(*i)->hide();
+	}
+	return return_value;
 }
 
 
@@ -512,8 +518,8 @@ void Achievements_System::hide_all(void) const
 //
 void Achievements_System::show(void) const
 {
-	std::cout << "image props size=" << size << " display=" << display << std::endl;
-	std::cout << "window props per_row=" << per_row << " min_rows=" << min_rows << " max_rows=" << max_rows << " border=" << border << std::endl;
+	std::cout << "image props size=" << size << " display=" << get_display() << std::endl;
+	std::cout << "window props per_row=" << per_row << " min_rows=" << min_rows << " max_rows=" << max_rows << " border=" << get_border() << std::endl;
 	std::cout << "window strings prev=" << prev << " next=" << next << " close=" << close << std::endl;
 }
 
@@ -574,7 +580,7 @@ void Achievements_System::prepare_details(size_t index)
 {
 	if ((index >= achievements.size()) || !achievements[index])
 		return;
-	achievements[index]->prepare(get_child_win_x(), border);
+	achievements[index]->prepare(get_child_win_x(), get_font_x(), get_border());
 	if (achievements[index]->get_num_lines() > max_detail_lines)
 		max_detail_lines = achievements[index]->get_num_lines();
 }
@@ -601,30 +607,29 @@ static int achievements_child_display_handler(window_info *win)
 	Achievements_System *as = Achievements_System::get_instance();
 
 	as->prepare_details(index);
-	if (as->get_child_win_y() != win->len_y)
-		resize_window(win->window_id, as->get_child_win_x(), as->get_child_win_y());
 
 	const Achievement * achievement = as->achievement(index);
 	if (achievement)
 	{
-		int title_x = (win->len_x - achievement->get_title().size() * static_cast<int>(SMALL_FONT_X_LEN)) / 2;
-		
+		int title_x = (win->len_x - achievement->get_title().size() * as->get_font_x()) / 2;
+
 		glColor3f(newcol_r, newcol_g, newcol_b);
-		draw_string_small(title_x + gx_adjust, as->get_border() + gy_adjust,
-			reinterpret_cast<const unsigned char *>(achievement->get_title().c_str()), 1);
-		
+		draw_string_small_zoomed(title_x + gx_adjust, as->get_border() + gy_adjust,
+			reinterpret_cast<const unsigned char *>(achievement->get_title().c_str()), 1, as->get_current_scale());
+
 		glColor3f(1.0f, 1.0f, 1.0f);
 		for (size_t i=0; i<achievement->get_text().size(); ++i)
-			draw_string_small(as->get_border() + gx_adjust, (i + 1) * static_cast<int>(SMALL_FONT_Y_LEN) + gy_adjust,
-				reinterpret_cast<const unsigned char *>(achievement->get_text()[i].c_str()), 1);
+			draw_string_small_zoomed(as->get_border() + gx_adjust, (i + 1) * as->get_font_y() + gy_adjust,
+				reinterpret_cast<const unsigned char *>(achievement->get_text()[i].c_str()), 1, as->get_current_scale());
 	}
 	else
 	{
 		glColor3f(newcol_r, newcol_g, newcol_b);
 		std::ostringstream buf;
 		buf << "Undefined " << index;
-		int title_x = (win->len_x - buf.str().size() * static_cast<int>(SMALL_FONT_X_LEN)) / 2;
-		draw_string_small(title_x + gx_adjust, as->get_border() + gy_adjust, reinterpret_cast<const unsigned char *>(buf.str().c_str()), 1);
+		int title_x = (win->len_x - buf.str().size() * as->get_font_x()) / 2;
+		draw_string_small_zoomed(title_x + gx_adjust, as->get_border() + gy_adjust,
+			reinterpret_cast<const unsigned char *>(buf.str().c_str()), 1, as->get_current_scale());
 	}
 
 	return 1;
@@ -638,20 +643,20 @@ void Achievements_Window::open_child(void)
 	window_info *parent = &windows_list.window[main_win_id];
 	if (child_win_id < 0)
 	{
-		Achievements_System *as = Achievements_System::get_instance();
-		int win_x = as->get_child_win_x();
-		int win_y = as->get_child_win_y();
-		window_info *parent = &windows_list.window[main_win_id];
-		child_win_id = create_window("child", parent->window_id, 0,
-			(parent->len_x - win_x) / 2, parent->len_y + 10, win_x, win_y,
+		child_win_id = create_window("child", parent->window_id, 0, 0, 0, 0, 0,
 			ELW_USE_BACKGROUND|ELW_USE_BORDER|ELW_SHOW|ELW_ALPHA_BORDER|ELW_SWITCHABLE_OPAQUE);
 		set_window_handler(child_win_id, ELW_HANDLER_DISPLAY, (int (*)())&achievements_child_display_handler );
 	}
 	else
 		show_window(child_win_id);
+
+	Achievements_System *as = Achievements_System::get_instance();
 	window_info *win = &windows_list.window[child_win_id];
 	win->data = reinterpret_cast<void *>(&last_over);
 	win->opaque = parent->opaque;
+	resize_window(win->window_id, as->get_child_win_x(), as->get_child_win_y());
+	move_window(win->window_id, parent->window_id, 0,
+		parent->pos_x + (parent->len_x - as->get_child_win_x()) / 2, parent->pos_y  + parent->len_y + as->get_y_win_offset());
 }
 
 
@@ -688,7 +693,6 @@ int Achievements_Window::display_handler(window_info *win)
 		{
 			int cur_item = achievement->get_id() % icon_per_texture;
 
-#ifdef	NEW_TEXTURES
 			float u_start = 1.0f/static_cast<float>(icon_per) * (cur_item % icon_per);
 			float u_end = u_start + static_cast<float>(as->get_size())/256;
 			float v_start = 1.0f/static_cast<float>(icon_per) * (cur_item / icon_per);
@@ -697,17 +701,6 @@ int Achievements_Window::display_handler(window_info *win)
 			int start_y = as->get_border() + as->get_display() * (shown_num / as->get_per_row());
 
 			bind_texture(texture);
-#else	/* NEW_TEXTURES */
-			float u_start = 1.0f/static_cast<float>(icon_per) * (cur_item % icon_per);
-			float u_end = u_start + static_cast<float>(as->get_size())/256;
-			float v_start= (1.0f + (static_cast<float>(as->get_size())/256) / 256.0f) -
-				(static_cast<float>(as->get_size()) / 256 * (cur_item / icon_per));
-			float v_end = v_start - static_cast<float>(as->get_size()) / 256;
-			int start_x = as->get_border() + as->get_display() * (shown_num % as->get_per_row());
-			int start_y = as->get_border() + as->get_display() * (shown_num / as->get_per_row());
-
-			get_and_set_texture_id(texture);
-#endif	/* NEW_TEXTURES */
 			glEnable(GL_ALPHA_TEST);
 			glAlphaFunc(GL_GREATER, 0.05f);
 			glBegin(GL_QUADS);
@@ -719,10 +712,10 @@ int Achievements_Window::display_handler(window_info *win)
 		else
 		{
 			int pos_x = as->get_border() + (shown_num % as->get_per_row()) * as->get_display()
-				+ (as->get_display() - static_cast<int>(DEFAULT_FONT_X_LEN)) / 2;
+				+ (as->get_display() - win->default_font_len_x) / 2;
 			int pos_y = as->get_border() + (shown_num / as->get_per_row()) * as->get_display()
-				+ (as->get_display() - static_cast<int>(DEFAULT_FONT_Y_LEN)) / 2;
-			draw_string(pos_x+gx_adjust, pos_y+gy_adjust, (const unsigned char *)"?", 1);
+				+ (as->get_display() - win->default_font_len_y) / 2;
+			draw_string_zoomed(pos_x+gx_adjust, pos_y+gy_adjust, (const unsigned char *)"?", 1, win->current_scale);
 		}
 	}
 
@@ -730,8 +723,8 @@ int Achievements_Window::display_handler(window_info *win)
 
 	if ((cm_window_shown() == CM_INIT_VALUE) && (win_mouse_x > as->get_border()) && (win_mouse_y > as->get_border()))
 	{
-		int row = (win_mouse_y - as->get_border()) / as->get_size();
-		int col = (win_mouse_x - as->get_border()) / as->get_size();
+		int row = (win_mouse_y - as->get_border()) / as->get_display();
+		int col = (win_mouse_x - as->get_border()) / as->get_display();
 		if ((row >= 0) && (row < physical_rows) && (col >= 0) && (col < as->get_per_row()))
 		{
 			size_t current_index = first + row * as->get_per_row() + col;
@@ -749,17 +742,14 @@ int Achievements_Window::display_handler(window_info *win)
 			open_child();
 	}
 
-	const int font_x = static_cast<int>(SMALL_FONT_X_LEN);
-	const int font_y = static_cast<int>(SMALL_FONT_Y_LEN);
-
 	int prev_start = gx_adjust + as->get_border();
-	int prev_end = prev_start + font_x * as->get_prev().size();
+	int prev_end = prev_start + as->get_font_x() * as->get_prev().size();
 	int next_start = prev_end + 2 * as->get_border();
-	int next_end = next_start + font_x * as->get_next().size();
-	int close_start = gx_adjust + win->len_x - (as->get_border() + font_x * as->get_close().size());
+	int next_end = next_start + as->get_font_x() * as->get_next().size();
+	int close_start = gx_adjust + win->len_x - (as->get_border() + as->get_font_x() * as->get_close().size());
 	int close_end = gx_adjust + win->len_x - as->get_border();
 
-	bool over_controls = (win_mouse_y > (win->len_y - (font_y + as->get_border())));
+	bool over_controls = (win_mouse_y > (win->len_y - (as->get_font_y() + as->get_border())));
 	bool over_close = (over_controls && (win_mouse_x > close_start) && (win_mouse_x < close_end));
 	bool over_prev = (over_controls && (win_mouse_x > prev_start) && (win_mouse_x < prev_end));
 	bool over_next = (over_controls && (win_mouse_x > next_start) && (win_mouse_x < next_end));
@@ -769,16 +759,16 @@ int Achievements_Window::display_handler(window_info *win)
 	float mouse_over_colour[3] = { 1.0f, 0.5f, 0.0f };
 
 	glColor3fv((first) ?((over_prev) ?mouse_over_colour :active_colour) :inactive_colour);
-	draw_string_small(prev_start, gy_adjust + win->len_y - (font_y + as->get_border()),
-		reinterpret_cast<const unsigned char *>(as->get_prev().c_str()), 1);
+	draw_string_small_zoomed(prev_start, gy_adjust + win->len_y - (as->get_font_y() + as->get_border()),
+		reinterpret_cast<const unsigned char *>(as->get_prev().c_str()), 1, as->get_current_scale());
 
 	glColor3fv((another_page) ?((over_next) ?mouse_over_colour :active_colour) :inactive_colour);
-	draw_string_small(next_start, gy_adjust + win->len_y - (font_y + as->get_border()),
-		reinterpret_cast<const unsigned char *>(as->get_next().c_str()), 1);
+	draw_string_small_zoomed(next_start, gy_adjust + win->len_y - (as->get_font_y() + as->get_border()),
+		reinterpret_cast<const unsigned char *>(as->get_next().c_str()), 1, as->get_current_scale());
 
 	glColor3fv((over_close) ?mouse_over_colour :active_colour);
-	draw_string_small(close_start, gy_adjust + win->len_y - (font_y + as->get_border()),
-		reinterpret_cast<const unsigned char *>(as->get_close().c_str()), 1);
+	draw_string_small_zoomed(close_start, gy_adjust + win->len_y - (as->get_font_y() + as->get_border()),
+		reinterpret_cast<const unsigned char *>(as->get_close().c_str()), 1, as->get_current_scale());
 
 	if (over_close && ctrl_clicked)
 		as->hide_all();
@@ -797,11 +787,11 @@ int Achievements_Window::display_handler(window_info *win)
 	if (over_controls && show_help_text)
 	{
 		if (over_close)
-			show_help(as->get_close_help(), 0, win->len_y + 10);
+			show_help(as->get_close_help(), 0, win->len_y + as->get_y_win_offset(), win->current_scale);
 		else if (over_prev)
-			show_help((first)?as->get_prev_help() :as->get_no_prev_help(), 0, win->len_y + 10);
+			show_help((first)?as->get_prev_help() :as->get_no_prev_help(), 0, win->len_y + as->get_y_win_offset(), win->current_scale);
 		else if (over_next)
-			show_help((another_page)?as->get_next_help() :as->get_no_next_help(), 0, win->len_y + 10);
+			show_help((another_page)?as->get_next_help() :as->get_no_next_help(), 0, win->len_y + as->get_y_win_offset(), win->current_scale);
 	}
 
 	win_mouse_x = win_mouse_y = -1;
@@ -872,6 +862,21 @@ static int achievements_click_handler(window_info *win, int mx, int my, Uint32 f
 }
 
 
+//	Called when UI scaling changes
+void Achievements_Window::ui_scale_handler(window_info *win)
+{
+	Achievements_System *as = Achievements_System::get_instance();
+	as->set_current_scale(win->current_scale);
+	resize_window(win->window_id, as->main_win_x(), physical_rows * as->get_display() + as->get_font_y() + 2 * as->get_border());
+}
+static int achievements_ui_scale_handler(window_info *win)
+{
+	Achievements_Window *object = reinterpret_cast<Achievements_Window *>(win->data);
+	object->ui_scale_handler(win);
+	return 1;
+}
+
+
 //	When creating a new window, strip any guild from the playe name.
 //
 void Achievements_Window::set_name(const std::string & name)
@@ -920,23 +925,23 @@ void Achievements_Window::open(int win_pos_x, int win_pos_y)
 
 	logical_rows = (their_achievements.size() + (as->get_per_row() - 1)) / as->get_per_row();
 	physical_rows = (logical_rows > as->get_max_rows()) ?as->get_max_rows() :logical_rows;
-	int win_x = as->main_win_x();
-	int win_y = physical_rows * as->get_display() + static_cast<int>(SMALL_FONT_Y_LEN) + 2 * as->get_border();
 
-	main_win_id = create_window(their_name.c_str(), -1, 0, win_pos_x, win_pos_y, win_x, win_y,
-		ELW_TITLE_BAR|ELW_DRAGGABLE|ELW_USE_BACKGROUND|ELW_USE_BORDER|ELW_SHOW|ELW_TITLE_NAME|ELW_ALPHA_BORDER|ELW_SWITCHABLE_OPAQUE);
+	main_win_id = create_window(their_name.c_str(), -1, 0, win_pos_x, win_pos_y, 0, 0,
+		ELW_USE_UISCALE|ELW_TITLE_BAR|ELW_DRAGGABLE|ELW_USE_BACKGROUND|ELW_USE_BORDER|ELW_SHOW|ELW_TITLE_NAME|ELW_ALPHA_BORDER|ELW_SWITCHABLE_OPAQUE);
 	set_window_handler(main_win_id, ELW_HANDLER_DISPLAY, (int (*)())&achievements_display_handler );
 	set_window_handler(main_win_id, ELW_HANDLER_CLICK, (int (*)())&achievements_click_handler );
 	set_window_handler(main_win_id, ELW_HANDLER_MOUSEOVER, (int (*)())&achievements_mouseover_handler );
 	set_window_handler(main_win_id, ELW_HANDLER_KEYPRESS, (int (*)())&achievements_keypress_handler );
+	set_window_handler(main_win_id, ELW_HANDLER_UI_SCALE, (int (*)())&achievements_ui_scale_handler );
 
 	window_info *win = &windows_list.window[main_win_id];
 	win->data = reinterpret_cast<void *>(this);
+	ui_scale_handler(win);
 }
 
 int achievements_ctrl_click = 0;
 
-//	We have a new player name form the server.
+//	We have a new player name from the server.
 //
 extern "C" void achievements_player_name(const char *name, int len)
 {
@@ -957,4 +962,13 @@ extern "C" void achievements_data(Uint32 *data, size_t word_count)
 extern "C" void achievements_requested(int mouse_pos_x, int mouse_pos_y, int control_used)
 {
 	Achievements_System::get_instance()->requested(mouse_pos_x, mouse_pos_y, control_used);
+}
+
+
+//	Close any open windows, they will get destroyed later.
+//	If no windows are open return 0, otherwise return 1.
+//
+extern "C" int achievements_close_all(void)
+{
+	return (Achievements_System::get_instance()->hide_all()) ?1: 0;
 }

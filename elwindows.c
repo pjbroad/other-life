@@ -45,6 +45,53 @@ int	keypress_in_window(int win_id, int x, int y, Uint32 key, Uint32 unikey);	// 
  *
  */
 
+void update_window_scale(window_info *win, float scale_factor)
+{
+	if (win == NULL)
+		return;
+	if (win->flags & ELW_USE_UISCALE)
+	{
+		win->current_scale = scale_factor;
+		win->box_size = (int)(0.5 + win->current_scale * ELW_BOX_SIZE);
+		win->title_height = (int)(0.5 + win->current_scale * ELW_TITLE_HEIGHT);
+		win->small_font_len_x = (int)(0.5 + win->current_scale * SMALL_FONT_X_LEN);
+		win->small_font_len_y = (int)(0.5 + win->current_scale * SMALL_FONT_Y_LEN);
+		win->default_font_len_x = (int)(0.5 + win->current_scale * DEFAULT_FONT_X_LEN);
+		win->default_font_len_y = (int)(0.5 + win->current_scale * DEFAULT_FONT_Y_LEN);
+	}
+	else
+	{
+		win->current_scale = 1.0;
+		win->box_size = ELW_BOX_SIZE;
+		win->title_height = ELW_TITLE_HEIGHT;
+		win->small_font_len_x = (int)(0.5 + SMALL_FONT_X_LEN);
+		win->small_font_len_y = (int)(0.5 + SMALL_FONT_Y_LEN);
+		win->default_font_len_x = (int)(0.5 + DEFAULT_FONT_X_LEN);
+		win->default_font_len_y = (int)(0.5 + DEFAULT_FONT_Y_LEN);
+	}
+}
+
+// Called when the ui_scale is changed to update scale settings for all windows
+void update_windows_scale(float scale_factor)
+{
+	int win_id;
+	// to avoid getting out of step, scale all the variables first, then call the handers
+	for (win_id=0; win_id < windows_list.num_windows; win_id++)
+	{
+		window_info *win = &windows_list.window[win_id];
+		if(windows_list.window[win_id].window_id != win_id)
+			continue;
+		update_window_scale(win, scale_factor);
+	}
+	for (win_id=0; win_id < windows_list.num_windows; win_id++)
+	{
+		window_info *win = &windows_list.window[win_id];
+		if(windows_list.window[win_id].window_id != win_id)
+			continue;
+		if (win->ui_scale_handler) (*win->ui_scale_handler)(win);
+	}
+}
+
 // general windows manager functions
 void	display_windows(int level)
 {
@@ -392,14 +439,14 @@ int drag_windows (int mx, int my, int dx, int dy)
 						y = my - win->cur_y;
 						
 						// first check for being actively dragging or on the top bar
-						if (win->dragged || (dragable && mouse_in_window(i, mx, my) && ((y < 0) || (win->owner_drawn_title_bar && y < ELW_TITLE_HEIGHT))) )
+						if (win->dragged || (dragable && mouse_in_window(i, mx, my) && ((y < 0) || (win->owner_drawn_title_bar && y < win->title_height))) )
 						{
 							drag_id = i;
 							win->dragged = 1;
 							break;
 						} 
 						// check if we are resizing this window
-						else if (win->resized || (resizeable && mouse_in_window(i, mx, my) && x > win->len_x - ELW_BOX_SIZE && y > win->len_y - ELW_BOX_SIZE) )
+						else if (win->resized || (resizeable && mouse_in_window(i, mx, my) && x > win->len_x - win->box_size && y > win->len_y - win->box_size) )
 						{
 							drag_id = i;
 							win->resized = 1;
@@ -454,7 +501,7 @@ int drag_windows (int mx, int my, int dx, int dy)
 						break;
 					} 
 					// check if we are resizing this window
-					else if (resizeable && mouse_in_window(i, mx, my) && x > win->len_x - ELW_BOX_SIZE && y > win->len_y - ELW_BOX_SIZE) 
+					else if (resizeable && mouse_in_window(i, mx, my) && x > win->len_x - win->box_size && y > win->len_y - win->box_size) 
 					{
 						drag_id = i;
 						win->resized = 1;
@@ -741,6 +788,8 @@ int	create_window(const char *name, int pos_id, Uint32 pos_loc, int pos_x, int p
 		win->line_color[2] = newcol_b;
 		win->line_color[3] = 0.0f;
 
+		update_window_scale(win, get_global_scale());
+
 		win->init_handler = NULL;
 		win->display_handler = NULL;
 		win->pre_display_handler = NULL;
@@ -754,6 +803,7 @@ int	create_window(const char *name, int pos_id, Uint32 pos_loc, int pos_x, int p
 		win->show_handler = NULL;
 		win->after_show_handler = NULL;
 		win->hide_handler = NULL;
+		win->ui_scale_handler = NULL;
 		
 		win->widgetlist = NULL;
 		
@@ -844,8 +894,6 @@ int	init_window(int win_id, int pos_id, Uint32 pos_loc, int pos_x, int pos_y, in
 	// memorize the size
 	windows_list.window[win_id].len_x= size_x;
 	windows_list.window[win_id].len_y= size_y;
-	windows_list.window[win_id].orig_len_x= size_x; //for self-resizing windows
-	windows_list.window[win_id].orig_len_y= size_y; //for self-resizing windows
 	// initialize min_len_x and min_len_y to zero. 
 	windows_list.window[win_id].min_len_x= 0;
 	windows_list.window[win_id].min_len_y= 0;
@@ -854,19 +902,19 @@ int	init_window(int win_id, int pos_id, Uint32 pos_loc, int pos_x, int pos_y, in
 
 	if(windows_list.window[win_id].flags&ELW_SCROLLABLE) {
 		/* Add the scroll widget */
-		Uint16 x = size_x-ELW_BOX_SIZE,
+		Uint16 x = size_x-windows_list.window[win_id].box_size,
 				y = size_y,
-				width = ELW_BOX_SIZE,
+				width = windows_list.window[win_id].box_size,
 				height = size_y;
 		
 		if(windows_list.window[win_id].flags&ELW_CLOSE_BOX) {
 			/* Don't put the scrollbar behind the close box. */
-			y += ELW_BOX_SIZE;
-			height -= ELW_BOX_SIZE;
+			y += windows_list.window[win_id].box_size;
+			height -= windows_list.window[win_id].box_size;
 		}
 		if(windows_list.window[win_id].flags&ELW_RESIZEABLE) {
 			/* Don't put the scrollbar behind the resize box. */
-			height -= ELW_BOX_SIZE;
+			height -= windows_list.window[win_id].box_size;
 		}
 		windows_list.window[win_id].scroll_id = vscrollbar_add(win_id, NULL, x, y, width, height);
 		windows_list.window[win_id].scroll_yoffset = 0;
@@ -909,7 +957,7 @@ int	move_window(int win_id, int pos_id, Uint32 pos_loc, int pos_x, int pos_y)
 		if(win->owner_drawn_title_bar)
 			win->pos_y = win->cur_y = clampi(pos_y, 0, window_height - ybound);
 		else
-			win->pos_y = win->cur_y = clampi(pos_y, ELW_TITLE_HEIGHT, window_height - ybound);
+			win->pos_y = win->cur_y = clampi(pos_y, win->title_height, window_height - ybound);
 	} else {
 		win->pos_x = win->cur_x = pos_x;
 		win->pos_y = win->cur_y = pos_y;
@@ -918,14 +966,14 @@ int	move_window(int win_id, int pos_id, Uint32 pos_loc, int pos_x, int pos_y)
 	// don't check child windows for visibility
 	if (pos_id < 0 || windows_list.window[pos_id].order < 0) {
 		// check for the window actually being on the screen, if not, move it
-		if(win->cur_y < ((win->flags&ELW_TITLE_BAR)?ELW_TITLE_HEIGHT:0))
-			win->cur_y= (win->flags&ELW_TITLE_BAR)?ELW_TITLE_HEIGHT:0;
+		if(win->cur_y < ((win->flags&ELW_TITLE_BAR)?win->title_height:0))
+			win->pos_y = win->cur_y = (win->flags&ELW_TITLE_BAR)?win->title_height:0;
 		if(win->cur_y >= window_height)
-			win->cur_y= window_height;	// had -32, but do we want that?
-		if(win->cur_x+win->len_x < ELW_BOX_SIZE)
-			win->cur_x= 0-win->len_x+ELW_BOX_SIZE;
-		if(win->cur_x > window_width-ELW_BOX_SIZE)
-			win->cur_x= window_width-ELW_BOX_SIZE;
+			win->pos_y = win->cur_y = window_height;	// had -32, but do we want that?
+		if(win->cur_x+win->len_x < win->box_size)
+			win->pos_x = win->cur_x = 0-win->len_x+win->box_size;
+		if(win->cur_x > window_width-win->box_size)
+			win->pos_x = win->cur_x = window_width-win->box_size;
 	}
 
 	// move child windows, if any
@@ -942,7 +990,6 @@ int	move_window(int win_id, int pos_id, Uint32 pos_loc, int pos_x, int pos_y)
 
 int	draw_window_title(window_info *win)
 {
-#ifdef	NEW_TEXTURES
 	float u_first_start = (float)31/255;
 	float u_first_end = 0;
 	float v_first_start = (float)160/255;
@@ -957,39 +1004,19 @@ int	draw_window_title(window_info *win)
 	float u_last_end = (float)31/255;
 	float v_last_start = (float)160/255;
 	float v_last_end = (float)175/255;
-#else	/* NEW_TEXTURES */
-	float u_first_start= (float)31/255;
-	float u_first_end= 0;
-	float v_first_start= 1.0f-(float)160/255;
-	float v_first_end= 1.0f-(float)175/255;
-
-	float u_middle_start= (float)32/255;
-	float u_middle_end= (float)63/255;
-	float v_middle_start= 1.0f-(float)160/255;
-	float v_middle_end= 1.0f-(float)175/255;
-
-	float u_last_start= 0;
-	float u_last_end= (float)31/255;
-	float v_last_start= 1.0f-(float)160/255;
-	float v_last_end= 1.0f-(float)175/255;
-#endif	/* NEW_TEXTURES */
 
 	if((win->flags&ELW_TITLE_BAR) == ELW_TITLE_NONE)	return 0;
 
 	/* draw the help text if the mouse is over the title bar */
 	if (show_help_text && cm_valid(win->cm_id) && (cm_window_shown() == CM_INIT_VALUE) &&
 		mouse_x > win->cur_x && mouse_x < win->cur_x+win->len_x &&
-		mouse_y > win->cur_y-ELW_TITLE_HEIGHT && mouse_y < win->cur_y)
-		show_help(cm_title_help_str, 0, win->len_y+10);
+		mouse_y > win->cur_y-win->title_height && mouse_y < win->cur_y)
+		show_help(cm_title_help_str, 0, win->len_y+10, win->current_scale);
 	
 	glColor3f(1.0f,1.0f,1.0f);
 	//ok, now draw that shit...
 
-#ifdef	NEW_TEXTURES
 	bind_texture(icons_text);
-#else	/* NEW_TEXTURES */
-	get_and_set_texture_id(icons_text);
-#endif	/* NEW_TEXTURES */
 	glEnable(GL_ALPHA_TEST);
 	glAlphaFunc(GL_GREATER,0.03f);
 	glBegin(GL_QUADS);
@@ -997,61 +1024,61 @@ int	draw_window_title(window_info *win)
 	if (win->len_x > 64) 
 	{
 		glTexCoord2f(u_first_end, v_first_start);
-		glVertex3i(0, -ELW_TITLE_HEIGHT, 0);
+		glVertex3i(0, -win->title_height, 0);
 		glTexCoord2f(u_first_end, v_first_end);
 		glVertex3i(0, 0, 0);
 		glTexCoord2f(u_first_start, v_first_end);
 		glVertex3i(32, 0, 0);
 		glTexCoord2f(u_first_start, v_first_start);
-		glVertex3i(32, -ELW_TITLE_HEIGHT, 0);
+		glVertex3i(32, -win->title_height, 0);
 
 		// draw one streched out cell to the proper size
 		glTexCoord2f(u_middle_end, v_middle_start);
-		glVertex3i(32, -ELW_TITLE_HEIGHT, 0);
+		glVertex3i(32, -win->title_height, 0);
 		glTexCoord2f(u_middle_end, v_middle_end);
 		glVertex3i(32, 0, 0);
 		glTexCoord2f(u_middle_start, v_middle_end);
 		glVertex3i(win->len_x-32, 0, 0);
 		glTexCoord2f(u_middle_start, v_middle_start);
-		glVertex3i(win->len_x-32, -ELW_TITLE_HEIGHT, 0);
+		glVertex3i(win->len_x-32, -win->title_height, 0);
 
 		glTexCoord2f(u_last_end, v_last_start);
-		glVertex3i(win->len_x-32, -ELW_TITLE_HEIGHT, 0);
+		glVertex3i(win->len_x-32, -win->title_height, 0);
 		glTexCoord2f(u_last_end, v_last_end);
 		glVertex3i(win->len_x-32, 0, 0);
 		glTexCoord2f(u_last_start, v_last_end);
 		glVertex3i(win->len_x, 0, 0);
 		glTexCoord2f(u_last_start, v_last_start);
-		glVertex3i(win->len_x, -ELW_TITLE_HEIGHT, 0);
+		glVertex3i(win->len_x, -win->title_height, 0);
 	}
 	else
 	{
 		glTexCoord2f(u_first_end, v_first_start);
-		glVertex3i(0, -ELW_TITLE_HEIGHT, 0);
+		glVertex3i(0, -win->title_height, 0);
 		glTexCoord2f(u_first_end, v_first_end);
 		glVertex3i(0, 0, 0);
 		glTexCoord2f(u_first_start, v_first_end);
 		glVertex3i(win->len_x / 2, 0, 0);
 		glTexCoord2f(u_first_start, v_first_start);
-		glVertex3i(win->len_x / 2, -ELW_TITLE_HEIGHT, 0);
+		glVertex3i(win->len_x / 2, -win->title_height, 0);
 
 		glTexCoord2f(u_middle_end, v_middle_start);
-		glVertex3i(win->len_x / 2, -ELW_TITLE_HEIGHT, 0);
+		glVertex3i(win->len_x / 2, -win->title_height, 0);
 		glTexCoord2f(u_middle_end, v_middle_end);
 		glVertex3i(win->len_x / 2, 0, 0);
 		glTexCoord2f(u_middle_start, v_middle_end);
 		glVertex3i(win->len_x / 2 + 1, 0, 0);
 		glTexCoord2f(u_middle_start, v_middle_start);
-		glVertex3i(win->len_x / 2 + 1, -ELW_TITLE_HEIGHT, 0);
+		glVertex3i(win->len_x / 2 + 1, -win->title_height, 0);
 
 		glTexCoord2f(u_last_end, v_last_start);
-		glVertex3i(win->len_x / 2 + 1, -ELW_TITLE_HEIGHT, 0);
+		glVertex3i(win->len_x / 2 + 1, -win->title_height, 0);
 		glTexCoord2f(u_last_end, v_last_end);
 		glVertex3i(win->len_x / 2 + 1, 0, 0);
 		glTexCoord2f(u_last_start, v_last_end);
 		glVertex3i(win->len_x, 0, 0);
 		glTexCoord2f(u_last_start, v_last_start);
-		glVertex3i(win->len_x, -ELW_TITLE_HEIGHT, 0);
+		glVertex3i(win->len_x, -win->title_height, 0);
 	}
 
 	glEnd();
@@ -1060,30 +1087,30 @@ int	draw_window_title(window_info *win)
 	// draw the name of the window
 	if(win->flags&ELW_TITLE_NAME)
 		{
-			int	len=(get_string_width((unsigned char*)win->window_name)*8)/12;
+			int	len=(win->current_scale*get_string_width((unsigned char*)win->window_name)*8)/12;
 			int	x_pos=(win->len_x-len)/2;
 
 			glColor4f(0.0f,0.0f,0.0f,1.0f);
 			glBegin(GL_QUADS);
-				glVertex3i(x_pos, -ELW_TITLE_HEIGHT, 0);
-				glVertex3i(x_pos+len, -ELW_TITLE_HEIGHT, 0);
+				glVertex3i(x_pos, -win->title_height, 0);
+				glVertex3i(x_pos+len, -win->title_height, 0);
 				glVertex3i(x_pos+len, 0, 0);
 				glVertex3i(x_pos, 0, 0);
 			glEnd();
 			glBegin(GL_TRIANGLE_STRIP);
-				glVertex3i(x_pos, -ELW_TITLE_HEIGHT, 0);
-				glVertex3i(x_pos-10, -ELW_TITLE_HEIGHT/2, 0);
+				glVertex3i(x_pos, -win->title_height, 0);
+				glVertex3i(x_pos-10, -win->title_height/2, 0);
 				glVertex3i(x_pos, 0, 0);
 			glEnd();
 			glBegin(GL_TRIANGLE_STRIP);
-				glVertex3i(x_pos+len, -ELW_TITLE_HEIGHT, 0);
-				glVertex3i(x_pos+len+10, -ELW_TITLE_HEIGHT/2, 0);
+				glVertex3i(x_pos+len, -win->title_height, 0);
+				glVertex3i(x_pos+len+10, -win->title_height/2, 0);
 				glVertex3i(x_pos+len, 0, 0);
 			glEnd();
 			glEnable(GL_TEXTURE_2D);
 			glColor3f(win->border_color[0],win->border_color[1],win->border_color[2]);
 			// center text
-			draw_string_small((win->len_x-len)/2, 1-ELW_TITLE_HEIGHT, (unsigned char*)win->window_name, 1);
+			draw_string_small_zoomed((win->len_x-len)/2, 1-win->title_height, (unsigned char*)win->window_name, 1, win->current_scale);
 		}
 #ifdef OPENGL_TRACE
 CHECK_GL_ERRORS();
@@ -1136,17 +1163,17 @@ int	draw_window_border(window_info *win)
 		// draw the diagonal drag stripes
 		glColor3f(win->border_color[0],win->border_color[1],win->border_color[2]);
 		glBegin(GL_LINES);
-			glVertex3i(win->len_x-ELW_BOX_SIZE/4, win->len_y, 0);
-			glVertex3i(win->len_x, win->len_y-ELW_BOX_SIZE/4, 0);
+			glVertex3i(win->len_x-win->box_size/4, win->len_y, 0);
+			glVertex3i(win->len_x, win->len_y-win->box_size/4, 0);
 
-			glVertex3i(win->len_x-ELW_BOX_SIZE/2, win->len_y, 0);
-			glVertex3i(win->len_x, win->len_y-ELW_BOX_SIZE/2, 0);
+			glVertex3i(win->len_x-win->box_size/2, win->len_y, 0);
+			glVertex3i(win->len_x, win->len_y-win->box_size/2, 0);
 
-			glVertex3i(win->len_x-(3*ELW_BOX_SIZE)/4, win->len_y, 0);
-			glVertex3i(win->len_x, win->len_y-(3*ELW_BOX_SIZE)/4, 0);
+			glVertex3i(win->len_x-(3*win->box_size)/4, win->len_y, 0);
+			glVertex3i(win->len_x, win->len_y-(3*win->box_size)/4, 0);
 
-			glVertex3i(win->len_x-ELW_BOX_SIZE, win->len_y, 0);
-			glVertex3i(win->len_x, win->len_y-ELW_BOX_SIZE, 0);
+			glVertex3i(win->len_x-win->box_size, win->len_y, 0);
+			glVertex3i(win->len_x, win->len_y-win->box_size, 0);
 		glEnd();
 	}
 	
@@ -1155,19 +1182,19 @@ int	draw_window_border(window_info *win)
 		//draw the corner, with the X in
 		glColor3f(win->border_color[0],win->border_color[1],win->border_color[2]);
 		glBegin(GL_LINE_STRIP);
-			glVertex3i(win->len_x, ELW_BOX_SIZE, 0);
-			glVertex3i(win->len_x-ELW_BOX_SIZE, ELW_BOX_SIZE, 0);
-			glVertex3i(win->len_x-ELW_BOX_SIZE, 0, 0);
+			glVertex3i(win->len_x, win->box_size, 0);
+			glVertex3i(win->len_x-win->box_size, win->box_size, 0);
+			glVertex3i(win->len_x-win->box_size, 0, 0);
 		glEnd();
 
 		glLineWidth(2.0f);
 
 		glBegin(GL_LINES);
-			glVertex2i(win->len_x-ELW_BOX_SIZE+3, 3);
-			glVertex2i(win->len_x-3, ELW_BOX_SIZE-3);
+			glVertex2i(win->len_x-win->box_size+3, 3);
+			glVertex2i(win->len_x-3, win->box_size-3);
 		
 			glVertex2i(win->len_x-3, 3);
-			glVertex2i(win->len_x-ELW_BOX_SIZE+3, ELW_BOX_SIZE-3);
+			glVertex2i(win->len_x-win->box_size+3, win->box_size-3);
 		glEnd();
 
 		glLineWidth(1.0f);
@@ -1211,8 +1238,8 @@ CHECK_GL_ERRORS();
 		if(win->cur_x + win->len_x < 20) {
 			move_window(win->window_id, win->pos_id, win->pos_loc, 20 - win->len_x, win->pos_y);
 		}
-		if(win->cur_y < ELW_TITLE_HEIGHT) {
-			move_window(win->window_id, win->pos_id, win->pos_loc, win->pos_x, ELW_TITLE_HEIGHT);
+		if(win->cur_y < win->title_height) {
+			move_window(win->window_id, win->pos_id, win->pos_loc, win->pos_x, win->title_height);
 		}
 	}
 	// now normal display processing
@@ -1229,9 +1256,9 @@ CHECK_GL_ERRORS();
 
 	if(win->flags&ELW_SCROLLABLE) {
 		int pos = vscrollbar_get_pos(win->window_id, win->scroll_id);
-		int offset = win->scroll_yoffset + ((win->flags&ELW_CLOSE_BOX) ? ELW_BOX_SIZE : 0);
+		int offset = win->scroll_yoffset + ((win->flags&ELW_CLOSE_BOX) ? win->box_size : 0);
 
-		widget_move(win->window_id, win->scroll_id, win->len_x-ELW_BOX_SIZE, pos+offset);
+		widget_move(win->window_id, win->scroll_id, win->len_x - widget_get_width(win->window_id, win->scroll_id), pos+offset);
 		/* Cut away what we've scrolled past, */
 		glEnable(GL_SCISSOR_TEST);
 		glScissor(win->cur_x+gx_adjust, window_height-win->cur_y-win->len_y-gy_adjust, win->len_x+1, win->len_y+1);
@@ -1361,12 +1388,12 @@ void	toggle_window(int win_id)
 static void resize_scrollbar(window_info *win)
 {
 	int sblen = win->len_y - win->scroll_yoffset;
+	int width = (win->flags&ELW_USE_UISCALE) ?win->box_size :widget_get_width(win->window_id, win->scroll_id);
 	if (win->flags&ELW_CLOSE_BOX)
-		sblen -= ELW_BOX_SIZE;
+		sblen -= win->box_size;
 	if (win->flags&ELW_RESIZEABLE)
-		sblen -= ELW_BOX_SIZE;
-	widget_resize(win->window_id, win->scroll_id,
-		widget_get_width(win->window_id, win->scroll_id), sblen);
+		sblen -= win->box_size;
+	widget_resize(win->window_id, win->scroll_id, width, sblen);
 }
 
 void resize_window (int win_id, int new_width, int new_height)
@@ -1437,7 +1464,7 @@ int	mouse_in_window(int win_id, int x, int y)
 	if(windows_list.window[win_id].window_id != win_id)	return -1;
 
 	if(x<windows_list.window[win_id].cur_x || x>=windows_list.window[win_id].cur_x+windows_list.window[win_id].len_x)	return 0;
-	if(y<windows_list.window[win_id].cur_y-((windows_list.window[win_id].flags&ELW_TITLE_BAR)?ELW_TITLE_HEIGHT:0) || y>=windows_list.window[win_id].cur_y+windows_list.window[win_id].len_y)	return 0;
+	if(y<windows_list.window[win_id].cur_y-((windows_list.window[win_id].flags&ELW_TITLE_BAR)?windows_list.window[win_id].title_height:0) || y>=windows_list.window[win_id].cur_y+windows_list.window[win_id].len_y)	return 0;
 
 	return 1;
 }
@@ -1470,7 +1497,7 @@ int	click_in_window(int win_id, int x, int y, Uint32 flags)
 		//check the X for close - but hide it
 		if(win->flags&ELW_CLOSE_BOX)
 		{
-        		if(my>0 && my<=ELW_BOX_SIZE && mx>(win->len_x-ELW_BOX_SIZE) && mx<=win->len_x)
+        		if(my>0 && my<=win->box_size && mx>(win->len_x-win->box_size) && mx<=win->len_x)
 			{
 				// the X was hit, hide this window
 				// but don't close storage if trade is open
@@ -1492,7 +1519,7 @@ int	click_in_window(int win_id, int x, int y, Uint32 flags)
 				return 1;
 			}				
 		}
-		if(win->flags&ELW_RESIZEABLE && mx > win->len_x-ELW_BOX_SIZE && my > win->len_y-ELW_BOX_SIZE) {
+		if(win->flags&ELW_RESIZEABLE && mx > win->len_x-win->box_size && my > win->len_y-win->box_size) {
 			/* Clicked on the resize-corner. */
 			return 1;
 		}
@@ -1832,6 +1859,10 @@ void	*set_window_handler(int win_id, int handler_id, int (*handler)() )
 		case	ELW_HANDLER_HIDE:
 			old_handler= (void *)windows_list.window[win_id].hide_handler;
 			windows_list.window[win_id].hide_handler=handler;
+			break;
+		case	ELW_HANDLER_UI_SCALE:
+			old_handler= (void *)windows_list.window[win_id].ui_scale_handler;
+			windows_list.window[win_id].ui_scale_handler=handler;
 			break;
 		default:
 			old_handler=NULL;

@@ -7,13 +7,14 @@
 #define	__HUD_H
 
 #include <SDL_types.h>
+#include "elwindows.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /*!
- * \name orientation constants
+ * \name quick window orientation constants
  */
 /*! @{ */
 #define HORIZONTAL 2
@@ -22,13 +23,6 @@ extern "C" {
 
 #define MAX_EXP_LEVEL 200
 
-/*!
- * \name Quickbar defines
- */
-/*! @{ */
-#define MAX_QUICKBAR_SLOTS 12
-/*! @} */
-
 typedef enum
 {
 	HUD_INTERFACE_NEW_CHAR, /*!< the interface for the character creation screen */
@@ -36,63 +30,14 @@ typedef enum
 	HUD_INTERFACE_LAST      /*!< the last interface used */
 } hud_interface;
 
-extern int qb_action_mode; /*!< flag indicating whether we are in quickbar action mode or not */
-
-extern int show_stats_in_hud;
-extern int show_statbars_in_hud;
-extern int show_action_bar; /*!< saved in the ini file, the action points stats bar is display when true */
-extern int stats_bar_win; /*!< the window id for the stats bar of the bottom HUD */
-extern int watch_this_stats[]; /*!< used for displaying more than 1 stat in the hud */
-extern int max_food_level; /*!< normally 45 but can be set from options for people with diffent values (big belly) */
-
-/*!
- * \name windows handlers
- */
-/*! @{ */
-extern int	quickbar_win; /*!< quickbar windows handler */
-/*! @} */
-
-extern int 	quickbar_relocatable; /*!< flag that indicates whether the quickbar is relocatable. */
-
-/*!
- * \ingroup display_2d
- * \brief Initializes the quickbar
- *
- *      Initializes the quickbar, it's event handlers and shows it. If the quickbar has been moved by the player it will be drawn in its new position.
- */
-void init_quickbar();
-
-void switch_action_mode(int * mode, int id);
 
 extern int hud_text;
 extern int hud_x;
 extern int hud_y;
-
-extern int view_analog_clock;
-extern int view_digital_clock;
-extern int view_knowledge_bar;
-extern int view_hud_timer;
-
-extern int quickbar_x;
-extern int quickbar_y;
-extern int quickbar_dir;
-extern int quickbar_draggable;
-extern int num_quickbar_slots;
-
-extern int copy_next_LOCATE_ME;
-
 extern int show_help_text;
 extern int always_enlarge_text;
-
-// the main hud handling
-
-/*!
- * \ingroup other
- * \brief Checks if the keypress is an item use
- *
- *	returns 1 if the key is a item keypress, otherwise 0.
- */
-int action_item_keys(Uint32 key);
+extern int logo_click_to_url;
+extern char LOGO_URL_LINK[128];		/*!< the link clicking the EL logo sends you to */
 
 /*!
  * \ingroup other
@@ -123,7 +68,15 @@ void cleanup_hud(void);
  *
  * \callgraph
  */
-void show_hud_windows ();
+void show_hud_windows (void);
+
+/*!
+ * \ingroup other
+ * \brief Shows specifically hud windows that are relocatable and so may have been hidden when changing game/map/console modes.
+ *
+ * \callgraph
+ */
+void show_moveable_hud_windows(void);
 
 /*!
  * \ingroup other
@@ -134,38 +87,52 @@ void show_hud_windows ();
  * \pre If none of \ref icons_win, \ref stats_bar_win, \ref misc_win and \ref quickbar_win is >= 0 (i.e. created before and visible) no action will be performed.
  * \callgraph
  */
-void hide_hud_windows ();
+void hide_hud_windows (void);
+
+/*!
+ * \ingroup other
+ * \brief Hide specifically hud windows that are currently relocated off the hud bars.
+ *
+ * \callgraph
+ */
+void hide_moved_hud_windows(void);
 
 /*!
  * \ingroup display_2d
  * \brief Draws the hud interface related items.
  *
- *      Draws the hud related items by setting the background color before calling \ref draw_hud_frame.
+ *      Draws the hud interface related items.
  *
  * \callgraph
  */
-void draw_hud_interface();
+void draw_hud_interface(window_info *win);
 
 /*!
- * \ingroup windows
- * \brief Checks whether a mouse click occurred in the hud.
+ * \ingroup hud
+ * \brief check if mouse over.
  *
- *      Checks whether a mouse click occurred in the hud. Only used in non-standard (for example map) modes.
- *
- * \retval int  the return value of \ref click_in_windows
+ * \retval	1, if mouse over relavant hud element
  * \callgraph
  */
-int check_hud_interface();
+int hud_mouse_over(window_info *win, int mx, int my);
 
 /*!
- * \ingroup display_2d
- * \brief Draws the hud frame.
+ * \ingroup hud
+ * \brief check if mouse click in hud
  *
- *      Draws the hud frame, by setting the texture, then draws the horizontal and vertical bar of the hud and finally the EL logo.
- *
+ * \retval	1, if mouse click used
  * \callgraph
  */
-void draw_hud_frame();
+int hud_click(window_info *win, int mx, int my, Uint32 flags);
+
+/*!
+ * \ingroup hud
+ * \brief get the size of the hud logo, its square
+ *
+ * \retval	the size in pixels
+ * \callgraph
+ */
+int get_hud_logo_size(void);
 
 /*!
  * \ingroup windows
@@ -177,10 +144,7 @@ void draw_hud_frame();
  * 
  * \callgraph
  */
- int* get_winid(const char *name);
-
-
-//Functions for the function pointers
+int* get_winid(const char *name);
 
 /*!
  * \ingroup windows
@@ -214,94 +178,34 @@ void view_tab (int *window, int *col_id, int tab);
 
 /*!
  * \ingroup windows
- * \brief   Views the console window (i.e. switch to console mode)
+ * \brief Shows the \a message at the given position (\a x, \a y).
  *
- *      This is not handled by the window manager, so we have to call this function
+ *      Shows the \a message at the given position (\a x, \a y) using the small font.
  *
- * \param win   unused
- * \param id    unused
- *
- * \callgraph
- */
-void view_console_win(int * win, int id);
-
-/*!
- * \ingroup windows
- * \brief Views the map window (i.e. switch to map mode)
- *
- *      Shows or hides the map window depending on which mode is currently active.
- *
- * \param win   unused
- * \param id    unused
+ * \param message   the help message to show
+ * \param x         the x coordinate of the position to draw the help message
+ * \param y         the y coordinate of the position to draw the help message
+ * \param scale     the multiplier for the text size
  *
  * \callgraph
  */
-void view_map_win(int *win, int id);
+void show_help(const char *message, int x, int y, float scale);
 
 /*!
  * \ingroup windows
  * \brief Shows the \a message at the given position (\a x, \a y).
  *
- *      Shows the \a message at the given position (\a x, \a y).
+ *      Shows the \a message at the given position (\a x, \a y) using the default font.
  *
  * \param message   the help message to show
  * \param x         the x coordinate of the position to draw the help message
  * \param y         the y coordinate of the position to draw the help message
+ * \param scale     the multiplier for the text size
  *
  * \callgraph
  */
-void show_help(const char *message, int x, int y);
-
-/*!
- * \ingroup windows
- * \brief Shows the \a message at the given position (\a x, \a y).
- *
- *      Shows the \a message at the given position (\a x, \a y).
- *
- * \param message   the help message to show
- * \param x         the x coordinate of the position to draw the help message
- * \param y         the y coordinate of the position to draw the help message
- * \param big       if zero use the small font, otherwise the default
- *
- * \callgraph
- */
-void show_sized_help(const char *message, int x, int y, int big);
-
-/*!
- * \ingroup windows
- * \brief Shows the \a message at the given position and colour (\a x, \a y).
- *
- *      Shows the \a message at the given position and colour (\a x, \a y).
- *
- * \param message   the help message to show
- * \param x         the x coordinate of the position to draw the help message
- * \param y         the y coordinate of the position to draw the help message
- * \param r         the red RGB value for text
- * \param g         the green RGB value for text
- * \param b         the blue RGB value for text
- *
- * \callgraph
- */
-void show_help_coloured(const char *help_message, int x, int y, float r, float g, float b);
-
-
-/*!
- * \ingroup windows
- * \brief Shows the \a message at the given position and colour (\a x, \a y).
- *
- *      Shows the \a message at the given position and colour (\a x, \a y).
- *
- * \param message   the help message to show
- * \param x         the x coordinate of the position to draw the help message
- * \param y         the y coordinate of the position to draw the help message
- * \param r         the red RGB value for text
- * \param g         the green RGB value for text
- * \param b         the blue RGB value for text
- * \param big       if zero use the small font, otherwise the default
- *
- * \callgraph
- */
-void show_sized_help_coloured(const char *help_message, int x, int y, float r, float g, float b, int big);
+void show_help_big(const char *message, int x, int y, float scale);
+void show_help_coloured_scaled(const char *help_message, int x, int y, float r, float g, float b, int use_big_font, float size);
 
 /*!
  * \ingroup windows
@@ -317,36 +221,6 @@ void show_sized_help_coloured(const char *help_message, int x, int y, float r, f
  */
 int enlarge_text(void);
 
-
-//stats/health section
-
-/*!
- * \ingroup other
- * \brief   	Initialise the stat bars, (size, position and number), for in the bottom HUB.
- */
-void init_stats_display(void);
-
-/*!
- * \ingroup other
- * \brief Update displayed damage value.
- *
- *      The last damage is drawn as a hover over the health bar.
- *
- * \callgraph
- */
-void set_last_damage(int quantity);
-
-
-/*!
- * \ingroup other
- * \brief Update displayed heal value.
- *
- *      The last heal is drawn as a hover over the health bar.
- *
- * \callgraph
- */
-void set_last_heal(int quantity);
-
 /*!
  * \ingroup other
  * \brief   Initializes the levels table.
@@ -356,26 +230,6 @@ void set_last_heal(int quantity);
  * \sa init_stuff
  */
 void build_levels_table();
-
-/*!
- * \ingroup windows
- * \brief	Sets the flag of the given window
- *
- * 	Sets the flag of the given window
- *
- * \sa get_flags
- */
-void change_flags(int win_id, Uint32 flags);
-
-/*!
- * \ingroup windows
- * \brief Gets the flags of the given window 
- *
- * 	Gets the flag of the given window
- *
- * \sa change_flags
- */
-Uint32 get_flags(int win_id);
 
 /*!
  * \ingroup other

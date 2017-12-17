@@ -40,6 +40,7 @@ struct WIDGET_TYPE {
 	int (*resize)();
 	int (*key)();
 	int (*destroy)();
+	int (*move)();
     // We can conceivably store other generic info here too
 } ;
 
@@ -94,9 +95,7 @@ typedef struct wl{
  * \name	Flags for the buttons
  */
 /*! \{ */
-#ifdef NEW_NEW_CHAR_WINDOW
 #define BUTTON_ACTIVE 0x400
-#endif
 #define BUTTON_SQUARE 0x800
 
 /*!
@@ -174,7 +173,6 @@ typedef struct {
 
 // Common widget functions
 
-#ifdef NEW_NEW_CHAR_WINDOW
 /*!
  * \ingroup	widgets
  * \brief 	Creates a widget and adds it to the given window
@@ -201,7 +199,6 @@ typedef struct {
 Uint32 widget_add (int window_id, Uint32 wid, int (*OnInit)(), Uint16 x, Uint16 y,
 	Uint16 lx, Uint16 ly, Uint32 Flags, float size, float r, float g, float b,
 	const struct WIDGET_TYPE *type, void *T, void *S);
-#endif
 
 /*!
  * \ingroup	widgets
@@ -483,8 +480,6 @@ int widget_get_height (int window_id, Uint32 widget_id);
  * \param   	OnInit The function used for initiating the label
  * \param   	x The x location
  * \param   	y The y location
- * \param   	lx The width 
- * \param   	ly The height
  * \param   	Flags The flags
  * \param   	size The text size
  * \param   	r (0<=r<=1)
@@ -793,6 +788,23 @@ int button_add_extended(int window_id, Uint32 wid,  int (*OnInit)(), Uint16 x, U
  * \sa button_add_extended
  */
 int button_add(int window_id, int (*OnInit)(), const char *text, Uint16 x, Uint16 y);
+
+/*!
+ * \ingroup	buttons
+ * \brief 	Resize a button widget
+ *
+ * 		Resize a button widget using the specified scale. If x or y length ar zero, calculate them.
+ *
+ * \param   	window_id The location of the window in the windows_list.window[] array
+ * \param   	lx The x length
+ * \param   	ly The y length
+ * \param   	size the new font and button size
+ * \retval int  	Returns the new widgets unique ID
+ *
+ * \sa button_add_extended
+ */
+int button_resize(int window_id, Uint32 wid, Uint16 lx, Uint16 ly, float size);
+
 
 /*!
  * \ingroup	buttons
@@ -1170,6 +1182,19 @@ int tab_collection_close_tab (int window_id, Uint32 widget_id, int tab);
 
 /*!
  * \ingroup	tabs
+ * \brief 	Calculate the tab tag height
+ *
+ * 		Calculate the tab tag height given the specified size.
+ *
+ * \param   	size the scale factor
+ * \retval int  	Returns the calculate tag tag height.
+ * \callgraph
+ */
+int tab_collection_calc_tab_height(float size);
+
+
+/*!
+ * \ingroup	tabs
  * \brief 	Creates a tabbed window collection
  *
  * 		Creates a tabbed window collection and adds it to the given window
@@ -1180,14 +1205,11 @@ int tab_collection_close_tab (int window_id, Uint32 widget_id, int tab);
  * \param   	y The y position
  * \param   	lx The width
  * \param   	ly The height
- * \param	tag_height The height of the tags
- * \param	tag_space The spacing between two neigboring tags
  * \retval int  	Returns the new widgets unique ID 
  *
  * \sa tab_collection_add_extended
  */
-int tab_collection_add (int window_id, int (*OnInit)(), Uint16 x, 
-Uint16 y, Uint16 lx, Uint16 ly, Uint16 tag_height);
+int tab_collection_add (int window_id, int (*OnInit)(), Uint16 x, Uint16 y, Uint16 lx, Uint16 ly);
 
 /*!
  * \ingroup	tabs
@@ -1208,15 +1230,13 @@ Uint16 y, Uint16 lx, Uint16 ly, Uint16 tag_height);
  * \param   	g (0<=g<=1)
  * \param   	b (0<=b<=1)
  * \param	max_tabs The largest number of tabs this collection will hold
- * \param	tag_height The height of the tags
- * \param	tag_space The spacing between two neigboring tags
  * \retval int  	Returns the new widgets unique ID 
  *
  * \sa tab_collection_add
  */
 int tab_collection_add_extended (int window_id, Uint32 wid, int 
 (*OnInit)(), Uint16 x, Uint16 y, Uint16 lx, Uint16 ly, Uint32 Flags, 
-float size, float r, float g, float b, int max_tabs, Uint16 tag_height);
+float size, float r, float g, float b, int max_tabs);
 
 /*!
  * \ingroup	tabs
@@ -1239,10 +1259,25 @@ int tab_collection_draw (widget_list *W);
  * \param   	W The widget
  * \param   	w the new width
  * \param   	h the new height
+ * \param   	tab_tag_height the height of the tab tags
  * \retval int  	Returns 1 on success, 0 on failure
  * \callgraph
  */
 int tab_collection_resize (widget_list *W, Uint32 w, Uint32 h);
+
+/*!
+ * \ingroup	tabs
+ * \brief 	Move the tabbed window collection widget tabs
+ *
+ * 		Move the tabbed window collection widget tabs
+ *
+ * \param   	W The widget
+ * \param   	pos_x the absolute x position
+ * \param   	pos_y the absolute y position
+ * \retval int  	Returns 1 on success, 0 on failure
+ * \callgraph
+ */
+int tab_collection_move (widget_list *W, Uint32 pos_x, Uint32 pos_y);
 
 /*!
  * \ingroup	tabs
@@ -1489,16 +1524,6 @@ int widget_handle_keypress (widget_list *widget, int mx, int my, Uint32 key, Uin
  * \callgraph
  */
 int AddXMLWindow(char *fn);
-
-/*!
- * \brief checks if message fits the filter.
- *
- * \param[in] msg message to test.
- * \param[in] filter filter.
- *
- * \return 1 if message doesnt fit filter (should be skipped), 0 otherwise.
- */
-int skip_message (const text_message *msg, Uint8 filter);
 
 #ifdef __cplusplus
 } // extern "C"

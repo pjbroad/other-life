@@ -7,8 +7,8 @@
 #define __SPELLS_H__
 
 #include <SDL_types.h>
-
-#include "eye_candy_wrapper.h"
+#include "elwindows.h"
+#include "hud_quickspells_window.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -32,31 +32,17 @@ typedef enum {
 
 
 /*!
- * \name windows handlers
+ * \name spells exported variables
  */
 /*! @{ */
 extern int sigil_win; /*!< handle for the sigil (spell) window */
 extern int start_mini_spells; /*!< do we start minimized? */
-extern int quickspell_win; /*!< quickbar windows handler */
-/*! @} */
-
-extern int quickspell_x;
-extern int quickspell_y;
-
 extern int sigil_menu_x;
 extern int sigil_menu_y;
-
-extern int sigils_text;
-
-extern Uint8 spell_text[256]; /*!< buffer for the spell text */
-
-extern int have_error_message; /*!< flag that indicates whether we got an error message */
-
-extern int spell_result;
-
-extern Uint8 last_spell_str[20];
-extern int last_spell_len;
-
+extern int sigils_text; /*!< texture for spell/sigil icons */
+extern int spell_result; /*!< spell_errors type - server return status for last spell cast */
+extern int show_poison_count; /*!< true if showing poison counts in UI */
+/*! @} */
 
 void draw_weather_icon(int id, int x_start, int y_start, int gridsize, int alpha, int grayed);
 
@@ -67,7 +53,8 @@ void draw_weather_icon(int id, int x_start, int y_start, int gridsize, int alpha
  *      Checks castability checking reagents, sigils, mana and levels
  *
  */
-void check_castability();
+void check_castability(void);
+
 /*!
  * \ingroup spells_window
  * \brief Repeats the last used spell.
@@ -75,7 +62,7 @@ void check_castability();
  *      Repeats the spell that was last used. This is initiated by pressing Ctrl+R. hotkey
  *
  */
-void repeat_spell();
+void repeat_spell(void);
 
 /*!
  * \ingroup other
@@ -84,7 +71,7 @@ void repeat_spell();
  *      Initializes and sets up the sigils list and other variables used in spell casting.
  *
  */
-int init_spells ();
+int init_spells (void);
 
 /*!
  * \ingroup spells_window
@@ -125,7 +112,7 @@ void get_active_spell_list (const Uint8 *my_spell_list);
  *
  * \callgraph
  */
-void display_spells_we_have();
+void display_spells_we_have(void);
 
 /*!
  * \ingroup spells_window
@@ -135,7 +122,7 @@ void display_spells_we_have();
  *
  * \callgraph
  */
-void display_sigils_menu();
+void display_sigils_menu(void);
 
 /*!
  * \ingroup spells_window
@@ -169,26 +156,18 @@ void process_network_spell (const char * data, int len);
  */
 void send_spell(Uint8 *str, int len);
 
-/*!
- * \ingroup other
- * \brief Check if a keypress is a quick spell
- *
- * 	returns 1 if it is a quickspell, otherwise 0.
- *
- */int action_spell_keys(Uint32 key);
-
-void load_quickspells();
-void save_quickspells();
-void init_quickspell();
-void add_spell_to_quickbar();
-int get_quickspell_y_base();
-int we_are_poisoned();
+int we_are_poisoned(void);
+void spell_text_from_server(const Uint8 *in_data, int data_length);
 #ifdef NEW_SOUND
 void restart_active_spell_sounds(void);
 #endif
 void increment_poison_incidence(void);
-void draw_spell_icon_strings(void);
-extern int show_poison_count;
+void draw_spell_icon_strings(window_info *win);
+int command_show_spell(char *text, int len);
+void draw_spell_icon(int id,int x_start, int y_start, int gridsize, int alpha, int grayed);
+mqbdata* build_quickspell_data(const Uint32 spell_id);
+
+//#define BUFF_DURATION_DEBUG
 void here_is_a_buff_duration(Uint8 duration);
 void check_then_do_buff_duration_request(void);
 

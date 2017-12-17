@@ -36,9 +36,7 @@
  #include "io/elpathwrapper.h"
  #include "io/elfilewrapper.h"
 #include "3d_objects.h"
-#ifdef	NEW_TEXTURES
 #include "image_loading.h"
-#endif	/* NEW_TEXTURES */
 
 #define DEFAULT_CONTMAPS_SIZE 20
 
@@ -376,7 +374,6 @@ void build_video_mode_array()
 
 void draw_console_pic(int which_texture)
 {
-#ifdef	NEW_TEXTURES
 	bind_texture(which_texture);
 
 	glColor3f(1.0f,1.0f,1.0f);
@@ -396,27 +393,6 @@ void draw_console_pic(int which_texture)
 	glVertex3i(window_width,0,0);
 
 	glEnd();
-#else	/* NEW_TEXTURES */
-	get_and_set_texture_id(which_texture);
-
-	glColor3f(1.0f,1.0f,1.0f);
-	glBegin(GL_QUADS);
-	//draw the texture
-
-	glTexCoord2f(0.0f,1.0f);
-	glVertex3i(0,0,0);
-
-	glTexCoord2f(0.0f,0.0f);
-	glVertex3i(0,window_height,0);
-
-	glTexCoord2f(1.0f,0.0f);
-	glVertex3i(window_width,window_height,0);
-
-	glTexCoord2f(1.0f,1.0f);
-	glVertex3i(window_width,0,0);
-
-	glEnd();
-#endif	/* NEW_TEXTURES */
 #ifdef OPENGL_TRACE
 CHECK_GL_ERRORS();
 #endif //OPENGL_TRACE
@@ -494,39 +470,6 @@ void add_char_to_password(unsigned char ch)
 	}
 }
 
-void draw_ingame_interface()
-{
-#ifdef OPENGL_TRACE
-CHECK_GL_ERRORS();
-#endif //OPENGL_TRACE
-#ifdef	OLD_CLOSE_BAG
-	// watch for closing a bag
-	if(ground_items_win >= 0)
-		{
-			int	old_view= view_ground_items;
-
-			view_ground_items= get_show_window(ground_items_win);
-			// watch for telling the server we need to close the bag
-			if(old_view && !view_ground_items)
-				{
-					unsigned char protocol_name;
-
-					protocol_name= S_CLOSE_BAG;
-					my_tcp_send(my_socket,&protocol_name,1);
-				}
-		}
-#endif	//OLD_CLOSE_BAG
-
-	glColor3f(1.0f, 1.0f, 1.0f);
-	draw_hud_frame();
-
-	//draw_hud_interface();
-	display_spells_we_have();
-#ifdef OPENGL_TRACE
-CHECK_GL_ERRORS();
-#endif //OPENGL_TRACE
-}
-
 GLuint map_text;
 static int cont_text = -1; // index in texture cache for continent map
 
@@ -539,18 +482,11 @@ int cur_map;  //Is there a better way to do this?
 int cur_tab_map = -1;
 #endif // DEBUG_MAP_SOUND
 
-#ifdef	NEW_TEXTURES
 static const char* cont_map_file_names[] =
 {
 	"./maps/seridia",
 	"./maps/irilion"
 };
-#else	/* NEW_TEXTURES */
-static const char* cont_map_file_names[] = {
-	"./maps/seridia.bmp",
-	"./maps/irilion.bmp"
-};
-#endif	/* NEW_TEXTURES */
 static const int nr_continents = sizeof (cont_map_file_names) / sizeof (const char *);
 struct draw_map *continent_maps = NULL;
 
@@ -621,12 +557,7 @@ void read_mapinfo ()
 
 int switch_to_game_map()
 {
-#ifdef	NEW_TEXTURES
 	char buffer[1024];
-#else	/* NEW_TEXTURES */
-	int len;
-	texture_cache_struct tex;
-#endif	/* NEW_TEXTURES */
 	short int cur_cont;
 	static short int old_cont = -1;
 	
@@ -637,7 +568,6 @@ int switch_to_game_map()
 		return 0;
 	}
 	
-#ifdef	NEW_TEXTURES
 	if (check_image_name(map_file_name, sizeof(buffer), buffer) == 1)
 	{
 		map_text = load_texture_cached(buffer, tt_image);
@@ -646,18 +576,6 @@ int switch_to_game_map()
 	{
 		map_text = 0;
 	}
-#else	/* NEW_TEXTURES */
-	my_strcp(tex.file_name,map_file_name);
-	len=strlen(tex.file_name);
-	tex.file_name[len-3]='b';
-	tex.file_name[len-2]='m';
-	tex.file_name[len-1]='p';
-	tex.alpha = 128;
-	if (!el_file_exists(tex.file_name))
-		map_text = 0;
-	else
-		map_text=load_bmp8_fixed_alpha(&tex, tex.alpha);
-#endif	/* NEW_TEXTURES */
 	if(!map_text)
 	{
 		LOG_TO_CONSOLE(c_yellow2,err_nomap_str);
@@ -674,11 +592,7 @@ int switch_to_game_map()
 	}
 	if (cur_cont != old_cont && cur_cont >= 0 && cur_cont < nr_continents)
 	{
-#ifdef	NEW_TEXTURES
 		cont_text = load_texture_cached (cont_map_file_names[cur_cont], tt_image);
-#else	/* NEW_TEXTURES */
-		cont_text = load_texture_cache (cont_map_file_names[cur_cont], 128);
-#endif	/* NEW_TEXTURES */
 		old_cont = cur_cont;
 	}
 #ifdef DEBUG_MAP_SOUND
@@ -690,16 +604,6 @@ int switch_to_game_map()
 		change_cursor(CURSOR_ARROW);
 	}
 	return 1;
-}
-
-void switch_from_game_map()
-{
-#ifndef	NEW_TEXTURES
-	glDeleteTextures(1,&map_text);
-#ifdef OPENGL_TRACE
-CHECK_GL_ERRORS();
-#endif //OPENGL_TRACE
-#endif	/* NEW_TEXTURES */
 }
 
 static void draw_mark_filter(void)
@@ -810,22 +714,14 @@ void draw_game_map (int map, int mouse_mini)
 	if (cont_text < 0)
 	{
 		if (fallback_text < 0)
-#ifdef	NEW_TEXTURES
 		{
 			fallback_text = load_texture_cached("./textures/paper1", tt_gui);
 		}
-#else	/* NEW_TEXTURES */
-			fallback_text = load_texture_cache ("./textures/paper1.bmp", 0);
-#endif	/* NEW_TEXTURES */
 		cont_text = fallback_text;
 	}
 	
 	if(map){
-#ifdef	NEW_TEXTURES
 		map_small = cont_text;
-#else	/* NEW_TEXTURES */
-		map_small=get_texture_id(cont_text);
-#endif	/* NEW_TEXTURES */
 		if(inspect_map_text == 0) {
 			map_large=map_text;
 		} else {
@@ -833,11 +729,7 @@ void draw_game_map (int map, int mouse_mini)
 		}
 	} else {
 		map_small=map_text;
-#ifdef	NEW_TEXTURES
 		map_large = cont_text;
-#else	/* NEW_TEXTURES */
-		map_large=get_texture_id(cont_text);
-#endif	/* NEW_TEXTURES */
 		if(cur_map!=-1){
 			x_size = ((float)(continent_maps[cur_map].x_end - continent_maps[cur_map].x_start)) / tile_map_size_x;
 			y_size = ((float)(continent_maps[cur_map].y_end - continent_maps[cur_map].y_start)) / tile_map_size_y;
@@ -846,14 +738,14 @@ void draw_game_map (int map, int mouse_mini)
 		}
 	}
 	
-   	glDisable(GL_DEPTH_TEST);
-   	glDisable(GL_LIGHTING);
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_LIGHTING);
     
 	glViewport(0, 0 + hud_y, window_width-hud_x, window_height-hud_y);
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
 	glLoadIdentity();
-	
+
 	glOrtho(300, (GLdouble)0, (GLdouble)0, 200, -250.0, 250.0);
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
@@ -871,8 +763,7 @@ void draw_game_map (int map, int mouse_mini)
 	glEnable(GL_TEXTURE_2D);
 
 	glColor3f(1.0f,1.0f,1.0f);
-    	
-#ifdef	NEW_TEXTURES
+
 	bind_texture(map_large);
 
 	glBegin(GL_QUADS);
@@ -881,67 +772,35 @@ void draw_game_map (int map, int mouse_mini)
 		glTexCoord2f(0.0f, 0.0f); glVertex3i(250,200,0);
 		glTexCoord2f(0.0f, 1.0f); glVertex3i(250,0,0);
 	glEnd();
-#else	/* NEW_TEXTURES */
-	bind_texture_id(map_large);
-
-	glBegin(GL_QUADS);
-		glTexCoord2f(1.0f,0.0f); glVertex3i(50,0,0); 
-		glTexCoord2f(1.0f,1.0f); glVertex3i(50,200,0);
-		glTexCoord2f(0.0f,1.0f); glVertex3i(250,200,0);
-		glTexCoord2f(0.0f,0.0f); glVertex3i(250,0,0);
-	glEnd();
-#endif	/* NEW_TEXTURES */
 
 	if (mouse_mini)
 		glColor4f (1.0f, 1.0f, 1.0f, 1.0f);
 	else
 		glColor4f (0.7f, 0.7f, 0.7f, 0.7f);
-    	
+
 	glEnable(GL_ALPHA_TEST);
-	
-#ifdef	NEW_TEXTURES
+
 	bind_texture(map_small);
 
-    	glBegin(GL_QUADS);
+	glBegin(GL_QUADS);
 		glTexCoord2f(1.0f, 1.0f); glVertex3i(250,150,0);
 		glTexCoord2f(1.0f, 0.0f); glVertex3i(250,200,0);
 		glTexCoord2f(0.0f, 0.0f); glVertex3i(300,200,0);
 		glTexCoord2f(0.0f, 1.0f); glVertex3i(300,150,0);
 	glEnd();
-#else	/* NEW_TEXTURES */
-	bind_texture_id(map_small);
 
-    	glBegin(GL_QUADS);
-		glTexCoord2f(1.0f,0.0f); glVertex3i(250,150,0);
-		glTexCoord2f(1.0f,1.0f); glVertex3i(250,200,0);
-		glTexCoord2f(0.0f,1.0f); glVertex3i(300,200,0);
-		glTexCoord2f(0.0f,0.0f); glVertex3i(300,150,0);
-	glEnd();
-#endif	/* NEW_TEXTURES */
-	
 	glDisable(GL_ALPHA_TEST);
-	
+
 	glColor3f(1.0f,1.0f,1.0f);
-    	
-#ifdef	NEW_TEXTURES
+
 	bind_texture(legend_text);
 
-    	glBegin(GL_QUADS);
+	glBegin(GL_QUADS);
 		glTexCoord2f(1.0f, 1.0f); glVertex3i(250,50,0);
 		glTexCoord2f(1.0f, 0.0f); glVertex3i(250,150,0);
 		glTexCoord2f(0.0f, 0.0f); glVertex3i(300,150,0);
 		glTexCoord2f(0.0f, 1.0f); glVertex3i(300,50,0);
 	glEnd();
-#else	/* NEW_TEXTURES */
-	get_and_set_texture_id(legend_text);
-
-    	glBegin(GL_QUADS);
-		glTexCoord2f(1.0f,0.0f); glVertex3i(250,50,0);
-		glTexCoord2f(1.0f,1.0f); glVertex3i(250,150,0);
-		glTexCoord2f(0.0f,1.0f); glVertex3i(300,150,0);
-		glTexCoord2f(0.0f,0.0f); glVertex3i(300,50,0);
-	glEnd();
-#endif	/* NEW_TEXTURES */
 
 // this is necessary for the text over map
 // need to execute this for any map now
@@ -1333,11 +1192,9 @@ void resize_all_root_windows (Uint32 w, Uint32 h)
 	if (opening_root_win >= 0) resize_window (opening_root_win, w, h);
 	if (newchar_root_win >= 0) resize_window (newchar_root_win, w, h);
 	if (update_root_win >= 0) resize_window (update_root_win, w, h);
-	if (input_widget->window_id != chat_win) {
+	if ((input_widget != NULL) && (input_widget->window_id != chat_win)) {
 		widget_resize (input_widget->window_id, input_widget->id, w-HUD_MARGIN_X, input_widget->len_y);
 		widget_move (input_widget->window_id, input_widget->id, 0, h-input_widget->len_y-HUD_MARGIN_Y);
 	}
-#ifdef NEW_NEW_CHAR_WINDOW
 	resize_newchar_hud_window();
-#endif
 }

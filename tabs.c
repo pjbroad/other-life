@@ -2,6 +2,7 @@
 #include "tabs.h"
 #include "elwindows.h"
 #include "encyclopedia.h"
+#include "font.h"
 #include "gamewin.h"
 #include "help.h"
 #include "knowledge.h"
@@ -18,25 +19,32 @@ int tab_stats_collection_id = 16;
 int tab_stats_x = 150;
 int tab_stats_y = 70;
 unsigned tab_selected = 0;
-Uint16 tab_stats_len_x = STATS_TAB_WIDTH + 2*TAB_MARGIN;
-Uint16 tab_stats_len_y = STATS_TAB_HEIGHT + TAB_TAG_HEIGHT + 2*TAB_MARGIN;
 
 int tab_help_win = -1;
 int tab_help_collection_id = 17;
 int tab_help_x = 150;
 int tab_help_y = 70;
-Uint16 tab_help_len_x = HELP_TAB_WIDTH + 2*TAB_MARGIN;
-Uint16 tab_help_len_y = HELP_TAB_HEIGHT + TAB_TAG_HEIGHT + 2*TAB_MARGIN;
 
 int tab_info_win = -1;
 int tab_info_collection_id = 18;
 int tab_info_x = 150;
 int tab_info_y = 70;
-Uint16 tab_info_len_x = INFO_TAB_WIDTH + 2*TAB_MARGIN;
-Uint16 tab_info_len_y = INFO_TAB_HEIGHT + TAB_TAG_HEIGHT + 2*TAB_MARGIN;
 
-int display_tab_stats_handler () 
+static int ui_scale_stats_handler(window_info *win)
 {
+	int tab_tag_height = 0;
+	int new_width = (int)(0.5 + win->small_font_len_x * 72);
+	int new_height = (int)(0.5 + win->small_font_len_y * 24);
+	widget_list *w = widget_find (win->window_id, tab_stats_collection_id);
+
+	widget_set_size(win->window_id, tab_stats_collection_id, win->current_scale * DEFAULT_SMALL_RATIO);
+	tab_tag_height = tab_collection_calc_tab_height(win->current_scale * DEFAULT_SMALL_RATIO);
+	resize_window(win->window_id, new_width + 2*TAB_MARGIN, new_height + tab_tag_height + 2*TAB_MARGIN);
+	widget_resize(win->window_id, tab_stats_collection_id, new_width, new_height + tab_tag_height);
+
+	tab_collection_resize(w, new_width, new_height);
+	tab_collection_move(w, win->pos_x + TAB_MARGIN, win->pos_y + tab_tag_height + TAB_MARGIN);
+
 	return 1;
 }
 
@@ -48,24 +56,18 @@ void display_tab_stats ()
 		if (!windows_on_top) {
 			our_root_win = game_root_win;
 		}
-		tab_stats_win = create_window (win_statistics, our_root_win, 0, tab_stats_x, tab_stats_y, tab_stats_len_x, tab_stats_len_y, ELW_WIN_DEFAULT);
+		tab_stats_win = create_window (win_statistics, our_root_win, 0, tab_stats_x, tab_stats_y, 0, 0, ELW_USE_UISCALE|ELW_WIN_DEFAULT);
+		set_window_handler(tab_stats_win, ELW_HANDLER_UI_SCALE, &ui_scale_stats_handler );
+		tab_stats_collection_id = tab_collection_add_extended (tab_stats_win, tab_stats_collection_id, NULL, TAB_MARGIN, TAB_MARGIN, 0, 0, 0, DEFAULT_SMALL_RATIO, newcol_r, newcol_g, newcol_b, 3);
 
-		set_window_handler (tab_stats_win, ELW_HANDLER_DISPLAY, &display_tab_stats_handler);
-		
-		tab_stats_collection_id = tab_collection_add_extended (tab_stats_win, tab_stats_collection_id, NULL, TAB_MARGIN, TAB_MARGIN, STATS_TAB_WIDTH, STATS_TAB_HEIGHT+TAB_TAG_HEIGHT, 0, 0.7, newcol_r, newcol_g, newcol_b, 3, TAB_TAG_HEIGHT);
+		fill_stats_win (tab_add (tab_stats_win, tab_stats_collection_id, tab_statistics, 0, 0, ELW_USE_UISCALE));
+		fill_knowledge_win (tab_add (tab_stats_win, tab_stats_collection_id, tab_knowledge, 0, 0, ELW_USE_UISCALE));
+		fill_counters_win(tab_add(tab_stats_win, tab_stats_collection_id, tab_counters, 0, 0, ELW_USE_UISCALE));
+		fill_session_win(tab_add(tab_stats_win, tab_stats_collection_id, tab_session, 0, 0, ELW_USE_UISCALE));
 
-		stats_win = tab_add (tab_stats_win, tab_stats_collection_id, tab_statistics, 0, 0, 0);
-		fill_stats_win ();
-		
-		knowledge_win = tab_add (tab_stats_win, tab_stats_collection_id, tab_knowledge, 0, 0, 0);
-		fill_knowledge_win ();
+		if ((tab_stats_win > -1) && (tab_stats_win < windows_list.num_windows))
+			ui_scale_stats_handler(&windows_list.window[tab_stats_win]);
 
-		counters_win = tab_add(tab_stats_win, tab_stats_collection_id, tab_counters, 0, 0, 0);
-		fill_counters_win();
-		
-		session_win = tab_add(tab_stats_win, tab_stats_collection_id, tab_session, 0, 0, 0);
-		fill_session_win();
-		
 		tab_collection_select_tab (tab_stats_win, tab_stats_collection_id, tab_selected & 0xf);
 	}
 	else
@@ -75,32 +77,40 @@ void display_tab_stats ()
 	}
 }
 
-int display_tab_help_handler () 
+static int ui_scale_help_handler(window_info *win)
 {
+	int tab_tag_height = 0;
+	int new_width = (int)(0.5 + win->small_font_len_x * 63);
+	int new_height = (int)(0.5 + win->small_font_len_y * 24);
+	widget_list *w = widget_find (win->window_id, tab_help_collection_id);
+
+	widget_set_size(win->window_id, tab_help_collection_id, win->current_scale * DEFAULT_SMALL_RATIO);
+	tab_tag_height = tab_collection_calc_tab_height(win->current_scale * DEFAULT_SMALL_RATIO);
+	resize_window(win->window_id, new_width + 2*TAB_MARGIN, new_height + tab_tag_height + 2*TAB_MARGIN);
+	widget_resize(win->window_id, tab_help_collection_id, new_width, new_height + tab_tag_height);
+
+	tab_collection_resize(w, new_width, new_height);
+	tab_collection_move(w, win->pos_x + TAB_MARGIN, win->pos_y + tab_tag_height + TAB_MARGIN);
+
 	return 1;
 }
+
 
 void display_tab_help ()
 {
 	if (tab_help_win < 0)
 	{
-		tab_help_win = create_window (win_help, -1, 0, tab_help_x, tab_help_y, tab_help_len_x, tab_help_len_y, ELW_WIN_DEFAULT);
+		tab_help_win = create_window (win_help, -1, 0, tab_help_x, tab_help_y, 0, 0, ELW_USE_UISCALE|ELW_WIN_DEFAULT);
+		set_window_handler(tab_help_win, ELW_HANDLER_UI_SCALE, &ui_scale_help_handler );
+		tab_help_collection_id = tab_collection_add_extended (tab_help_win, tab_help_collection_id, NULL, TAB_MARGIN, TAB_MARGIN, 0, 0, 0, DEFAULT_SMALL_RATIO, newcol_r, newcol_g, newcol_b, 3);
 
-		set_window_handler (tab_help_win, ELW_HANDLER_DISPLAY, &display_tab_help_handler);
-		
-		tab_help_collection_id = tab_collection_add_extended (tab_help_win, tab_help_collection_id, NULL, TAB_MARGIN, TAB_MARGIN, HELP_TAB_WIDTH, HELP_TAB_HEIGHT+TAB_TAG_HEIGHT, 0, 0.7, newcol_r, newcol_g, newcol_b, 3, TAB_TAG_HEIGHT);
+		fill_help_win (tab_add (tab_help_win, tab_help_collection_id, tab_help, 0, 0, ELW_USE_UISCALE));
+		fill_skills_win (tab_add (tab_help_win, tab_help_collection_id, tab_skills, 0, 0, ELW_USE_UISCALE));
+		fill_encyclopedia_win (tab_add (tab_help_win, tab_help_collection_id, tab_encyclopedia, 0, 0, ELW_USE_UISCALE));
+		fill_rules_window(tab_add(tab_help_win, tab_help_collection_id, tab_rules, 0, 0, ELW_USE_UISCALE));
 
-		help_win = tab_add (tab_help_win, tab_help_collection_id, tab_help, 0, 0, 0);
-		fill_help_win ();
-
-		skills_win = tab_add (tab_help_win, tab_help_collection_id, tab_skills, 0, 0, 0);
-		fill_skills_win ();
-		
-		encyclopedia_win = tab_add (tab_help_win, tab_help_collection_id, tab_encyclopedia, 0, 0, 0);
-		fill_encyclopedia_win ();
-
-		rules_win = tab_add(tab_help_win, tab_help_collection_id, tab_rules, 0, 0, 0);
-		fill_rules_window();
+		if ((tab_help_win > -1) && (tab_help_win < windows_list.num_windows))
+			ui_scale_help_handler(&windows_list.window[tab_help_win]);
 
 		tab_collection_select_tab (tab_help_win, tab_help_collection_id, (tab_selected >> 4) & 0xf);
 	}
@@ -111,9 +121,21 @@ void display_tab_help ()
 	}
 }
 
-
-int display_tab_info_handler()
+static int ui_scale_info_handler(window_info *win)
 {
+	int tab_tag_height = 0;
+	int new_width = (int)(0.5 + win->current_scale * 500);
+	int new_height = (int)(0.5 + win->current_scale * 350);
+	widget_list *w = widget_find (win->window_id, tab_info_collection_id);
+
+	widget_set_size(win->window_id, tab_info_collection_id, win->current_scale * DEFAULT_SMALL_RATIO);
+	tab_tag_height = tab_collection_calc_tab_height(win->current_scale * DEFAULT_SMALL_RATIO);
+	resize_window(win->window_id, new_width + 2*TAB_MARGIN, new_height + tab_tag_height + 2*TAB_MARGIN);
+	widget_resize(win->window_id, tab_info_collection_id, new_width, new_height + tab_tag_height);
+
+	tab_collection_resize(w, new_width, new_height);
+	tab_collection_move(w, win->pos_x + TAB_MARGIN, win->pos_y + tab_tag_height + TAB_MARGIN);
+
 	return 1;
 }
 
@@ -124,17 +146,16 @@ void display_tab_info()
 		int our_root_win = -1;
 		if (!windows_on_top)
 			our_root_win = game_root_win;
-		tab_info_win = create_window (tt_info, our_root_win, 0, tab_info_x, tab_info_y, tab_info_len_x, tab_info_len_y, ELW_WIN_DEFAULT);
 
-		set_window_handler (tab_info_win, ELW_HANDLER_DISPLAY, &display_tab_info_handler);
+		tab_info_win = create_window (tt_info, our_root_win, 0, tab_info_x, tab_info_y, 0, 0, ELW_USE_UISCALE|ELW_WIN_DEFAULT);
+		set_window_handler(tab_info_win, ELW_HANDLER_UI_SCALE, &ui_scale_info_handler );
+		tab_info_collection_id = tab_collection_add_extended (tab_info_win, tab_info_collection_id, NULL, TAB_MARGIN, TAB_MARGIN, 0, 0, 0, DEFAULT_SMALL_RATIO, newcol_r, newcol_g, newcol_b, 3);
 
-		tab_info_collection_id = tab_collection_add_extended (tab_info_win, tab_info_collection_id, NULL, TAB_MARGIN, TAB_MARGIN, INFO_TAB_WIDTH, INFO_TAB_HEIGHT+TAB_TAG_HEIGHT, 0, 0.7, newcol_r, newcol_g, newcol_b, 3, TAB_TAG_HEIGHT);
+		fill_notepad_window(tab_add(tab_info_win, tab_info_collection_id, win_notepad, 0, 0, ELW_USE_UISCALE));
+		fill_url_window(tab_add(tab_info_win, tab_info_collection_id, win_url_str, 0, 0, ELW_USE_UISCALE));
 
-		notepad_win = tab_add(tab_info_win, tab_info_collection_id, win_notepad, 0, 0, 0);
-		fill_notepad_window();
-
-		url_win = tab_add(tab_info_win, tab_info_collection_id, win_url_str, 0, 0, 0);
-		fill_url_window();
+		if ((tab_info_win > -1) && (tab_info_win < windows_list.num_windows))
+			ui_scale_info_handler(&windows_list.window[tab_info_win]);
 
 		tab_collection_select_tab (tab_info_win, tab_info_collection_id, (tab_selected >> 8) & 0xf);
 	}

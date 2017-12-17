@@ -5,15 +5,13 @@
  * Copyright: See COPYING file that comes with this distribution
  ****************************************************************************/
 
-#ifdef	NEW_TEXTURES
-
 #include "image_loading.h"
 #include "errors.h"
 #include "asc.h"
 #include <SDL.h>
 #include <SDL_image.h>
 #include "ddsimage.h"
-#include "memory.h"
+#include "el_memory.h"
 
 #define IMAGE_EXTENSIONS_MAX 5
 static const char* image_extensions[IMAGE_EXTENSIONS_MAX] =
@@ -595,5 +593,3 @@ void free_image(image_t* image)
 
 	image->image = 0;
 }
-
-#endif	/* NEW_TEXTURES */

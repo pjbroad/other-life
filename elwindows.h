@@ -34,7 +34,6 @@ typedef	struct	{
 	int	pos_loc;	/*!< where is it compared to the pos id?	NOT SUPPORTED YET */
 	int	pos_x, pos_y;	/*!< logical location on screen */
 	int	len_x, len_y;	/*!< the size of the window in pixels */
-	int	orig_len_x, orig_len_y;	/*!< the size of the original window in pixels */
 	int	min_len_x, min_len_y;	/*!< for resizable windows, the minimum width and height */
 	int	cur_x, cur_y;	/*!< current location on screen */
 	int scroll_id;		/*!< id of the scroll widget, if window is scrollable */
@@ -58,10 +57,22 @@ typedef	struct	{
 	char	owner_drawn_title_bar; /*the title bar is drawn by the window itself*/
 	size_t	cm_id; 				/*!< optional context menu activated by right-clicking title */
 
-    /*!
+	/*!
+	 * \name scalable elements
+	 */
+	/*! @{ */
+	float current_scale;
+	int box_size;
+	int title_height;
+	int small_font_len_x;
+	int small_font_len_y;
+	int default_font_len_x;
+	int default_font_len_y;
+
+	/*!
 	 * \name the handlers
-     */
-    /*! @{ */
+	 */
+	/*! @{ */
 	int (*init_handler)();		/*!< init, scaling, etc */
 	int (*display_handler)();	/*!< display the window */
 	int (*pre_display_handler)();	/*!< display the window, before body (e.g. scissor) */
@@ -75,7 +86,8 @@ typedef	struct	{
 	int (*show_handler)();		/*!< executed before the window is shown */
 	int (*after_show_handler)();		/*!< executed after the window is shown */
 	int (*hide_handler)();		/*!< executed after the window is hidden */
-    /*! @} */
+	int (*ui_scale_handler)();	/*!< executed if the glabal scale ui_scale is changed */
+	/*! @} */
 
 	/*
 	// and optional list/data storage - future expansion??
@@ -106,7 +118,7 @@ typedef	struct	{
 
 #define	ELW_USE_BACKGROUND	0x0200
 #define	ELW_USE_BORDER		0x0400
-//#define	ELW_USE_LINES		0x0800
+#define	ELW_USE_UISCALE		0x0800
 
 #define ELW_CLICK_TRANSPARENT	0x1000
 
@@ -201,6 +213,7 @@ typedef	struct	{
 #define	ELW_HANDLER_HIDE	10
 #define	ELW_HANDLER_AFTER_SHOW	11
 #define	ELW_HANDLER_PRE_DISPLAY	12
+#define ELW_HANDLER_UI_SCALE 13
 /*! @} */
 
 /*!
@@ -238,6 +251,29 @@ extern int top_SWITCHABLE_OPAQUE_window_drawn; /*!< the id of the top opaque swi
 extern int opaque_window_backgrounds;
 
 // windows manager function
+
+/*!
+ * \ingroup elwindows
+ * \brief   Update scale settings for all windows
+ *
+ *      Update scale settings for all windows
+ *
+ * \param scale_factor     the scaling factor 
+ * \callgraph
+ */
+void update_windows_scale(float scale_factor);
+
+/*!
+ * \ingroup elwindows
+ * \brief   Update scale settings for specific windows
+ *
+ *      Update scale settings for all windows
+ *
+ * \param win              pointer to window structure
+ * \param scale_factor     the scaling factor
+ * \callgraph
+ */
+void update_window_scale(window_info *win, float scale_factor);
 
 /*!
  * \ingroup elwindows

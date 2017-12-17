@@ -52,18 +52,13 @@ int click_map_handler (window_info *win, int mx, int my, Uint32 flags)
 	Uint32 right_click = flags & ELW_RIGHT_MOUSE;
 	float scale = (float) (win->len_x-hud_x) / 300.0f;
 
+	if (hud_click(win, mx, my, flags))
+		return 1;
+
 	if (left_click && mx > 0 && mx < 50*scale && my > 0 && my < 55*scale)
 	{
 		showing_continent = !showing_continent;
-#ifdef	NEW_TEXTURES
 		inspect_map_text = 0;
-#else	/* NEW_TEXTURES */
-		if(inspect_map_text != 0)
-		{
-			glDeleteTextures(1,&inspect_map_text);
-			inspect_map_text = 0;
-		}
-#endif	/* NEW_TEXTURES */
 	}
 	else if (!showing_continent && inspect_map_text == 0)
 	{
@@ -105,16 +100,7 @@ int click_map_handler (window_info *win, int mx, int my, Uint32 flags)
 					{
 						/* Load this map's bmp */
 						if(cur_map != i) {
-#ifdef	NEW_TEXTURES
 							inspect_map_text = load_texture_cached(continent_maps[i].name, tt_image);
-#else	/* NEW_TEXTURES */
-							texture_cache_struct tex;
-							size_t name_len;
-							my_strcp(tex.file_name,continent_maps[i].name);
-							name_len = strlen(tex.file_name);
-							sprintf(tex.file_name+name_len-3, "bmp");
-							inspect_map_text = load_bmp8_fixed_alpha(&tex, 128);
-#endif	/* NEW_TEXTURES */
 						}
 #ifdef DEBUG_MAP_SOUND
 						cur_tab_map = i;
@@ -137,11 +123,10 @@ int display_map_handler (window_info * win)
 	// are we actively drawing things?
 	if (SDL_GetAppState () & SDL_APPACTIVE)
 	{
-		draw_hud_interface ();
+		draw_hud_interface (win);
 		Leave2DMode ();
 		if(reload_tab_map && map_root_win >= 0 && windows_list.window[map_root_win].displayed){
 			//need to reload the BMP
-			switch_from_game_map();
 			switch_to_game_map();
 		}
 		draw_game_map (!showing_continent, mouse_over_minimap);
@@ -150,24 +135,7 @@ int display_map_handler (window_info * win)
 		reload_tab_map = 0;
 	}	
 
-	if(special_effects){
-		display_special_effects(0);
-	}
-
-	// remember the time stamp to improve FPS quality when switching modes
-	next_fps_time=cur_time+1000;
-	last_count=0;
-
-	ec_idle();
-
-
-	missiles_update();
-    update_camera();
-
-	draw_delay = 20;
-
-	if ((input_widget!= NULL) && (input_widget->window_id != win->window_id))
-		input_widget_move_to_win(win->window_id);
+	display_handling_common(win);
 
 	return 1;
 }
@@ -175,6 +143,9 @@ int display_map_handler (window_info * win)
 int mouseover_map_handler (window_info *win, int mx, int my)
 {
 	float scale = (float) (win->len_x-hud_x) / 300.0f;
+
+	if (hud_mouse_over(win, mx, my))
+		return 1;
 
 	if (mx > 0 && mx < 50*scale && my > 0 && my < 55*scale)
 	{
@@ -229,17 +200,7 @@ int keypress_map_handler (window_info *win, int mx, int my, Uint32 key, Uint32 u
 	}
 	else if (key == K_MAP)
 	{
-		if (keep_grabbing_mouse)
-		{
-			toggle_have_mouse();
-			keep_grabbing_mouse=0;
-		}
-		switch_from_game_map ();
-		hide_window (map_root_win);
-		show_window (game_root_win);
-		// Undo stupid quickbar hack
-		if ( !get_show_window (quickbar_win) )
-			show_window (quickbar_win);
+		return_to_gamewin_common();
 	}
 	else if (mark_filter_active && !adding_mark)
 	{
@@ -250,7 +211,6 @@ int keypress_map_handler (window_info *win, int mx, int my, Uint32 key, Uint32 u
 		reset_tab_completer();
 		if (ch == '`' || key == K_CONSOLE)
 		{
-			switch_from_game_map ();
 			hide_window (map_root_win);
 			show_window (console_root_win);
 		}
@@ -268,7 +228,6 @@ int show_map_handler (window_info *win)
 {
 	hide_window(book_win);
 	hide_window(paper_win);
-	hide_window(color_race_win);
 	hide_window(tab_bar_win);
 	return 1;
 }
@@ -283,7 +242,7 @@ void create_map_root_window (int width, int height)
 {
 	if (map_root_win < 0)
 	{
-		map_root_win = create_window ("Map", -1, -1, 0, 0, width, height, ELW_TITLE_NONE|ELW_SHOW_LAST);
+		map_root_win = create_window ("Map", -1, -1, 0, 0, width, height, ELW_USE_UISCALE|ELW_TITLE_NONE|ELW_SHOW_LAST);
 	
 		set_window_handler (map_root_win, ELW_HANDLER_DISPLAY, &display_map_handler);
 		set_window_handler (map_root_win, ELW_HANDLER_KEYPRESS, &keypress_map_handler);

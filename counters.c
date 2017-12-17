@@ -23,7 +23,6 @@
 #include "gamewin.h"
 
 #define NUM_COUNTERS 14
-#define NUM_LINES 18
 #define MAX(a,b) (a > b ? a : b)
 
 /* Counter IDs */
@@ -66,7 +65,8 @@ static int last_selected_counter_id = KILLS;
 static int sort_counter_id = KILLS;
 static int entries[NUM_COUNTERS];
 static int sort_by[NUM_COUNTERS];
-static int multiselect_id;
+static int multiselect_id = -1;
+static int NUM_LINES = 0;
 
 static int mouseover_name = 0;
 static int mouseover_session = 0;
@@ -82,7 +82,26 @@ static char to_count_name[128];
 static char *spell_names[128] = { NULL };
 static int requested_spell_id = -1;
 
-static const char *cat_str[NUM_COUNTERS] = { "Kills", "Deaths", "Harvests", "Alchemy", "Crafting", "Manufac.",
+static int margin_y_len = 0;
+static int left_panel_width = 0;
+static int name_x_start = 0;
+static int name_x_end = 0;
+static int session_x_start = 0;
+static int session_x_end = 0;
+static int session_x_num_start = 0;
+static int total_x_start = 0;
+static int total_x_num_start = 0;
+static int total_x_end = 0;
+static int space_y = 0;
+static int step_y = 0;
+
+// put these in translate module
+static const char *name_str = "Name";
+static const char *session_str = "This Session";
+static const char *total_str = "Total";
+static const char *totals_str = "Totals:";
+
+static const char *cat_str[NUM_COUNTERS] = { "Kills", "Deaths", "Harvests", "Alchemy", "Crafting", "Manufacturing",
 	"Potions", "Spells", "Summons", "Engineering", "Breakages", "Events", "Tailoring", "Crit Fails" };
 
 static const char *temp_event_string[] =
@@ -129,7 +148,6 @@ char harvest_name[32] = {0};
 int killed_by_player = 0;
 char last_spell_name[60] = {0};
 
-int counters_win = -1;
 int counters_scroll_id = 16;
 
 void increment_counter(int counter_id, const char *name, int quantity, int extra);
@@ -201,7 +219,7 @@ FILE *open_counters_file(char *mode)
 	return open_file_config(filename, mode);
 }
 
-void load_counters()
+void load_counters(void)
 {
 	FILE *f;
 	int i, j;
@@ -292,7 +310,7 @@ void load_counters()
 	LEAVE_DEBUG_MARK("load counters");
 }
 
-void flush_counters()
+void flush_counters(void)
 {
 	FILE *f;
 	int i, j;
@@ -331,7 +349,7 @@ void flush_counters()
 	LEAVE_DEBUG_MARK("flush counters");
 }
 
-void cleanup_counters()
+void cleanup_counters(void)
 {
 	int i, j;
 
@@ -373,7 +391,7 @@ void increment_counter(int counter_id, const char *name, int quantity, int extra
 	int i, j;
 	int new_entry = 1;
 
-	//printf("%s: counter_id=%d name=[%s] quantity=%d extra=%d\n", __FUNCTION__, counter_id, name, quantity, extra);
+	//printf("%s: counter_id=%u name=[%s] quantity=%u extra=%d\n", __FUNCTION__, counter_id, name, quantity, extra);
 
 	if(name == 0 || strlen(name)<1 || strlen(name)>100){
 		//doesn't seem to have a real name, so no point saving it
@@ -408,7 +426,7 @@ void increment_counter(int counter_id, const char *name, int quantity, int extra
 	if (floating_session_counters && (floating_counter_flags & (1 << i)))
 	{
 		char str[128];
-		safe_snprintf(str, sizeof(str), "%s: %d", name, counters[i][j].n_session);
+		safe_snprintf(str, sizeof(str), "%s: %u", name, counters[i][j].n_session);
 		add_floating_message(yourself, str, FLOATINGMESSAGE_NORTH, 0.3, 0.3, 1.0, 1500);
 	}
 
@@ -436,11 +454,11 @@ void decrement_counter(int counter_id, char *name, int quantity, int extra)
 static void cm_counters_pre_show_handler(window_info *win, int widget_id, int mx, int my, window_info *cm_win)
 {
 	// get the counter id and entry indices
-	cm_selected_id = multiselect_get_selected(counters_win, multiselect_id);
+	cm_selected_id = multiselect_get_selected(win->window_id, multiselect_id);
 	cm_entry_count = entries[cm_selected_id];
-	cm_selected_entry = (my - 30) / 16;
+	cm_selected_entry = (my - (margin_y_len + space_y)) / step_y;
 	if (counters_scroll_id != -1)
-		cm_selected_entry += vscrollbar_get_pos(counters_win, counters_scroll_id);
+		cm_selected_entry += vscrollbar_get_pos(win->window_id, counters_scroll_id);
 
 	// if not a valid entry, the menu options are greyed out
 	{
@@ -488,11 +506,11 @@ static void print_category(size_t cat, int just_session)
 		{
 			if (counters[cat][i].n_session <= 0)
 				continue;
-			safe_snprintf(buf, sizeof(buf), "%12d %12d  %s",
+			safe_snprintf(buf, sizeof(buf), "%11u %11u  %s",
 				counters[cat][i].n_session, counters[cat][i].n_total, counters[cat][i].name);
 		}
 		else
-			safe_snprintf(buf, sizeof(buf), "%12d  %s", counters[cat][i].n_total, counters[cat][i].name);
+			safe_snprintf(buf, sizeof(buf), "%11u  %s", counters[cat][i].n_total, counters[cat][i].name);
 		LOG_TO_CONSOLE(c_grey1,buf);
 	}
 }
@@ -560,7 +578,7 @@ static int cm_counters_handler(window_info *win, int widget_id, int mx, int my, 
 
 		case 4:		// set the floating flag from the control var
 			{
-				int flagbit = multiselect_get_selected(counters_win, multiselect_id);
+				int flagbit = multiselect_get_selected(win->window_id, multiselect_id);
 				if (cm_floating_flag)
 				{
 					floating_counter_flags |= 1 << flagbit;
@@ -595,41 +613,77 @@ static int cm_counters_handler(window_info *win, int widget_id, int mx, int my, 
 	return 1;
 }
 
-void fill_counters_win()
+
+static int resize_counters_handler(window_info *win, int new_width, int new_height)
 {
-	int idx = selected_counter_id > 0 ? selected_counter_id-1 : 0;
-	
-	set_window_handler(counters_win, ELW_HANDLER_DISPLAY, &display_counters_handler);
-	set_window_handler(counters_win, ELW_HANDLER_CLICK, &click_counters_handler);
-	set_window_handler(counters_win, ELW_HANDLER_MOUSEOVER, &mouseover_counters_handler);
+	size_t i;
+	int max_label_len = 0;
+	int current_selected;
+	int butt_y[NUM_COUNTERS] = {0, 1, 5, 6, 7, 8, 9, 10, 11, 12, 2, 4, 13, 3 };
+	int gap_x = win->small_font_len_x / 2;
 
-	multiselect_id = multiselect_add(counters_win, NULL, 8, 2, 104);
-	multiselect_button_add(counters_win, multiselect_id, 0, 0, cat_str[0], 1);
-	multiselect_button_add(counters_win, multiselect_id, 0, 25, cat_str[1], 0);
-	multiselect_button_add(counters_win, multiselect_id, 0, 125, cat_str[2], 0);
-	multiselect_button_add(counters_win, multiselect_id, 0, 150, cat_str[3], 0);
-	multiselect_button_add(counters_win, multiselect_id, 0, 175, cat_str[4], 0);
-	multiselect_button_add(counters_win, multiselect_id, 0, 200, cat_str[5], 0);
-	multiselect_button_add(counters_win, multiselect_id, 0, 225, cat_str[6], 0);
-	multiselect_button_add(counters_win, multiselect_id, 0, 250, cat_str[7], 0);
-	multiselect_button_add(counters_win, multiselect_id, 0, 275, cat_str[8], 0);
-	multiselect_button_add(counters_win, multiselect_id, 0, 300, cat_str[9], 0);
-	multiselect_button_add(counters_win, multiselect_id, 0, 50, cat_str[10], 0);
-	multiselect_button_add(counters_win, multiselect_id, 0, 100, cat_str[11], 0);
-	multiselect_button_add(counters_win, multiselect_id, 0, 325, cat_str[12], 0);
-	multiselect_button_add(counters_win, multiselect_id, 0, 75, cat_str[13], 0);
+	for (i=0; i<NUM_COUNTERS; i++)
+		if (strlen(cat_str[i]) > max_label_len)
+			max_label_len = strlen(cat_str[i]);
 
-	counters_scroll_id = vscrollbar_add_extended(counters_win,
-			counters_scroll_id, NULL,
-			STATS_TAB_WIDTH - 20, 25, 20,
-			STATS_TAB_HEIGHT - 50, 0,
-			1.0f, newcol_r, newcol_g, newcol_b,
-			0, 1, MAX(0, entries[idx] - NUM_LINES));
+	left_panel_width = 2 * gap_x + max_label_len * win->small_font_len_x + 2 * (int)(DEFAULT_SMALL_RATIO * win->current_scale * BUTTONRADIUS);
+	name_x_start = left_panel_width + gap_x;
+	name_x_end = name_x_start + (int)(0.5 + win->small_font_len_x * (float)strlen(name_str));
+
+	total_x_end = win->len_x - win->box_size - gap_x;
+	total_x_start = total_x_end - (int)(0.5 + win->small_font_len_x * (float)strlen(total_str));
+	total_x_num_start = total_x_end - (int)(0.5 + win->small_font_len_x * 11);
+
+	session_x_end = total_x_num_start - (int)(0.5 + win->small_font_len_x);
+	session_x_start = session_x_end - (int)(0.5 + win->small_font_len_x * (float)strlen(session_str));
+	session_x_num_start = session_x_end - (int)(0.5 + win->small_font_len_x * 11);
+
+	margin_y_len = win->small_font_len_y * 1.5;
+	space_y = win->small_font_len_y / 2;
+	step_y = win->small_font_len_y;
+	NUM_LINES = (int)((new_height - 2 * margin_y_len - 2 * space_y) / step_y);
+
+	// for now, destory then re-create the buttons as there is no clear way to resize them
+	if (multiselect_id >= 0)
+	{
+		current_selected = multiselect_get_selected(win->window_id, multiselect_id);
+		widget_destroy(win->window_id, multiselect_id);
+		multiselect_id = -1;
+	}
+	else
+		current_selected = 0;
+
+	widget_resize(win->window_id, counters_scroll_id, win->box_size, win->len_y - 2 * margin_y_len);
+	widget_move(win->window_id, counters_scroll_id, win->len_x - win->box_size, margin_y_len);
+	vscrollbar_set_bar_len(win->window_id, counters_scroll_id, MAX(0, entries[current_selected] - NUM_LINES));
+
+	cm_remove_regions(win->window_id);
+	cm_add_region(cm_counters, win->window_id, left_panel_width, (margin_y_len + space_y),
+		win->len_x - win->box_size - left_panel_width, NUM_LINES * step_y);
+
+	multiselect_id = multiselect_add(win->window_id, NULL, gap_x, gap_x, left_panel_width - 2 * gap_x);
+	for (i=0; i<NUM_COUNTERS; i++)
+		multiselect_button_add_extended(win->window_id, multiselect_id,
+			0, (int)((new_height - gap_x) / NUM_COUNTERS) * butt_y[i], 0, cat_str[i], DEFAULT_SMALL_RATIO * win->current_scale, i==0);
+
+	multiselect_set_selected(win->window_id, multiselect_id, current_selected);
+
+	return 0;
+}
+
+void fill_counters_win(int window_id)
+{
+	set_window_handler(window_id, ELW_HANDLER_DISPLAY, &display_counters_handler);
+	set_window_handler(window_id, ELW_HANDLER_CLICK, &click_counters_handler);
+	set_window_handler(window_id, ELW_HANDLER_MOUSEOVER, &mouseover_counters_handler);
+	set_window_handler(window_id, ELW_HANDLER_RESIZE, &resize_counters_handler);
+
+	counters_scroll_id = vscrollbar_add_extended(window_id, counters_scroll_id, NULL, 0, 0, 0, 0, 0,
+		1.0f, newcol_r, newcol_g, newcol_b, 0, 1, 0);
 
 	if (cm_counters == CM_INIT_VALUE)
 	{
 		cm_counters = cm_create(cm_counters_menu_str, cm_counters_handler);
-		cm_add_region(cm_counters, counters_win, 120, 30, STATS_TAB_WIDTH-140, NUM_LINES*16);
 		cm_set_pre_show_handler(cm_counters, cm_counters_pre_show_handler);
 		cm_bool_line(cm_counters, 4, &cm_floating_flag, NULL);
 	}
@@ -642,18 +696,18 @@ int display_counters_handler(window_info *win)
 	int total, session_total;
 	char buffer[32];
 
-	i = multiselect_get_selected(counters_win, multiselect_id);
+	i = multiselect_get_selected(win->window_id, multiselect_id);
 	selected_counter_id = i + 1;
 
 	if (selected_counter_id != last_selected_counter_id) {
-		vscrollbar_set_bar_len(counters_win, counters_scroll_id, MAX(0, entries[i] - NUM_LINES));
-		vscrollbar_set_pos(counters_win, counters_scroll_id, 0);
+		vscrollbar_set_bar_len(win->window_id, counters_scroll_id, MAX(0, entries[i] - NUM_LINES));
+		vscrollbar_set_pos(win->window_id, counters_scroll_id, 0);
 		last_selected_counter_id = selected_counter_id;
 		selected_entry = -1;
 	}
 
-	x = 120;
-	y = 8;
+	x = left_panel_width;
+	y = (int)(0.5 + win->current_scale * 8);
 	
 	glDisable(GL_TEXTURE_2D);
 	glColor3f(newcol_r, newcol_g, newcol_b);
@@ -662,31 +716,31 @@ int display_counters_handler(window_info *win)
 	glVertex3i(x, 0, 0);
 	glVertex3i(x, win->len_y, 0);
 	
-	glVertex3i(x, 25, 0);
-	glVertex3i(win->len_x, 25, 0);
+	glVertex3i(x, margin_y_len, 0);
+	glVertex3i(win->len_x, margin_y_len, 0);
 	
-	glVertex3i(x, win->len_y-25, 0);
-	glVertex3i(win->len_x, win->len_y-25, 0);
+	glVertex3i(x, win->len_y-margin_y_len, 0);
+	glVertex3i(win->len_x, win->len_y-margin_y_len, 0);
 
 	glEnd();
 	glEnable(GL_TEXTURE_2D);
 
-	x += 10;
+	x = name_x_start;
 
 	if (mouseover_name) glColor3f(0.6f, 0.6f, 0.6f);
 	else glColor3f(1.0f, 1.0f, 1.0f);
-	draw_string_small(x, y, (unsigned char*)"Name", 1);
+	draw_string_small_zoomed(x, y, (unsigned char*)name_str, 1, win->current_scale);
 
 	if (mouseover_session) glColor3f(0.6f, 0.6f, 0.6f);
 	else glColor3f(1.0f, 1.0f, 1.0f);
-	draw_string_small(x + 200, y, (unsigned char*)"This Session", 1);
+	draw_string_small_zoomed(session_x_start, y, (unsigned char*)session_str, 1, win->current_scale);
 
 	if (mouseover_total) glColor3f(0.6f, 0.6f, 0.6f);
 	else glColor3f(1.0f, 1.0f, 1.0f);
-	draw_string_small(x + 370, y, (unsigned char*)"Total", 1);
+	draw_string_small_zoomed(total_x_start, y, (unsigned char*)total_str, 1, win->current_scale);
 
 	if (counters_scroll_id != -1) {
-		scroll = vscrollbar_get_pos(counters_win, counters_scroll_id);
+		scroll = vscrollbar_get_pos(win->window_id, counters_scroll_id);
 	} else {
 		scroll = 0;
 	}
@@ -694,8 +748,8 @@ int display_counters_handler(window_info *win)
 	if (cm_window_shown() != cm_counters)
 		cm_selected_entry = -1;
 	
-	for (j = scroll, n = 0, y = 30; j < entries[i]; j++, n++) {
-		int mouse_over_this_entry = ((mouseover_entry_y >= y) && (mouseover_entry_y < y+16));
+	for (j = scroll, n = 0, y = margin_y_len + space_y; j < entries[i]; j++, n++) {
+		int mouse_over_this_entry = ((mouseover_entry_y >= y) && (mouseover_entry_y < y+step_y));
 
 		if (n == NUM_LINES)
 			break;
@@ -717,55 +771,55 @@ int display_counters_handler(window_info *win)
 			glColor3f(1.0f, 1.0f, 1.0f);
 
 		/* draw first so left padding does not overwrite name */
-		safe_snprintf(buffer, sizeof(buffer), "%12d", counters[i][j].n_session);
-		draw_string_small(x + 200, y, (unsigned char*)buffer, 1);
-		safe_snprintf(buffer, sizeof(buffer), "%12d", counters[i][j].n_total);
-		draw_string_small(x + 314, y, (unsigned char*)buffer, 1);
+		safe_snprintf(buffer, sizeof(buffer), "%11u", counters[i][j].n_session);
+		draw_string_small_zoomed(session_x_num_start, y, (unsigned char*)buffer, 1, win->current_scale);
+		safe_snprintf(buffer, sizeof(buffer), "%11u", counters[i][j].n_total);
+		draw_string_small_zoomed(total_x_num_start, y, (unsigned char*)buffer, 1, win->current_scale);
 
 		if (counters[i][j].name) {
 			float max_name_x;
-			float font_ratio = 8.0/12.0;
-			safe_snprintf(buffer, sizeof(buffer), "%d", counters[i][j].n_session);
-			max_name_x = 425.0 - (130.0 + get_string_width((unsigned char*)buffer) * font_ratio);
+			float font_ratio = win->small_font_len_x/12.0;
+			safe_snprintf(buffer, sizeof(buffer), "%u", counters[i][j].n_session);
+			max_name_x = session_x_end - name_x_start - (get_string_width((unsigned char*)buffer) * font_ratio);
 			/* if the name would overlap the session total, truncate it */
 			if ((get_string_width((unsigned char*)counters[i][j].name) * font_ratio) > max_name_x) {
 				const char *append_str = "... ";
 				size_t dest_max_len = strlen(counters[i][j].name) + strlen(append_str) + 1;
 				char *used_name = (char *)malloc(dest_max_len);
 				truncated_string(used_name, counters[i][j].name, dest_max_len, append_str, max_name_x, font_ratio);
-				draw_string_small(x, y, (unsigned char*)used_name, 1);
+				draw_string_small_zoomed(x, y, (unsigned char*)used_name, 1, win->current_scale);
 				/* if the mouse is over this line and its truncated, tooltip to full name */
-				if (mouseover_entry_y >= y && mouseover_entry_y < y+16) {
-					show_help(counters[i][j].name, -TAB_MARGIN, win->len_y+10+TAB_MARGIN);
+				if (mouseover_entry_y >= y && mouseover_entry_y < y+step_y) {
+					show_help(counters[i][j].name, -TAB_MARGIN, win->len_y+10+TAB_MARGIN, win->current_scale);
 					counters_show_win_help = 0;
 				}
 				free(used_name);
 			}
 			else
-				draw_string_small(x, y, (unsigned char*)counters[i][j].name, 1);
+				draw_string_small_zoomed(x, y, (unsigned char*)counters[i][j].name, 1, win->current_scale);
 		}
-		y += 16;
+		y += step_y;
 	}
 
 	if (counters_show_win_help) {
-		show_help(cm_help_options_str, -TAB_MARGIN, win->len_y+10+TAB_MARGIN);
+		show_help(cm_help_options_str, -TAB_MARGIN, win->len_y+10+TAB_MARGIN, win->current_scale);
 		counters_show_win_help = 0;
 	}
 
 	glColor3f(1.0f, 1.0f, 1.0f);
 
-	draw_string_small(x, win->len_y - 20, (unsigned char*)"Totals:", 1);
-		
+	draw_string_small_zoomed(x, win->len_y - (margin_y_len - space_y), (unsigned char*)totals_str, 1, win->current_scale);
+
 	for (j = 0, total = 0, session_total = 0; j < entries[i]; j++) {
 		total += counters[i][j].n_total;
 		session_total += counters[i][j].n_session;
 	}
 
-	safe_snprintf(buffer, sizeof(buffer), "%12d", session_total);
-	draw_string_small(x + 200, win->len_y - 20, (unsigned char*)buffer, 1);
+	safe_snprintf(buffer, sizeof(buffer), "%11u", session_total);
+	draw_string_small_zoomed(session_x_num_start, win->len_y - (margin_y_len - space_y), (unsigned char*)buffer, 1, win->current_scale);
 
-	safe_snprintf(buffer, sizeof(buffer), "%5d", total);
-	draw_string_small(x + 370, win->len_y - 20, (unsigned char*)buffer, 1);
+	safe_snprintf(buffer, sizeof(buffer), "%11u", total);
+	draw_string_small_zoomed(total_x_num_start, win->len_y - (margin_y_len - space_y), (unsigned char*)buffer, 1, win->current_scale);
 #ifdef OPENGL_TRACE
 CHECK_GL_ERRORS();
 #endif //OPENGL_TRACE
@@ -774,14 +828,14 @@ CHECK_GL_ERRORS();
 
 int click_counters_handler(window_info *win, int mx, int my, Uint32 extra)
 {
-	 if (mx > 120 && my > 25 && my < win->len_y - 25) {
+	 if (mx > left_panel_width && my > margin_y_len && my < win->len_y - margin_y_len) {
 		if (extra&ELW_WHEEL_UP) {
-			vscrollbar_scroll_up(counters_win, counters_scroll_id);
+			vscrollbar_scroll_up(win->window_id, counters_scroll_id);
 			return 1;
 		}
 
 		if (extra&ELW_WHEEL_DOWN) {
-			vscrollbar_scroll_down(counters_win, counters_scroll_id);
+			vscrollbar_scroll_down(win->window_id, counters_scroll_id);
 			return 1;
 		}
 
@@ -823,27 +877,29 @@ int mouseover_counters_handler(window_info *win, int mx, int my)
 	mouseover_name = mouseover_session = mouseover_total = 0;
 	mouseover_entry_y = -1;
 
-	if ((mx > 120) && (mx < (STATS_TAB_WIDTH-20)) && (my > 30) && (my < (30+NUM_LINES*16)))
+	if ((mx > left_panel_width) && (mx < (win->len_x - win->box_size)) &&
+			(my > (margin_y_len + space_y)) && (my < ((margin_y_len + space_y) + NUM_LINES * step_y )))
 		counters_show_win_help = 1;
 
-	if (my > 25){
-		if (my > 30 && my < (30+NUM_LINES*16) && mx >= 130 && mx <= 540) {
+	if (my > margin_y_len){
+		if (my > (margin_y_len + space_y) && my < ((margin_y_len + space_y) + NUM_LINES * step_y)
+				&& mx >= left_panel_width && mx <= (win->len_x - win->box_size)) {
 			mouseover_entry_y = my;
 		}
 		return 0;
 	}
 	
-	if (mx >= 130 && mx <= 165) {
+	if (mx >= name_x_start && mx <= name_x_end) {
 		mouseover_name = 1;
 		return 0;
 	}
 
-	if (mx >= 330 && mx <= 425) {
+	if (mx >= session_x_start && mx <= session_x_end) {
 		mouseover_session = 1;
 		return 0;
 	}
 
-	if (mx >= 500 &&  mx <= 540) {
+	if (mx >= total_x_start &&  mx <= total_x_end) {
 		mouseover_total = 1;
 		return 0;
 	}
@@ -939,7 +995,7 @@ void increment_death_counter(actor *a)
 		/* count deaths that happend while harvesting, may not have been due to harvest event though */
 		if (now_harvesting()) {
 			/* a crude check to see if death was just after (1 second should be enough) a harvest event */
-			if (abs(SDL_GetTicks() - misc_event_time) < 1000) {
+			if ((SDL_GetTicks() - misc_event_time) < 1000) {
 				increment_counter(DEATHS, "Harvesting event", 1, 0);
 				found_death_reason = 1;
 			}
@@ -1020,32 +1076,32 @@ void counters_set_product_info(char *name, int count)
 	product_count = count;
 }
 
-void increment_alchemy_counter()
+void increment_alchemy_counter(void)
 {
 	increment_product_counter(ALCHEMY, product_name, product_count, 0);
 }
 
-void increment_crafting_counter()
+void increment_crafting_counter(void)
 {
 	increment_product_counter(CRAFTING, product_name, product_count, 0);
 }
 
-void increment_engineering_counter()
+void increment_engineering_counter(void)
 {
 	increment_product_counter(ENGINEERING, product_name, product_count, 0);
 }
 
-void increment_tailoring_counter()
+void increment_tailoring_counter(void)
 {
 	increment_product_counter(TAILORING, product_name, product_count, 0);
 }
 
-void increment_potions_counter()
+void increment_potions_counter(void)
 {
 	increment_product_counter(POTIONS, product_name, product_count, 0);
 }
 
-void increment_manufacturing_counter()
+void increment_manufacturing_counter(void)
 {
 	increment_product_counter(MANUFACTURING, product_name, product_count, 0);
 }
@@ -1110,7 +1166,7 @@ void increment_spell_counter(int spell_id)
 	}
 }
 
-void increment_summon_manu_counter()
+void increment_summon_manu_counter(void)
 {
 	increment_product_counter(SUMMONS, product_name, product_count, 0);
 }
@@ -1139,7 +1195,7 @@ void increment_movement_counter()
 }
 
 
-void reset_session_counters()
+void reset_session_counters(void)
 {
 	int i, j;
 

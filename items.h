@@ -77,10 +77,6 @@ extern item item_list[ITEM_NUM_ITEMS]; /*!< global list of items */
 
 extern struct quantities quantities; /*!< Quantities displayed in the items window*/
 
-extern void strap_word(char * in, char * out);
-extern ground_item ground_item_list[ITEMS_PER_BAG];
-extern bag bag_list[NUM_BAGS];
-
 extern int item_action_mode;
 
 /*! \name windows handlers */
@@ -118,7 +114,6 @@ extern int items_stoall_nolastrow;
 extern int items_dropall_nofirstrow;
 extern int items_dropall_nolastrow;
 
-extern int items_auto_get_all;
 extern int items_list_on_left;
 
 extern int item_uid_enabled;
@@ -280,10 +275,8 @@ void update_cooldown ();
  */
 void set_shown_string(char colour_code, const char *the_text);
 
-#ifdef	NEW_TEXTURES
 void get_item_uv(const Uint32 item, float* u_start, float* v_start,
 	float* u_end, float* v_end);
-#endif	/* NEW_TEXTURES */
 
 #ifdef __cplusplus
 } // extern "C"

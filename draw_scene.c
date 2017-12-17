@@ -120,12 +120,10 @@ void draw_scene()
 
 	if (!have_display)
 	{
-		new_zoom_level = zoom_level;	// No scrolling when switching modes...
-		if (quickbar_relocatable && quickbar_win >= 0) // Hack 
-		{
-			if (get_show_window (quickbar_win) && windows_list.window[quickbar_win].cur_x < window_width - hud_x && window_height - windows_list.window[quickbar_win].cur_y > hud_y)
-				hide_window (quickbar_win);
-		}
+		// No scrolling when switching modes...
+		new_zoom_level = zoom_level;
+		// Hide the moveable hud windows if they are not on the bottom or side hud bar
+		hide_moved_hud_windows();
 	}
 
 	glLoadIdentity ();	// Reset The Matrix
@@ -487,7 +485,7 @@ void update_camera()
 					new_zoom_level = 1.0;
 					camera_tilt_duration = camera_zoom_duration = 0;
 					camera_tilt_speed = 0.0;
-					if (fabsf(tz + camera_z + 0.2) < fabsf(vect[2]) - 0.01)
+					if (fabsf(tz + camera_z + 0.2f) < fabsf(vect[2]) - 0.01)
 						rx = -90.0 + 180.0 * asinf((tz + camera_z + 0.2) / vect[2]) / M_PI;
 				}
 				else if (new_zoom_level > old_zoom_level)
@@ -502,7 +500,7 @@ void update_camera()
 				new_zoom_level = old_zoom_level;
 				camera_tilt_duration = camera_zoom_duration = 0;
 				camera_tilt_speed = 0.0;
-				if (fabsf(tz + camera_z + 0.2) < fabsf(vect[2]) - 0.01)
+				if (fabsf(tz + camera_z + 0.2f) < fabsf(vect[2]) - 0.01)
 					rx = -90.0 + 180.0 * asinf((tz + camera_z + 0.2) / vect[2]) / M_PI;
 			}
 		}

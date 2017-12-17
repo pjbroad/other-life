@@ -35,9 +35,7 @@ extern int big_cursors;
 extern int sdl_cursors;
 extern float pointer_size;
 #endif // NEW_CURSOR
-#ifdef	NEW_TEXTURES
 extern Uint32 max_actor_texture_handles;
-#endif	/* NEW_TEXTURES */
 
 extern int write_ini_on_exit; /*< variable that determines if ini file is rewritten on exit of the program */
 
@@ -79,6 +77,8 @@ void display_elconfig_win(void);
 int get_rotate_chat_log(void);
 
 void change_language(const char *new_lang);
+
+extern float get_global_scale(void);
 
 /*!
  * \ingroup config

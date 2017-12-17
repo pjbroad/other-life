@@ -21,6 +21,7 @@
 #include "gamewin.h"
 #include "global.h"
 #include "hud.h"
+#include "hud_quickspells_window.h"
 #include "init.h"
 #include "interface.h"
 #include "knowledge.h"
@@ -843,10 +844,7 @@ void process_message_from_server (const Uint8 *in_data, int data_length)
 				if (login_root_win >= 0) destroy_window (login_root_win);
 				login_root_win = -1;
 				if (newchar_root_win >= 0) {
-					destroy_window (newchar_root_win);
-					hide_window( namepass_win );
-					hide_window( color_race_win );
-					hide_window( newchar_advice_win );
+					destroy_new_character_interface();
 				}
 				newchar_root_win = -1;
 				if (!get_show_window(console_root_win))
@@ -1073,10 +1071,7 @@ void process_message_from_server (const Uint8 *in_data, int data_length)
 				  LOG_WARNING("CAUTION: Possibly forged SPELL_ITEM_TEXT packet received.\n");
 				  break;
 				}
-				put_small_text_in_box(in_data+3, data_length-3, 6*51+100, (char*)spell_text);
-				if(sigil_win==-1||!windows_list.window[sigil_win].displayed)
-					put_text_in_buffer (CHAT_SERVER, in_data+3, data_length-3);
-				have_error_message=1;
+				spell_text_from_server(in_data+3, data_length-3);
 			}
 			break;
 
@@ -1087,7 +1082,7 @@ void process_message_from_server (const Uint8 *in_data, int data_length)
 				  LOG_WARNING("CAUTION: Possibly forged GET_KNOWLEDGE_TEXT packet received.\n");
 				  break;
 				}
-				put_small_text_in_box(&in_data[3],data_length-3,6*51+150,knowledge_string);
+				set_knowledge_string(&in_data[3],data_length-3);
 			}
 			break;
 
@@ -1529,8 +1524,7 @@ void process_message_from_server (const Uint8 *in_data, int data_length)
 				  LOG_WARNING("CAUTION: Possibly forged NPC_TEXT packet received.\n");
 				  break;
 				}
-				put_small_text_in_box(&in_data[3], data_length-3, dialogue_menu_x_len-70, (char*)dialogue_string);
-				display_dialogue();
+				display_dialogue(&in_data[3], data_length-3);
 				if (is_color (in_data[3]) && is_color (in_data[4]))
 				{
 					// double color code, this text

@@ -7,6 +7,7 @@
 #include "errors.h"
 #include "gl_init.h"
 #include "global.h"
+#include "hud_statsbar_window.h"
 #include "init.h"
 #include "knowledge.h"
 #include "session.h"
@@ -15,18 +16,13 @@
 #include "eye_candy_wrapper.h"
 #include "spells.h"
 
-int     stats_win= -1;
 player_attribs your_info;
 player_attribs someone_info;
 struct attributes_struct attributes;
-int attrib_menu_x=100;
-int attrib_menu_y=20;
-int attrib_menu_x_len=STATS_TAB_WIDTH;
-int attrib_menu_y_len=STATS_TAB_HEIGHT;
-//int attrib_menu_dragged=0;
 
-int check_grid_y_top=0;
-int check_grid_x_left=0;
+static int check_grid_y_top = 0;
+static int check_grid_x_left = 0;
+static int stats_y_step = 0;
 
 int have_stats=0;
 
@@ -51,7 +47,7 @@ int floatingmessages_enabled = 1;
 void floatingmessages_add_level(int actor_id, int level, const unsigned char * skillname);
 void floatingmessages_compare_stat(int actor_id, int value, int new_value, const unsigned char *skillname);
 
-void draw_stat_final(int len, int x, int y, const unsigned char * name, const char * value);
+static void draw_stat_final(window_info *win, int x, int y, const unsigned char * name, const char * value);
 
 #ifdef OTHER_LIFE
 
@@ -137,12 +133,12 @@ void get_partial_xattribs(Uint16 entry, Uint16 *data)
 		xattribs[entry].current = SDL_SwapLE16(*(Uint16 *)(data+1));
 }
 
-void draw_statx(int len, int x, int y, xattrib_struct xattr)
+void draw_statx(window_info *win, int x, int y, xattrib_struct xattr)
 {
         char str[9];
         safe_snprintf(str,sizeof(str),"%2i/%-2i",xattr.current,xattr.base);
         str[8]=0;
-        draw_stat_final(len,x,y,(const unsigned char*)xattr.name,str);
+        draw_stat_final(win,x,y,(const unsigned char*)xattr.name,str);
 }
 
 #endif
@@ -744,51 +740,54 @@ void init_attribf()
         your_info.eth.cur=get_cur_eth;
 }
 
-void draw_stat(int len, int x, int y, attrib_16 * var, names * name)
+static void draw_stat(window_info *win, int x, int y, attrib_16 * var, names * name)
 {
-        char str[9];
-        safe_snprintf(str,sizeof(str),"%2i/%-2i",var->cur,var->base);
-        str[8]=0;
-        draw_stat_final(len,x,y,name->name,str);
+        char str[10];
+        safe_snprintf(str,sizeof(str),"%3i/%-3i",var->cur,var->base);
+        str[9]=0;
+        draw_stat_final(win, x, y, name->name, str);
 }
 
-void draw_skill(int len, int x, int y, attrib_16 * lvl, names * name, int exp, int exp_next)
+static void draw_skill(window_info *win, int x, int y, attrib_16 * lvl, names * name, Uint32 exp, Uint32 exp_next)
 {
         char str[37];
         char lvlstr[9];
         char expstr[25];
 
-        safe_snprintf(lvlstr, sizeof(lvlstr), "%2i/%-2i", lvl->cur, lvl->base);
-        safe_snprintf(expstr,sizeof(expstr),"[%2i/%-2i]", exp, exp_next);
+        safe_snprintf(lvlstr, sizeof(lvlstr), "%3i/%-3i", lvl->cur, lvl->base);
+        safe_snprintf(expstr,sizeof(expstr),"%10u/%-10u", exp, exp_next);
         safe_snprintf(str, sizeof(str), "%-7s %-22s", lvlstr, expstr);
-        draw_stat_final(len, x, y, name->name, str);
+        draw_stat_final(win, x, y, name->name, str);
 }
 
-void draw_statf(int len, int x, int y, attrib_16f * var, names * name)
+static void draw_statf(window_info *win, int x, int y, attrib_16f * var, names * name)
 {
-        char str[9];
+        char str[10];
 
-        safe_snprintf(str,sizeof(str),"%2i/%-2i",var->cur(),var->base());
-        str[8]=0;
-        draw_stat_final(len,x,y,name->name,str);
+        safe_snprintf(str,sizeof(str),"%3i/%-3i",var->cur(),var->base());
+        str[9]=0;
+        draw_stat_final(win, x, y, name->name, str);
 }
 
-void draw_stat_final(int len, int x, int y, const unsigned char * name, const char * value)
+static void draw_stat_final(window_info *win, int x, int y, const unsigned char * name, const char * value)
 {
         char str[80];
 
         safe_snprintf(str,sizeof(str),"%-15s %s",name,value);
-        draw_string_small(x, y, (unsigned char*)str, 1);
+        draw_string_small_zoomed(x, y, (unsigned char*)str, 1, win->current_scale);
 }
 
 int display_stats_handler(window_info *win)
 {
         player_attribs cur_stats = your_info;
         char str[10];
-        int x,y;
+        int x = (0.5 + win->small_font_len_x / 2);
+        int c2_x_offset = (int)(0.5 + win->small_font_len_x * 26);
+        int start_y = (int)(0.5 + win->small_font_len_y / 2);
+        int y = start_y;
+        int y_gap_step = (int)(0.5 + win->small_font_len_y * 1.5 );
 
-        x=4;
-        y=5;
+        stats_y_step = (int)(0.5 + win->small_font_len_y);
 
 #ifdef OTHER_LIFE
 	if (use_xattribs)
@@ -797,281 +796,278 @@ int display_stats_handler(window_info *win)
 
 	        //cross attributes
 	        glColor3f(1.0f,1.0f,0.0f);
-	        draw_string_small(x,y,attributes.cross,1);
+	        draw_string_small_zoomed(x,y,attributes.cross,1,win->current_scale);
 
 		for(i=0; i<num_xattribs; i++)
 		{
 			if(xattribs[i].name[0] > 0)
 			{
-	        		y+=14;
-				draw_statx(24,x,y,xattribs[i]);
+				y+=stats_y_step;
+				draw_statx(win,x,y,xattribs[i]);
 			}
 		}
 	}
 	else
 	{
-	        draw_string_small(x,y,attributes.base,1);
-	        y+=14;
-	        draw_stat(24,x,y,&(cur_stats.phy),&(attributes.phy));
+	        draw_string_small_zoomed(x,y,attributes.base,1,win->current_scale);
+	        y+=stats_y_step;
+	        draw_stat(win,x,y,&(cur_stats.phy),&(attributes.phy));
 
-	        y+=14;
-	        draw_stat(24,x,y,&(cur_stats.coo),&(attributes.coo));
+	        y+=stats_y_step;
+	        draw_stat(win,x,y,&(cur_stats.coo),&(attributes.coo));
 
-	        y+=14;
-	        draw_stat(24,x,y,&(cur_stats.rea),&(attributes.rea));
+	        y+=stats_y_step;
+	        draw_stat(win,x,y,&(cur_stats.rea),&(attributes.rea));
 
-	        y+=14;
-	        draw_stat(24,x,y,&(cur_stats.wil),&(attributes.wil));
+	        y+=stats_y_step;
+	        draw_stat(win,x,y,&(cur_stats.wil),&(attributes.wil));
 
-	        y+=14;
-	        draw_stat(24,x,y,&(cur_stats.ins),&(attributes.ins));
+	        y+=stats_y_step;
+	        draw_stat(win,x,y,&(cur_stats.ins),&(attributes.ins));
 
-	        y+=14;
-	        draw_stat(24,x,y,&(cur_stats.vit),&(attributes.vit));
+	        y+=stats_y_step;
+	        draw_stat(win,x,y,&(cur_stats.vit),&(attributes.vit));
 
 	        //cross attributes
 	        glColor3f(1.0f,1.0f,0.0f);
-	        y+=20;
+	        y+=y_gap_step;
 
-	        draw_string_small(x,y,attributes.cross,1);
-	        y+=14;
-	        draw_statf(24,x,y,&(cur_stats.might),&(attributes.might));
+	        draw_string_small_zoomed(x,y,attributes.cross,1,win->current_scale);
+	        y+=stats_y_step;
+	        draw_statf(win,x,y,&(cur_stats.might),&(attributes.might));
 
-	        y+=14;
-	        draw_statf(24,x,y,&(cur_stats.matter),&(attributes.matter));
+	        y+=stats_y_step;
+	        draw_statf(win,x,y,&(cur_stats.matter),&(attributes.matter));
 
-	        y+=14;
-	        draw_statf(24,x,y,&(cur_stats.tough),&(attributes.tough));
+	        y+=stats_y_step;
+	        draw_statf(win,x,y,&(cur_stats.tough),&(attributes.tough));
 
-	        y+=14;
-	        draw_statf(24,x,y,&(cur_stats.charm),&(attributes.charm));
+	        y+=stats_y_step;
+	        draw_statf(win,x,y,&(cur_stats.charm),&(attributes.charm));
 
-	        y+=14;
-	        draw_statf(24,x,y,&(cur_stats.react),&(attributes.react));
+	        y+=stats_y_step;
+	        draw_statf(win,x,y,&(cur_stats.react),&(attributes.react));
 
-	        y+=14;
-	        draw_statf(24,x,y,&(cur_stats.perc),&(attributes.perc));
+	        y+=stats_y_step;
+	        draw_statf(win,x,y,&(cur_stats.perc),&(attributes.perc));
 
-	        y+=14;
-	        draw_statf(24,x,y,&(cur_stats.ration),&(attributes.ration));
+	        y+=stats_y_step;
+	        draw_statf(win,x,y,&(cur_stats.ration),&(attributes.ration));
 
-	        y+=14;
-	        draw_statf(24,x,y,&(cur_stats.dext),&(attributes.dext));
+	        y+=stats_y_step;
+	        draw_statf(win,x,y,&(cur_stats.dext),&(attributes.dext));
 
-	        y+=14;
-	        draw_statf(24,x,y,&(cur_stats.eth),&(attributes.eth));
+	        y+=stats_y_step;
+	        draw_statf(win,x,y,&(cur_stats.eth),&(attributes.eth));
 
 	        glColor3f(0.5f,0.5f,1.0f);
-	        y+=14;  // blank lines for spacing
-	        y+=14;  // blank lines for spacing
+	        y+=stats_y_step;  // blank line for spacing
 
-	        //other attribs
-	        y+=20;
-	        safe_snprintf(str, sizeof(str), "%i",cur_stats.food_level);
-	        draw_stat_final(24,x,y,attributes.food.name,str);
+	        y+=stats_y_step;
+	        draw_stat(win,x,y,&(cur_stats.material_points),&(attributes.material_points));
 
-	        y+=14;
-	        draw_stat(24,x,y,&(cur_stats.material_points),&(attributes.material_points));
+	        y+=stats_y_step;
+	        draw_stat(win,x,y,&(cur_stats.ethereal_points),&(attributes.ethereal_points));
 
-	        y+=14;
-	        draw_stat(24,x,y,&(cur_stats.ethereal_points),&(attributes.ethereal_points));
+	        y+=stats_y_step;
+	        draw_stat(win,x,y,&(cur_stats.action_points),&(attributes.action_points));
 
-	        y+=14;
-	        draw_stat(24,x,y,&(cur_stats.action_points),&(attributes.action_points));
+			//other info
+			y = win->len_y - win->small_font_len_y * 1.25;
+			safe_snprintf(str, sizeof(str), "%3i",cur_stats.food_level);
+			draw_stat_final(win,x,y,attributes.food.name,str);
 
-	        //other info
-	        safe_snprintf(str, sizeof(str), "%i",cur_stats.overall_skill.base-cur_stats.overall_skill.cur);
-	        draw_stat_final(24,199,y,attributes.pickpoints,str);
+			safe_snprintf(str, sizeof(str), "%3i",cur_stats.overall_skill.base-cur_stats.overall_skill.cur);
+			draw_stat_final(win,x+c2_x_offset,y,attributes.pickpoints,str);
 	}
 
         //nexuses here
         glColor3f(1.0f,1.0f,1.0f);
-        x+=195;
-        y=5;
+        x+=c2_x_offset;
+        y=start_y;
 
-        draw_string_small(x,y,attributes.nexus,1);
+        draw_string_small_zoomed(x,y,attributes.nexus,1,win->current_scale);
 
-        y+=14;
-        draw_stat(24,x,y,&(cur_stats.human_nex),&(attributes.human_nex));
+        y+=stats_y_step;
+        draw_stat(win,x,y,&(cur_stats.human_nex),&(attributes.human_nex));
 
-        y+=14;
-        draw_stat(24,x,y,&(cur_stats.animal_nex),&(attributes.animal_nex));
+        y+=stats_y_step;
+        draw_stat(win,x,y,&(cur_stats.animal_nex),&(attributes.animal_nex));
 
-        y+=14;
-        draw_stat(24,x,y,&(cur_stats.vegetal_nex),&(attributes.vegetal_nex));
+        y+=stats_y_step;
+        draw_stat(win,x,y,&(cur_stats.vegetal_nex),&(attributes.vegetal_nex));
 
-        y+=14;
-        draw_stat(24,x,y,&(cur_stats.inorganic_nex),&(attributes.inorganic_nex));
+        y+=stats_y_step;
+        draw_stat(win,x,y,&(cur_stats.inorganic_nex),&(attributes.inorganic_nex));
 
-        y+=14;
-        draw_stat(24,x,y,&(cur_stats.artificial_nex),&(attributes.artificial_nex));
+        y+=stats_y_step;
+        draw_stat(win,x,y,&(cur_stats.artificial_nex),&(attributes.artificial_nex));
 
-        y+=14;
-        draw_stat(24,x,y,&(cur_stats.magic_nex),&(attributes.magic_nex));
+        y+=stats_y_step;
+        draw_stat(win,x,y,&(cur_stats.magic_nex),&(attributes.magic_nex));
 
 #else
-        draw_string_small(x,y,attributes.base,1);
-        y+=14;
-        draw_stat(24,x,y,&(cur_stats.phy),&(attributes.phy));
+        draw_string_small_zoomed(x,y,attributes.base,1, win->current_scale);
+        y+=stats_y_step;
+        draw_stat(win,x,y,&(cur_stats.phy),&(attributes.phy));
 
-        y+=14;
-        draw_stat(24,x,y,&(cur_stats.coo),&(attributes.coo));
+        y+=stats_y_step;
+        draw_stat(win,x,y,&(cur_stats.coo),&(attributes.coo));
 
-        y+=14;
-        draw_stat(24,x,y,&(cur_stats.rea),&(attributes.rea));
+        y+=stats_y_step;
+        draw_stat(win,x,y,&(cur_stats.rea),&(attributes.rea));
 
-        y+=14;
-        draw_stat(24,x,y,&(cur_stats.wil),&(attributes.wil));
+        y+=stats_y_step;
+        draw_stat(win,x,y,&(cur_stats.wil),&(attributes.wil));
 
-        y+=14;
-        draw_stat(24,x,y,&(cur_stats.ins),&(attributes.ins));
+        y+=stats_y_step;
+        draw_stat(win,x,y,&(cur_stats.ins),&(attributes.ins));
 
-        y+=14;
-        draw_stat(24,x,y,&(cur_stats.vit),&(attributes.vit));
+        y+=stats_y_step;
+        draw_stat(win,x,y,&(cur_stats.vit),&(attributes.vit));
 
         //cross attributes
         glColor3f(1.0f,1.0f,0.0f);
-        y+=20;
+        y+=y_gap_step;
 
-        draw_string_small(x,y,attributes.cross,1);
-        y+=14;
-        draw_statf(24,x,y,&(cur_stats.might),&(attributes.might));
+        draw_string_small_zoomed(x,y,attributes.cross,1, win->current_scale);
+        y+=stats_y_step;
+        draw_statf(win,x,y,&(cur_stats.might),&(attributes.might));
 
-        y+=14;
-        draw_statf(24,x,y,&(cur_stats.matter),&(attributes.matter));
+        y+=stats_y_step;
+        draw_statf(win,x,y,&(cur_stats.matter),&(attributes.matter));
 
-        y+=14;
-        draw_statf(24,x,y,&(cur_stats.tough),&(attributes.tough));
+        y+=stats_y_step;
+        draw_statf(win,x,y,&(cur_stats.tough),&(attributes.tough));
 
-        y+=14;
-        draw_statf(24,x,y,&(cur_stats.charm),&(attributes.charm));
+        y+=stats_y_step;
+        draw_statf(win,x,y,&(cur_stats.charm),&(attributes.charm));
 
-        y+=14;
-        draw_statf(24,x,y,&(cur_stats.react),&(attributes.react));
+        y+=stats_y_step;
+        draw_statf(win,x,y,&(cur_stats.react),&(attributes.react));
 
-        y+=14;
-        draw_statf(24,x,y,&(cur_stats.perc),&(attributes.perc));
+        y+=stats_y_step;
+        draw_statf(win,x,y,&(cur_stats.perc),&(attributes.perc));
 
-        y+=14;
-        draw_statf(24,x,y,&(cur_stats.ration),&(attributes.ration));
+        y+=stats_y_step;
+        draw_statf(win,x,y,&(cur_stats.ration),&(attributes.ration));
 
-        y+=14;
-        draw_statf(24,x,y,&(cur_stats.dext),&(attributes.dext));
+        y+=stats_y_step;
+        draw_statf(win,x,y,&(cur_stats.dext),&(attributes.dext));
 
-        y+=14;
-        draw_statf(24,x,y,&(cur_stats.eth),&(attributes.eth));
+        y+=stats_y_step;
+        draw_statf(win,x,y,&(cur_stats.eth),&(attributes.eth));
 
+        // draw the point attributes
         glColor3f(0.5f,0.5f,1.0f);
-        y+=14;  // blank lines for spacing
-        y+=14;  // blank lines for spacing
 
-        //other attribs
-        y+=20;
-        safe_snprintf(str, sizeof(str), "%i",cur_stats.food_level);
-        draw_stat_final(24,x,y,attributes.food.name,str);
+        y+=y_gap_step;
+        draw_stat(win,x,y,&(cur_stats.material_points),&(attributes.material_points));
 
-        y+=14;
-        draw_stat(24,x,y,&(cur_stats.material_points),&(attributes.material_points));
+        y+=stats_y_step;
+        draw_stat(win,x,y,&(cur_stats.ethereal_points),&(attributes.ethereal_points));
 
-        y+=14;
-        draw_stat(24,x,y,&(cur_stats.ethereal_points),&(attributes.ethereal_points));
-
-        y+=14;
-        draw_stat(24,x,y,&(cur_stats.action_points),&(attributes.action_points));
+        y+=stats_y_step;
+        draw_stat(win,x,y,&(cur_stats.action_points),&(attributes.action_points));
 
         //other info
-        safe_snprintf(str, sizeof(str), "%i",cur_stats.overall_skill.base-cur_stats.overall_skill.cur);
-        draw_stat_final(24,205,y,attributes.pickpoints,str);
+        y = win->len_y - win->small_font_len_y * 1.25;
+        safe_snprintf(str, sizeof(str), "%3i",cur_stats.food_level);
+        draw_stat_final(win,x,y,attributes.food.name,str);
+
+        safe_snprintf(str, sizeof(str), "%3i",cur_stats.overall_skill.base-cur_stats.overall_skill.cur);
+        draw_stat_final(win,x+c2_x_offset,y,attributes.pickpoints,str);
 
         //nexuses here
         glColor3f(1.0f,1.0f,1.0f);
-        x+=200;
-        y=5;
+        x+=c2_x_offset;
+        y=start_y;
 
-        draw_string_small(x,y,attributes.nexus,1);
+        draw_string_small_zoomed(x,y,attributes.nexus,1, win->current_scale);
 
-        y+=14;
-        draw_stat(24,x,y,&(cur_stats.human_nex),&(attributes.human_nex));
+        y+=stats_y_step;
+        draw_stat(win,x,y,&(cur_stats.human_nex),&(attributes.human_nex));
 
-        y+=14;
-        draw_stat(24,x,y,&(cur_stats.animal_nex),&(attributes.animal_nex));
+        y+=stats_y_step;
+        draw_stat(win,x,y,&(cur_stats.animal_nex),&(attributes.animal_nex));
 
-        y+=14;
-        draw_stat(24,x,y,&(cur_stats.vegetal_nex),&(attributes.vegetal_nex));
+        y+=stats_y_step;
+        draw_stat(win,x,y,&(cur_stats.vegetal_nex),&(attributes.vegetal_nex));
 
-        y+=14;
-        draw_stat(24,x,y,&(cur_stats.inorganic_nex),&(attributes.inorganic_nex));
+        y+=stats_y_step;
+        draw_stat(win,x,y,&(cur_stats.inorganic_nex),&(attributes.inorganic_nex));
 
-        y+=14;
-        draw_stat(24,x,y,&(cur_stats.artificial_nex),&(attributes.artificial_nex));
+        y+=stats_y_step;
+        draw_stat(win,x,y,&(cur_stats.artificial_nex),&(attributes.artificial_nex));
 
-        y+=14;
-        draw_stat(24,x,y,&(cur_stats.magic_nex),&(attributes.magic_nex));
+        y+=stats_y_step;
+        draw_stat(win,x,y,&(cur_stats.magic_nex),&(attributes.magic_nex));
 #endif
-        y+=20;
+
+        y+=y_gap_step;
         //skills
         glColor3f(1.0f,0.5f,0.2f);
-        draw_string_small(x,y,attributes.skills,1);
+        draw_string_small_zoomed(x,y,attributes.skills,1, win->current_scale);
 
-        y+=14;
+        y+=stats_y_step;
 
         check_grid_x_left=x;
         check_grid_y_top=y;
 
         statsinfo[0].is_selected==1?glColor3f(1.0f,0.5f,0.5f):glColor3f(1.0f,0.5f,0.2f);
-        draw_skill(46,x,y,&(cur_stats.attack_skill),&(attributes.attack_skill),cur_stats.attack_exp,cur_stats.attack_exp_next_lev);
+        draw_skill(win,x,y,&(cur_stats.attack_skill),&(attributes.attack_skill),cur_stats.attack_exp,cur_stats.attack_exp_next_lev);
 
-        y+=14;
+        y+=stats_y_step;
         statsinfo[1].is_selected==1?glColor3f(1.0f,0.5f,0.5f):glColor3f(1.0f,0.5f,0.2f);
-        draw_skill(46,x,y,&(cur_stats.defense_skill),&(attributes.defense_skill),cur_stats.defense_exp,cur_stats.defense_exp_next_lev);
+        draw_skill(win,x,y,&(cur_stats.defense_skill),&(attributes.defense_skill),cur_stats.defense_exp,cur_stats.defense_exp_next_lev);
 
-        y+=14;
+        y+=stats_y_step;
         statsinfo[2].is_selected==1?glColor3f(1.0f,0.5f,0.5f):glColor3f(1.0f,0.5f,0.2f);
-        draw_skill(46,x,y,&(cur_stats.harvesting_skill),&(attributes.harvesting_skill),cur_stats.harvesting_exp,cur_stats.harvesting_exp_next_lev);
+        draw_skill(win,x,y,&(cur_stats.harvesting_skill),&(attributes.harvesting_skill),cur_stats.harvesting_exp,cur_stats.harvesting_exp_next_lev);
 
-        y+=14;
+        y+=stats_y_step;
         statsinfo[3].is_selected==1?glColor3f(1.0f,0.5f,0.5f):glColor3f(1.0f,0.5f,0.2f);
-        draw_skill(46,x,y,&(cur_stats.alchemy_skill),&(attributes.alchemy_skill),cur_stats.alchemy_exp,cur_stats.alchemy_exp_next_lev);
+        draw_skill(win,x,y,&(cur_stats.alchemy_skill),&(attributes.alchemy_skill),cur_stats.alchemy_exp,cur_stats.alchemy_exp_next_lev);
 
-        y+=14;
+        y+=stats_y_step;
         statsinfo[4].is_selected==1?glColor3f(1.0f,0.5f,0.5f):glColor3f(1.0f,0.5f,0.2f);
-        draw_skill(46,x,y,&(cur_stats.magic_skill),&(attributes.magic_skill),cur_stats.magic_exp,cur_stats.magic_exp_next_lev);
+        draw_skill(win,x,y,&(cur_stats.magic_skill),&(attributes.magic_skill),cur_stats.magic_exp,cur_stats.magic_exp_next_lev);
 
-        y+=14;
+        y+=stats_y_step;
         statsinfo[5].is_selected==1?glColor3f(1.0f,0.5f,0.5f):glColor3f(1.0f,0.5f,0.2f);
-        draw_skill(46,x,y,&(cur_stats.potion_skill),&(attributes.potion_skill),cur_stats.potion_exp,cur_stats.potion_exp_next_lev);
+        draw_skill(win,x,y,&(cur_stats.potion_skill),&(attributes.potion_skill),cur_stats.potion_exp,cur_stats.potion_exp_next_lev);
 
-        y+=14;
+        y+=stats_y_step;
         statsinfo[6].is_selected==1?glColor3f(1.0f,0.5f,0.5f):glColor3f(1.0f,0.5f,0.2f);
-        draw_skill(46,x,y,&(cur_stats.summoning_skill),&(attributes.summoning_skill),cur_stats.summoning_exp,cur_stats.summoning_exp_next_lev);
+        draw_skill(win,x,y,&(cur_stats.summoning_skill),&(attributes.summoning_skill),cur_stats.summoning_exp,cur_stats.summoning_exp_next_lev);
 
-        y+=14;
+        y+=stats_y_step;
         statsinfo[7].is_selected==1?glColor3f(1.0f,0.5f,0.5f):glColor3f(1.0f,0.5f,0.2f);
-        draw_skill(46,x,y,&(cur_stats.manufacturing_skill),&(attributes.manufacturing_skill),cur_stats.manufacturing_exp,cur_stats.manufacturing_exp_next_lev);
+        draw_skill(win,x,y,&(cur_stats.manufacturing_skill),&(attributes.manufacturing_skill),cur_stats.manufacturing_exp,cur_stats.manufacturing_exp_next_lev);
 
-        y+=14;
+        y+=stats_y_step;
         statsinfo[8].is_selected==1?glColor3f(1.0f,0.5f,0.5f):glColor3f(1.0f,0.5f,0.2f);
-        draw_skill(46,x,y,&(cur_stats.crafting_skill),&(attributes.crafting_skill),cur_stats.crafting_exp,cur_stats.crafting_exp_next_lev);
+        draw_skill(win,x,y,&(cur_stats.crafting_skill),&(attributes.crafting_skill),cur_stats.crafting_exp,cur_stats.crafting_exp_next_lev);
 
-        y+=14;
+        y+=stats_y_step;
         statsinfo[9].is_selected==1?glColor3f(1.0f,0.5f,0.5f):glColor3f(1.0f,0.5f,0.2f);
-        draw_skill(46,x,y,&(cur_stats.engineering_skill),&(attributes.engineering_skill),cur_stats.engineering_exp,cur_stats.engineering_exp_next_lev);
+        draw_skill(win,x,y,&(cur_stats.engineering_skill),&(attributes.engineering_skill),cur_stats.engineering_exp,cur_stats.engineering_exp_next_lev);
 
-        y+=14;
+        y+=stats_y_step;
         statsinfo[10].is_selected==1?glColor3f(1.0f,0.5f,0.5f):glColor3f(1.0f,0.5f,0.2f);
-        draw_skill(46,x,y,&(cur_stats.tailoring_skill),&(attributes.tailoring_skill),cur_stats.tailoring_exp,cur_stats.tailoring_exp_next_lev);
+        draw_skill(win,x,y,&(cur_stats.tailoring_skill),&(attributes.tailoring_skill),cur_stats.tailoring_exp,cur_stats.tailoring_exp_next_lev);
 
-        y+=14;
+        y+=stats_y_step;
         statsinfo[11].is_selected==1?glColor3f(1.0f,0.5f,0.5f):glColor3f(1.0f,0.5f,0.2f);
-        draw_skill(46,x,y,&(cur_stats.ranging_skill),&(attributes.ranging_skill),cur_stats.ranging_exp,cur_stats.ranging_exp_next_lev);
+        draw_skill(win,x,y,&(cur_stats.ranging_skill),&(attributes.ranging_skill),cur_stats.ranging_exp,cur_stats.ranging_exp_next_lev);
 
-        y+=14;
+        y+=stats_y_step;
         statsinfo[12].is_selected==1?glColor3f(1.0f,0.5f,0.5f):glColor3f(1.0f,0.5f,0.2f);
 #ifdef OTHER_LIFE
 	if(use_xattribs)
         	cur_stats.overall_skill.cur = cur_stats.overall_skill.base;
 #endif
-        draw_skill(46,x,y,&(cur_stats.overall_skill),&(attributes.overall_skill),cur_stats.overall_exp,cur_stats.overall_exp_next_lev);
+        draw_skill(win,x,y,&(cur_stats.overall_skill),&(attributes.overall_skill),cur_stats.overall_exp,cur_stats.overall_exp_next_lev);
 
 #ifdef OTHER_LIFE
 	if(use_xattribs)
@@ -1079,15 +1075,15 @@ int display_stats_handler(window_info *win)
 	        glColor3f(0.5f,0.5f,1.0f);
 
 	        //other attribs
-	        y+=20;
-	        draw_stat(24,x,y,&(cur_stats.material_points),&(attributes.material_points));
+	        y+=y_gap_step;
+	        draw_stat(win,x,y,&(cur_stats.material_points),&(attributes.material_points));
 
-	        y+=14;
-	        draw_stat(24,x,y,&(cur_stats.ethereal_points),&(attributes.ethereal_points));
+	        y+=stats_y_step;
+	        draw_stat(win,x,y,&(cur_stats.ethereal_points),&(attributes.ethereal_points));
 
 		x+=195;
-	        y-=14;
-	        draw_stat(24,x,y,&(cur_stats.action_points),&(attributes.action_points));
+	        y-=stats_y_step;
+	        draw_stat(win,x,y,&(cur_stats.action_points),&(attributes.action_points));
 	}
 #endif
 
@@ -1099,11 +1095,11 @@ int click_stats_handler(window_info *win, int mx, int my, Uint32 flags)
         int     i;
         int is_button = flags & ELW_MOUSE_BUTTON;
 
-        if(is_button && mx > check_grid_x_left && mx < check_grid_x_left+105 && my > check_grid_y_top && my < check_grid_y_top+14*(NUM_WATCH_STAT-1))
+        if(is_button && mx > check_grid_x_left && mx < win->len_x && my > check_grid_y_top && my < check_grid_y_top+stats_y_step*(NUM_WATCH_STAT-1))
         {
                 // we don't care which click did the select
                 // Grum: as long as it's not a wheel move
-                i = 1+(my - check_grid_y_top)/14;
+                i = 1+(my - check_grid_y_top)/stats_y_step;
                 if (i < NUM_WATCH_STAT)
                 {
                         handle_stats_selection(i, flags);
@@ -1114,11 +1110,11 @@ int click_stats_handler(window_info *win, int mx, int my, Uint32 flags)
         return 0;
 }
 
-void fill_stats_win ()
+void fill_stats_win (int window_id)
 {
-        //set_window_color(stats_win, ELW_COLOR_BORDER, 0.0f, 1.0f, 0.0f, 0.0f);
-        set_window_handler(stats_win, ELW_HANDLER_DISPLAY, &display_stats_handler );
-        set_window_handler(stats_win, ELW_HANDLER_CLICK, &click_stats_handler );
+        //set_window_color(window_id, ELW_COLOR_BORDER, 0.0f, 1.0f, 0.0f, 0.0f);
+        set_window_handler(window_id, ELW_HANDLER_DISPLAY, &display_stats_handler );
+        set_window_handler(window_id, ELW_HANDLER_CLICK, &click_stats_handler );
 }
 
 void draw_floatingmessage(floating_message *message, float healthbar_z) {

@@ -9,6 +9,8 @@
 #endif
 #include "../asc.h"
 
+int show_mapeditor_reflections = 0;
+
 float camera_x=0;
 float camera_y=0;
 float camera_z=0;
@@ -84,7 +86,8 @@ void draw_scene()
     //CalculateFrustum();
     new_minute();
 
-    any_reflection=find_reflection();
+    if (show_mapeditor_reflections)
+        any_reflection=find_reflection();
 
     if(!dungeon)
         draw_global_light();
@@ -94,7 +97,7 @@ void draw_scene()
     update_scene_lights();
     draw_lights();
 
-	if(any_reflection>1) {
+    if(any_reflection>1) {
         if(!dungeon)
             draw_sky_background();
         else 
@@ -120,7 +123,7 @@ void draw_scene()
         if(view_tile || cur_mode==mode_tile)
             draw_tile_map();
 
-	    if(any_reflection)
+        if(any_reflection)
             draw_lake_tiles();
         CHECK_GL_ERRORS();
         
@@ -128,9 +131,9 @@ void draw_scene()
             display_2d_objects();
     }
 
-	CHECK_GL_ERRORS();
+    CHECK_GL_ERRORS();
 
-	if(view_3d || cur_mode==mode_3d) {
+    if(view_3d || cur_mode==mode_3d) {
         if(shadows_on) {
             if(!dungeon) {
                 if(day_shadows_on)

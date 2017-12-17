@@ -34,6 +34,8 @@
 #include "gamewin.h"
 #include "gl_init.h"
 #include "hud.h"
+#include "hud_statsbar_window.h"
+#include "hud_quickbar_window.h"
 #include "hud_indicators.h"
 #include "hud_timer.h"
 #include "items.h"
@@ -79,14 +81,10 @@
 #include "sky.h"
 #include "mines.h"
 #include "popup.h"
-#ifdef TEXT_ALIASES
 #include "text_aliases.h"
-#endif /* TEXT_ALIASES */
 #include "user_menus.h"
 #include "emotes.h"
-#ifdef	NEW_TEXTURES
 #include "image_loading.h"
-#endif	/* NEW_TEXTURES */
 #include "io/fileutil.h"
 #ifdef  CUSTOM_UPDATE
 #include "custom_update.h"
@@ -280,14 +278,23 @@ void read_bin_cfg()
 	int i;
 	const char *fname = CFGFILE;
 	size_t ret;
+	int have_additions = 1;
+
+	memset(&cfg_mem, 0, sizeof(cfg_mem));	// make sure its clean
 
 	f=open_file_config_no_local(fname,"rb");
 	if(f == NULL)return;//no config file, use defaults
-	memset(&cfg_mem, 0, sizeof(cfg_mem));	// make sure its clean
-
 	ret = fread(&cfg_mem,1,sizeof(cfg_mem),f);
 	fclose(f);
-	if (ret != sizeof(cfg_mem))
+
+	// If more options are added to the end of the structure, we can maintain backwards compatibility.
+	// If have_additions is not true, those options will remain set to zero as the file does not include them.
+	// We only need to change the version number if we alter/remove older options.
+	// We still need to check the size is what is expected.
+
+	if (ret == sizeof(cfg_mem) - 2 * sizeof(unsigned int))
+		have_additions = 0;
+	else if (ret != sizeof(cfg_mem))
 	{
 		LOG_ERROR("%s() failed to read %s\n", __FUNCTION__, fname);
 		return;
@@ -303,8 +310,8 @@ void read_bin_cfg()
 
 	ground_items_menu_x=cfg_mem.ground_items_menu_x & 0xFFFF;
 	ground_items_menu_y=cfg_mem.ground_items_menu_y & 0xFFFF;
-	ground_items_menu_x_len=cfg_mem.ground_items_menu_x >> 16;
-	ground_items_menu_y_len=cfg_mem.ground_items_menu_y >> 16;
+	ground_items_visible_grid_cols = cfg_mem.ground_items_menu_x >> 16;
+	ground_items_visible_grid_rows = cfg_mem.ground_items_menu_y >> 16;
 
 	ranging_win_x=cfg_mem.ranging_win_x;
 	ranging_win_y=cfg_mem.ranging_win_y;
@@ -354,24 +361,19 @@ void read_bin_cfg()
 	tab_info_x=cfg_mem.tab_info_x;
 	tab_info_y=cfg_mem.tab_info_y;
 
-	if(quickbar_relocatable>0)
-		{
-			if((quickbar_x=cfg_mem.quickbar_x)>window_width||quickbar_x<=0)quickbar_x=34;
-			if((quickbar_y=cfg_mem.quickbar_y)>window_height||quickbar_y<=0)quickbar_y=64;
-			if((quickbar_dir=cfg_mem.quickbar_flags&0xFF)!=HORIZONTAL)quickbar_dir=VERTICAL;
-			if((quickbar_draggable=(cfg_mem.quickbar_flags&0xFF00)>>8)!=1)quickbar_draggable=0;
-		}
-
-#if MAX_WATCH_STATS != 5
-#error You cannot just go around changing MAX_WATCH_STATS as its used by the cfg file!
-#endif
-	for(i=0;i<MAX_WATCH_STATS;i++){
-		watch_this_stats[i]=cfg_mem.watch_this_stats[i];
-		if (watch_this_stats[i]<0 || watch_this_stats[i]>=NUM_WATCH_STAT)
-			watch_this_stats[i]=0;
+	if(quickbar_relocatable > 0)
+	{
+		quickbar_x = cfg_mem.quickbar_x;
+		quickbar_y = cfg_mem.quickbar_y;
+		quickbar_dir = cfg_mem.quickbar_flags & 0xFF;
+		quickbar_draggable = (cfg_mem.quickbar_flags & 0xFF00) >> 8;
+		if (quickbar_dir != HORIZONTAL)
+			quickbar_dir = VERTICAL;
+		if(quickbar_draggable != 1)
+			quickbar_draggable = 0;
 	}
-	if(watch_this_stats[0]<1 || watch_this_stats[0]>=NUM_WATCH_STAT)
-		watch_this_stats[0]=NUM_WATCH_STAT-1;
+
+	set_statsbar_watched_stats(cfg_mem.watch_this_stats);
 
 	has_accepted=cfg_mem.has_accepted_rules;
 
@@ -431,6 +433,9 @@ void read_bin_cfg()
 	set_options_questlog(cfg_mem.questlog_flags);
 
 	set_settings_hud_indicators(cfg_mem.hud_indicators_options, cfg_mem.hud_indicators_position);
+
+	if (have_additions)
+		set_quickspell_options(cfg_mem.quickspell_win_options, cfg_mem.quickspell_win_position);
 }
 
 void save_bin_cfg()
@@ -448,41 +453,7 @@ void save_bin_cfg()
 
 	cfg_mem.cfg_version_num=CFG_VERSION;	// set the version number
 	//good, retrive the data
-	/*
 	// TODO: move window save/restore into the window handler
-	cfg_mem.items_menu_x=items_menu_x;
-	cfg_mem.items_menu_y=items_menu_y;
-
-	cfg_mem.ground_items_menu_x=ground_items_menu_x;
-	cfg_mem.ground_items_menu_y=ground_items_menu_y;
-
-	cfg_mem.trade_menu_x=trade_menu_x;
-	cfg_mem.trade_menu_y=trade_menu_y;
-
-	cfg_mem.sigil_menu_x=sigil_menu_x;
-	cfg_mem.sigil_menu_y=sigil_menu_y;
-
-	cfg_mem.dialogue_menu_x=dialogue_menu_x;
-	cfg_mem.dialogue_menu_y=dialogue_menu_y;
-
-	cfg_mem.manufacture_menu_x=manufacture_menu_x;
-	cfg_mem.manufacture_menu_y=manufacture_menu_y;
-
-	cfg_mem.attrib_menu_x=attrib_menu_x;
-	cfg_mem.attrib_menu_y=attrib_menu_y;
-
-	cfg_mem.elconfig_menu_x=elconfig_menu_x;
-	cfg_mem.elconfig_menu_y=elconfig_menu_y;
-
-	cfg_mem.knowledge_menu_x=knowledge_menu_x;
-	cfg_mem.knowledge_menu_y=knowledge_menu_y;
-
-	cfg_mem.encyclopedia_menu_x=encyclopedia_menu_x;
-	cfg_mem.encyclopedia_menu_y=encyclopedia_menu_y;
-
-	cfg_mem.questlog_menu_x=questlog_menu_x;
-	cfg_mem.questlog_menu_y=questlog_menu_y;
-*/
 	if(range_win >= 0) {
 		cfg_mem.ranging_win_x=windows_list.window[range_win].cur_x;
 		cfg_mem.ranging_win_y=windows_list.window[range_win].cur_y;
@@ -507,17 +478,10 @@ void save_bin_cfg()
 		cfg_mem.items_menu_y=items_menu_y;
 	}
 
-	if(ground_items_win >= 0) {
-		cfg_mem.ground_items_menu_x=windows_list.window[ground_items_win].cur_x;
-		cfg_mem.ground_items_menu_y=windows_list.window[ground_items_win].cur_y;
-		cfg_mem.ground_items_menu_x |= windows_list.window[ground_items_win].len_x << 16;
-		cfg_mem.ground_items_menu_y |= windows_list.window[ground_items_win].len_y << 16;
-	} else {
-		cfg_mem.ground_items_menu_x=ground_items_menu_x;
-		cfg_mem.ground_items_menu_y=ground_items_menu_y;
-		cfg_mem.ground_items_menu_x |= ground_items_menu_x_len << 16;
-		cfg_mem.ground_items_menu_y |= ground_items_menu_y_len << 16;
-	}
+	cfg_mem.ground_items_menu_x = ground_items_menu_x;
+	cfg_mem.ground_items_menu_y = ground_items_menu_y;
+	cfg_mem.ground_items_menu_x |= ground_items_visible_grid_cols << 16;
+	cfg_mem.ground_items_menu_y |= ground_items_visible_grid_rows << 16;
 
 	if(trade_win >= 0) {
 		cfg_mem.trade_menu_x=windows_list.window[trade_win].cur_x;
@@ -636,22 +600,14 @@ void save_bin_cfg()
 
 	cfg_mem.quantity_selected=(quantities.selected<ITEM_EDIT_QUANT)?quantities.selected :0;
 
-	if(quickbar_relocatable>0)
-		{
-			if(quickbar_win >= 0){
-				cfg_mem.quickbar_x=window_width-windows_list.window[quickbar_win].cur_x;
-				cfg_mem.quickbar_y=windows_list.window[quickbar_win].cur_y;
-				cfg_mem.quickbar_flags=quickbar_dir|(quickbar_draggable<<8);
-			} else {
-				cfg_mem.quickbar_x=quickbar_x;
-				cfg_mem.quickbar_y=quickbar_y;
-				cfg_mem.quickbar_flags=VERTICAL;
-			}
-		}
-
-	for(i=0;i<MAX_WATCH_STATS;i++){
-		cfg_mem.watch_this_stats[i]=watch_this_stats[i];
+	if (quickbar_win >= 0 && quickbar_relocatable > 0)
+	{
+		cfg_mem.quickbar_x = windows_list.window[quickbar_win].cur_x;
+		cfg_mem.quickbar_y = windows_list.window[quickbar_win].cur_y;
+		cfg_mem.quickbar_flags = quickbar_dir | (quickbar_draggable<<8);
 	}
+
+	get_statsbar_watched_stats(cfg_mem.watch_this_stats);
 
 	cfg_mem.has_accepted_rules=has_accepted;
 
@@ -697,17 +653,12 @@ void save_bin_cfg()
 
 	get_settings_hud_indicators(&cfg_mem.hud_indicators_options, &cfg_mem.hud_indicators_position);
 
+	get_quickspell_options(&cfg_mem.quickspell_win_options, &cfg_mem.quickspell_win_position);
+
 	fwrite(&cfg_mem,sizeof(cfg_mem),1,f);
 	fclose(f);
 
 }
-
-#ifndef	NEW_TEXTURES
-void init_texture_cache()
-{
-	memset(texture_cache, 0, sizeof(texture_cache));
-}
-#endif	/* NEW_TEXTURES */
 
 void init_e3d_cache()
 {
@@ -737,6 +688,8 @@ void init_stuff()
 	{
 		LOG_ERROR("%s() chdir(\"%s\") failed: %s\n", __FUNCTION__, datadir, strerror(errno));
 	}
+
+	last_save_time = time(NULL);
 
 	init_crc_tables();
 	init_zip_archives();
@@ -937,27 +890,10 @@ void init_stuff()
 
 	update_loading_win(load_icons_str, 4);
 	//load the necesary textures
-#ifdef	NEW_TEXTURES
 	icons_text = load_texture_cached("textures/gamebuttons.dds", tt_gui);
 	hud_text = load_texture_cached("textures/gamebuttons2.dds", tt_gui);
-        weather_text = load_texture_cached("textures/weather.dds", tt_gui);
-#else	/* NEW_TEXTURES */
-#ifdef	NEW_ALPHA
-	icons_text= load_texture_cache("./textures/gamebuttons.bmp", -1);
-	hud_text= load_texture_cache("./textures/gamebuttons2.bmp", -1);
-        weather_text = load_texture_cache("./textures/weather.bmp", -1);
-#else	//NEW_ALPHA
-	icons_text= load_texture_cache("./textures/gamebuttons.bmp",0);
-	hud_text= load_texture_cache("./textures/gamebuttons2.bmp",0);
-        weather_text = load_texture_cache("./textures/weather.bmp", 0);
-#endif	//NEW_ALPHA
-#endif	/* NEW_TEXTURES */
 	update_loading_win(load_textures_str, 4);
-#ifdef	NEW_TEXTURES
 	cons_text = load_texture_cached("textures/console.dds", tt_gui);
-#else	/* NEW_TEXTURES */
-	cons_text= load_texture_cache("./textures/console.bmp",255);
-#endif	/* NEW_TEXTURES */
 
 
 	update_loading_win("init item textures", 5);
@@ -965,64 +901,23 @@ void init_stuff()
 	for(i=0; i<MAX_ITEMS_TEXTURES; i++){
 		char	buffer[256];
 
-#ifdef	NEW_TEXTURES
 		safe_snprintf(buffer, sizeof(buffer), "textures/items%d.dds", i+1);
 
 		if (check_image_name(buffer, sizeof(buffer), buffer) != 0)
 		{
 			items_text[i] = load_texture_cached(buffer, tt_gui);
-#else	/* NEW_TEXTURES */
-		safe_snprintf(buffer, sizeof(buffer), "./textures/items%d.bmp", i+1);
-		if(el_custom_file_exists(buffer)){
-			items_text[i]= load_texture_cache(buffer, 0);
-#endif	/* NEW_TEXTURES */
 		}
 	}
+
 	update_loading_win("init portraits", 5);
+	load_dialogue_portraits();
 
-	for(i=0; i<MAX_PORTRAITS_TEXTURES; i++){
-		char	buffer[256];
-
-#ifdef	NEW_TEXTURES
-		safe_snprintf(buffer, sizeof(buffer), "textures/portraits%d.dds", i+1);
-
-		if (check_image_name(buffer, sizeof(buffer), buffer) != 0)
-		{
-			portraits_tex[i] = load_texture_cached(buffer, tt_gui);
-#else	/* NEW_TEXTURES */
-		safe_snprintf(buffer, sizeof(buffer), "./textures/portraits%d.bmp", i+1);
-		if(el_custom_file_exists(buffer)){
-			portraits_tex[i]= load_texture_cache_deferred(buffer, 0);
-#endif	/* NEW_TEXTURES */
-		}
-	}
 	update_loading_win("init textures", 5);
 
-#ifdef NEW_CURSOR
-#ifdef	NEW_TEXTURES
-	cursors_tex = load_texture_cached("textures/cursors2.dds", tt_gui);
-#else	/* NEW_TEXTURES */
-	disable_compression();
-	cursors_tex = load_texture_cache("./textures/cursors2.bmp",0);
-	enable_compression();
-#endif	/* NEW_TEXTURES */
-
-	//Emajekral's hi-color & big cursor code
-	if (!sdl_cursors) SDL_ShowCursor(0);
-#endif // NEW_CURSOR
-
 	//Load the map legend and continent map
-#ifdef	NEW_TEXTURES
 	legend_text = load_texture_cached("maps/legend.dds", tt_gui);
-#else	/* NEW_TEXTURES */
-	legend_text= load_texture_cache("./maps/legend.bmp",0);
-#endif	/* NEW_TEXTURES */
 
-#ifdef	NEW_TEXTURES
 	ground_detail_text = load_texture_cached("textures/ground_detail.dds", tt_gui);
-#else	/* NEW_TEXTURES */
-	ground_detail_text=load_texture_cache("./textures/ground_detail.bmp",255);
-#endif	/* NEW_TEXTURES */
 	CHECK_GL_ERRORS();
 	init_login_screen ();
 	init_spells ();
@@ -1112,9 +1007,7 @@ void init_stuff()
 
 	init_commands("commands.lst");
 
-#ifdef TEXT_ALIASES
 	init_text_aliases();
-#endif
 
 #ifdef NEW_SOUND
 	// Try to turn the sound on now so we have it for the login window

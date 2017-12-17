@@ -64,32 +64,10 @@ void add_questlog(char *t, int len);
 
 /*!
  * \ingroup quest_window
- * \brief Goes to the entry in the questlog with the specified index.
- *
- *      Goes to the entry in the questlog with the specified index.
- *
- * \param ln    the index for the entry to search for.
- */
-void goto_questlog_entry(int ln);
-
-/*!
- * \ingroup quest_window
- * \brief Sets the window handler functions for the quest log window
- *
- *      Sets the window handler functions for the quest log window
- *
- * \callgraph
- */
-void fill_questlog_win ();
-
-
-
-/*!
- * \ingroup quest_window
  * \brief Sets the quest id for the next quest log entry which will be sent.
  *
  *      Sets the quest id for the next quest log entry which will be sent.
- * 
+ *
  * \param id	the quest id
  *
  * \callgraph
@@ -104,7 +82,7 @@ void set_next_quest_entry_id(Uint16 id);
  *
  * \param data	pointer to non null terminated string
  * \param len	the length in bytes of the title
- * 
+ *
  * \callgraph
  */
 void set_quest_title(const char *data, int len);
@@ -117,7 +95,7 @@ void set_quest_title(const char *data, int len);
  * shows completed and not completed quests differently.
  *
  * \param id	the quest id
- * 
+ *
  * \callgraph
  */
 void set_quest_finished(Uint16 id);
@@ -156,7 +134,7 @@ void clear_waiting_for_questlog_entry(void);
  */
 unsigned int get_options_questlog(void);
 
- 
+
 /*!
  * \ingroup quest_window
  * \brief  Read the questlog options from the cfg structure.

@@ -62,10 +62,12 @@
 #include "sound.h"
 #include "text.h"
 #include "timers.h"
+#include "trade_log.h"
 #include "translate.h"
 #include "textures.h"
 #include "update.h"
 #include "url.h"
+#include "user_menus.h"
 #include "weather.h"
 #ifdef MEMORY_DEBUG
 #include "elmemory.h"
@@ -109,7 +111,7 @@ void cleanup_mem(void)
 	destroy_url_list();
 	history_destroy();
 	command_cleanup();
-	queue_destroy(buddy_request_queue);
+	destroy_buddy_queue();
 	cleanup_manufacture();
 	cleanup_text_buffers();
 	cleanup_fonts();
@@ -125,9 +127,7 @@ void cleanup_mem(void)
 	cache_e3d->free_item = &destroy_e3d;
 	cache_delete(cache_e3d);
 	cache_e3d = NULL;
-#ifdef NEW_TEXTURES
 	free_texture_cache();
-#endif
 	// This should be fixed now  Sir_Odie
 	cache_delete(cache_system);
 	cache_system = NULL;
@@ -284,10 +284,12 @@ int start_rendering()
 	free_books();
 	free_vars();
 	cleanup_rules();
-	save_exploration_map();
+	//save_exploration_map();
 	cleanup_counters();
 	cleanup_chan_names();
 	cleanup_hud();
+	destroy_trade_log();
+	destroy_user_menus();
 	destroy_all_root_windows();
 	SDL_RemoveTimer(draw_scene_timer);
 	SDL_RemoveTimer(misc_timer);
