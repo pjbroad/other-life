@@ -1256,6 +1256,7 @@ void process_message_from_server (const Uint8 *in_data, int data_length)
 
 		case START_RAIN:
 			{
+				weather_type w_type;
 				float severity;
 #ifdef EXTRA_DEBUG
 	ERR();
@@ -1266,28 +1267,32 @@ void process_message_from_server (const Uint8 *in_data, int data_length)
 					break;
 				}
 
-				if (data_length > 4) {
-					severity= 0.1f + 0.9f * (in_data[4] / 255.0f);
-				} else {
-					severity= 1.0f;
-				}
 			        is_raining = 1;
-			        //if(is_acid_rain_day)
-			        //{
+
+				if (data_length > 4)
+					severity= 0.1f + 0.9f * (in_data[4] / 255.0f);
+				else
+					severity= 1.0f;
+
+
+			        //if (is_acid_rain_day)
 			        //        severity = 1.0f; // rain hard on acid rain days! To be discussed with devs
-			        //}
-			   
-		   
-				weather_set_area(0, tile_map_size_x*1.5, tile_map_size_y*1.5, 100000.0, 1, severity, in_data[3]);
+
+				if ((data_length > 5) && (in_data[5] < MAX_WEATHER_TYPES))
+					w_type = in_data[5];
+				else
+					w_type = get_weather_type_for_map();
+
+				//printf("START_RAIN from server using type=%d duration=%d severity=%.2f data_length=%d\n", w_type, in_data[3], severity, data_length);
+
 				if (show_weather)
-				{
-					weather_set_area(0, tile_map_size_x*1.5, tile_map_size_y*1.5, 100000.0, get_weather_type_for_map(), severity, in_data[3]);
-				}
+					weather_set_area(0, tile_map_size_x*1.5, tile_map_size_y*1.5, 100000.0, w_type, severity, in_data[3]);
 			}
 			break;
 
 		case STOP_RAIN:
 			{
+				weather_type w_type;
 #ifdef EXTRA_DEBUG
 	ERR();
 #endif
@@ -1296,8 +1301,17 @@ void process_message_from_server (const Uint8 *in_data, int data_length)
 					LOG_WARNING("CAUTION: Possibly forged STOP_RAIN packet received.\n");
 					break;
 				}
+
 			        is_raining = 0;
-				weather_set_area(0, tile_map_size_x*1.5, tile_map_size_y*1.5, 100000.0, get_weather_type_for_map(), 0.0, in_data[3]);
+
+				if ((data_length > 4) && (in_data[4] < MAX_WEATHER_TYPES))
+					w_type = in_data[4];
+				else
+					w_type = get_weather_type_for_map();
+
+				//printf("STOP_RAIN from server using type=%d duration=%d data_length=%d\n", w_type, in_data[3], data_length);
+
+				weather_set_area(0, tile_map_size_x*1.5, tile_map_size_y*1.5, 100000.0, w_type, 0.0, in_data[3]);
 			}
 			break;
 
