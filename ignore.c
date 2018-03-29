@@ -241,6 +241,7 @@ int pre_check_if_ignored (const char *input_text, int len, Uint8 channel)
 				{
 					offset += strlen(pm_from_str)+1;
 					get_name_from_text(input_text, len, 0, offset, name);		// Type 0 = ":" or " "
+					channel = CHAT_PERSONAL; //recognize delayed PMs for last_pm_from shortcut
 				}
 			}
 			break;
