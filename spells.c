@@ -255,19 +255,16 @@ void check_then_do_buff_duration_request(void)
 	/* else if there is no active request but we have one queued, make the server request */
 	else if (!last_requested_duration && requested_durations)
 	{
-#ifndef OTHER_LIFE
 		Uint8 str[4];
-#endif
 
 		last_requested_duration = 1;
 		while (!(requested_durations & last_requested_duration))
 			last_requested_duration <<= 1;
 		last_request_time = SDL_GetTicks();
-#ifndef OTHER_LIFE
+
 		str[0] = GET_BUFF_DURATION;
 		*((Uint16 *)(str+1)) = SDL_SwapLE16(last_requested_duration);
 		my_tcp_send (my_socket, str, 3);
-#endif
 	}
 }
 
