@@ -1,0 +1,7 @@
+?package(otherlife): \
+  needs="X11" \
+  section="Games/Adventure" \
+  title="Other Life" \
+  longtitle="Play the massively-multi-player online role-playing game" \
+  command="/usr/games/otherlife" \
+  icon="/usr/share/pixmaps/otherlife.png"

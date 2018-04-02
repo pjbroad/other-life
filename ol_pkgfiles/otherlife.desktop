@@ -1,0 +1,20 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=Other Life
+Comment=Play the massively-multi-player online role-playing game
+Exec=otherlife
+Icon=otherlife.png
+StartupNotify=true
+Terminal=false
+Type=Application
+Categories=Game;AdventureGame;
+
+Actions=Main;Test;
+
+[Desktop Action Main]
+Name=Main server
+Exec=otherlife main
+
+[Desktop Action Test]
+Name=Test server
+Exec=otherlife test

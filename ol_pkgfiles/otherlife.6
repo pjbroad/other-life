@@ -1,0 +1,49 @@
+.TH OTHERLIFE 6 "April 2010" "otherlife-0.0.2" "Other Life Wrapper Script"
+
+.SH NAME
+otherlife - Wrapper script for the Other Life MMORPG client
+
+.SH SYNOPSIS
+.B otherlife
+[
+.I <pass through options>
+]
+
+.SH DESCRIPTION
+Other Life is a FREE MMORPG (massively multi-player online role playing 
+game). This script provides a wrapper for the client.  It checks that the users
+~/.olc/ directory exists and that the files ~/.olc/server.lst and
+~/.olc/main/ol.ini exist.  If these files do not exist then they will be copied
+from the version shipped with the otherlife-data package.  The data_dir entry
+for all ~/.olc/*/ol.ini files is tested.  If any do not refer to the installed
+otherlife-data package, the user is offered the option to fix the path.  The 
+Other Life client is then run, passed any command line options specified for
+this script.  Finally, if the client exits with an error status, a window is 
+opened to inform the user, offering advice on resolving the problem and showing
+a copy of the ~/.olc/error_log.txt file.  All user interaction is done using 
+the zenity, kdialog or dialog programs.
+
+.SH FILES
+.I ~/.olc/showconfigsel
+.RS
+If exists and contains the word no, use of the configuration selection window
+is disabled.
+.RE
+.I ~/.olc/no.ol.ini.check
+.RS
+If exists, disable the check for correct data_dir paths in ol.ini files.
+.RE
+.I ~/.olc/ol_client
+.RS
+If exists, the file should contain the full path to an alternative client
+executable.
+.RE
+
+.SH COPYRIGHT
+This program (script) is released as Public Domain software.  You are
+free to use it as you wish. There is NO  warranty; not even for
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.   Please check the
+licience infomation for other files in the otherlife package.
+
+.SH AUTHOR
+Paul Broadhead (a.k.a. bluap) pjbroad@twinmoons.org.uk

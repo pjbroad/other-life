@@ -1,0 +1,3 @@
+ol.x86.linux.bin ol_pkgfiles/otherlife usr/games
+ol_pkgfiles/otherlife.png usr/share/pixmaps/
+ol_pkgfiles/otherlife.desktop usr/share/applications/

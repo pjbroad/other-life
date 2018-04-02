@@ -1,0 +1,55 @@
+# How to build a package:
+# Read the guides or at least install the necessary packages as detailed here:
+# http://www.debian.org/doc/maint-guide/index.en.html
+# https://wiki.ubuntu.com/PackagingGuide/Complete
+
+# Set-up your ~/.bachrc so the package scripts known who you are:
+# e.g. 
+# export DEBFULLNAME='Paul Broadhead' 
+# export DEBEMAIL='pjbroad@twinmoons.org.uk'
+
+# If you're going to sign the package make sure you have keys set-up:
+# https://help.ubuntu.com/community/GnuPrivacyGuardHowto
+
+# prepare the zip file and set the md5sum value in the package, e.g.
+# zip -r otherlife-data_1.9.3-1.zip ol_linux
+# md5sum otherlife-data_1.9.3-1.zip
+# vi other-life/ol_pkgfiles/debs/data/debian/postinst
+
+# Now we're ready:
+
+# Set the version number
+olver="1.9.3"
+packagename="otherlife-data"
+debdir="data"
+
+# start in the correct locatiion
+cd other-life/ol_pkgfiles/debs
+mkdir -p tmp
+cd tmp
+
+# Make a destination directory
+tmpdir=${packagename}-${olver}-$(date +"%s")
+mkdir $tmpdir
+cd $tmpdir
+mkdir ${packagename}-${olver}
+
+# Copy packaging files:
+cp -a ../../$debdir/debian/ ${packagename}-${olver}/
+
+# Append the licence file and clean up:
+wget -O - http://www.eternal-lands.com/page/license.txt | fmt -w 79 >> ${packagename}-${olver}/debian/copyright
+less ${packagename}-${olver}/debian/copyright
+
+# Save the source archive:
+tar cfz ${packagename}_${olver}.orig.tar.gz ${packagename}-${olver}
+
+# Move into package directory:
+cd ${packagename}-${olver}/
+
+# Make any modifications required then update the changelog:
+dch --release --force-save-on-release
+
+# Build the package:
+debuild
+debuild -S -sa
