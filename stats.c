@@ -136,7 +136,7 @@ void get_partial_xattribs(Uint16 entry, Uint16 *data)
 void draw_statx(window_info *win, int x, int y, xattrib_struct xattr)
 {
         char str[9];
-        safe_snprintf(str,sizeof(str),"%2i/%-2i",xattr.current,xattr.base);
+        safe_snprintf(str,sizeof(str),"%3i/%-3i",xattr.current,xattr.base);
         str[8]=0;
         draw_stat_final(win,x,y,(const unsigned char*)xattr.name,str);
 }
@@ -790,96 +790,112 @@ int display_stats_handler(window_info *win)
         stats_y_step = (int)(0.5 + win->small_font_len_y);
 
 #ifdef OTHER_LIFE
-	if (use_xattribs)
-	{
-		int i;
+        if (use_xattribs)
+        {
+                int i;
 
-	        //cross attributes
-	        glColor3f(1.0f,1.0f,0.0f);
-	        draw_string_small_zoomed(x,y,attributes.cross,1,win->current_scale);
+                //cross attributes
+                glColor3f(1.0f,1.0f,0.0f);
+                draw_string_small_zoomed(x,y,attributes.cross,1,win->current_scale);
 
-		for(i=0; i<num_xattribs; i++)
-		{
-			if(xattribs[i].name[0] > 0)
-			{
-				y+=stats_y_step;
-				draw_statx(win,x,y,xattribs[i]);
-			}
-		}
-	}
-	else
-	{
-	        draw_string_small_zoomed(x,y,attributes.base,1,win->current_scale);
-	        y+=stats_y_step;
-	        draw_stat(win,x,y,&(cur_stats.phy),&(attributes.phy));
+                for(i=0; i<num_xattribs; i++)
+                {
+                        if(xattribs[i].name[0] > 0)
+                        {
+                                y+=stats_y_step;
+                                draw_statx(win,x,y,xattribs[i]);
+                        }
+                }
 
-	        y+=stats_y_step;
-	        draw_stat(win,x,y,&(cur_stats.coo),&(attributes.coo));
+                glColor3f(0.5f,0.5f,1.0f);
 
-	        y+=stats_y_step;
-	        draw_stat(win,x,y,&(cur_stats.rea),&(attributes.rea));
+                //other attribs
+                y+=y_gap_step;
+                draw_stat(win,x,y,&(cur_stats.material_points),&(attributes.material_points));
 
-	        y+=stats_y_step;
-	        draw_stat(win,x,y,&(cur_stats.wil),&(attributes.wil));
+                y+=stats_y_step;
+                draw_stat(win,x,y,&(cur_stats.ethereal_points),&(attributes.ethereal_points));
 
-	        y+=stats_y_step;
-	        draw_stat(win,x,y,&(cur_stats.ins),&(attributes.ins));
+                y+=stats_y_step;
+                draw_stat(win,x,y,&(cur_stats.action_points),&(attributes.action_points));
 
-	        y+=stats_y_step;
-	        draw_stat(win,x,y,&(cur_stats.vit),&(attributes.vit));
+                y+=2*stats_y_step;
+                safe_snprintf(str, sizeof(str), "%3i",cur_stats.food_level);
+                draw_stat_final(win,x,y,attributes.food.name,str);
+       }
+        else
+        {
+                draw_string_small_zoomed(x,y,attributes.base,1,win->current_scale);
+                y+=stats_y_step;
+                draw_stat(win,x,y,&(cur_stats.phy),&(attributes.phy));
 
-	        //cross attributes
-	        glColor3f(1.0f,1.0f,0.0f);
-	        y+=y_gap_step;
+                y+=stats_y_step;
+                draw_stat(win,x,y,&(cur_stats.coo),&(attributes.coo));
 
-	        draw_string_small_zoomed(x,y,attributes.cross,1,win->current_scale);
-	        y+=stats_y_step;
-	        draw_statf(win,x,y,&(cur_stats.might),&(attributes.might));
+                y+=stats_y_step;
+                draw_stat(win,x,y,&(cur_stats.rea),&(attributes.rea));
 
-	        y+=stats_y_step;
-	        draw_statf(win,x,y,&(cur_stats.matter),&(attributes.matter));
+                y+=stats_y_step;
+                draw_stat(win,x,y,&(cur_stats.wil),&(attributes.wil));
 
-	        y+=stats_y_step;
-	        draw_statf(win,x,y,&(cur_stats.tough),&(attributes.tough));
+                y+=stats_y_step;
+                draw_stat(win,x,y,&(cur_stats.ins),&(attributes.ins));
 
-	        y+=stats_y_step;
-	        draw_statf(win,x,y,&(cur_stats.charm),&(attributes.charm));
+                y+=stats_y_step;
+                draw_stat(win,x,y,&(cur_stats.vit),&(attributes.vit));
 
-	        y+=stats_y_step;
-	        draw_statf(win,x,y,&(cur_stats.react),&(attributes.react));
+                //cross attributes
+                glColor3f(1.0f,1.0f,0.0f);
+                y+=y_gap_step;
 
-	        y+=stats_y_step;
-	        draw_statf(win,x,y,&(cur_stats.perc),&(attributes.perc));
+                draw_string_small_zoomed(x,y,attributes.cross,1,win->current_scale);
+                y+=stats_y_step;
+                draw_statf(win,x,y,&(cur_stats.might),&(attributes.might));
 
-	        y+=stats_y_step;
-	        draw_statf(win,x,y,&(cur_stats.ration),&(attributes.ration));
+                y+=stats_y_step;
+                draw_statf(win,x,y,&(cur_stats.matter),&(attributes.matter));
 
-	        y+=stats_y_step;
-	        draw_statf(win,x,y,&(cur_stats.dext),&(attributes.dext));
+                y+=stats_y_step;
+                draw_statf(win,x,y,&(cur_stats.tough),&(attributes.tough));
 
-	        y+=stats_y_step;
-	        draw_statf(win,x,y,&(cur_stats.eth),&(attributes.eth));
+                y+=stats_y_step;
+                draw_statf(win,x,y,&(cur_stats.charm),&(attributes.charm));
 
-	        glColor3f(0.5f,0.5f,1.0f);
-	        y+=stats_y_step;  // blank line for spacing
+                y+=stats_y_step;
+                draw_statf(win,x,y,&(cur_stats.react),&(attributes.react));
 
-	        y+=stats_y_step;
-	        draw_stat(win,x,y,&(cur_stats.material_points),&(attributes.material_points));
+                y+=stats_y_step;
+                draw_statf(win,x,y,&(cur_stats.perc),&(attributes.perc));
 
-	        y+=stats_y_step;
-	        draw_stat(win,x,y,&(cur_stats.ethereal_points),&(attributes.ethereal_points));
+                y+=stats_y_step;
+                draw_statf(win,x,y,&(cur_stats.ration),&(attributes.ration));
 
-	        y+=stats_y_step;
-	        draw_stat(win,x,y,&(cur_stats.action_points),&(attributes.action_points));
+                y+=stats_y_step;
+                draw_statf(win,x,y,&(cur_stats.dext),&(attributes.dext));
 
-			//other info
-			y = win->len_y - win->small_font_len_y * 1.25;
-			safe_snprintf(str, sizeof(str), "%3i",cur_stats.food_level);
-			draw_stat_final(win,x,y,attributes.food.name,str);
+                y+=stats_y_step;
+                draw_statf(win,x,y,&(cur_stats.eth),&(attributes.eth));
 
-			safe_snprintf(str, sizeof(str), "%3i",cur_stats.overall_skill.base-cur_stats.overall_skill.cur);
-			draw_stat_final(win,x+c2_x_offset,y,attributes.pickpoints,str);
-	}
+                glColor3f(0.5f,0.5f,1.0f);
+                y+=stats_y_step;  // blank line for spacing
+
+                y+=stats_y_step;
+                draw_stat(win,x,y,&(cur_stats.material_points),&(attributes.material_points));
+
+                y+=stats_y_step;
+                draw_stat(win,x,y,&(cur_stats.ethereal_points),&(attributes.ethereal_points));
+
+                y+=stats_y_step;
+                draw_stat(win,x,y,&(cur_stats.action_points),&(attributes.action_points));
+
+                //other info
+                y = win->len_y - win->small_font_len_y * 1.25;
+                safe_snprintf(str, sizeof(str), "%3i",cur_stats.food_level);
+                draw_stat_final(win,x,y,attributes.food.name,str);
+
+                safe_snprintf(str, sizeof(str), "%3i",cur_stats.overall_skill.base-cur_stats.overall_skill.cur);
+                draw_stat_final(win,x+c2_x_offset,y,attributes.pickpoints,str);
+        }
 
         //nexuses here
         glColor3f(1.0f,1.0f,1.0f);
@@ -1064,28 +1080,10 @@ int display_stats_handler(window_info *win)
         y+=stats_y_step;
         statsinfo[12].is_selected==1?glColor3f(1.0f,0.5f,0.5f):glColor3f(1.0f,0.5f,0.2f);
 #ifdef OTHER_LIFE
-	if(use_xattribs)
-        	cur_stats.overall_skill.cur = cur_stats.overall_skill.base;
+        if(use_xattribs)
+                cur_stats.overall_skill.cur = cur_stats.overall_skill.base;
 #endif
         draw_skill(win,x,y,&(cur_stats.overall_skill),&(attributes.overall_skill),cur_stats.overall_exp,cur_stats.overall_exp_next_lev);
-
-#ifdef OTHER_LIFE
-	if(use_xattribs)
-	{
-	        glColor3f(0.5f,0.5f,1.0f);
-
-	        //other attribs
-	        y+=y_gap_step;
-	        draw_stat(win,x,y,&(cur_stats.material_points),&(attributes.material_points));
-
-	        y+=stats_y_step;
-	        draw_stat(win,x,y,&(cur_stats.ethereal_points),&(attributes.ethereal_points));
-
-		x+=195;
-	        y-=stats_y_step;
-	        draw_stat(win,x,y,&(cur_stats.action_points),&(attributes.action_points));
-	}
-#endif
 
         return 1;
 }
