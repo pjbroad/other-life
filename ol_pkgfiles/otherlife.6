@@ -1,4 +1,4 @@
-.TH OTHERLIFE 6 "April 2010" "otherlife-0.0.2" "Other Life Wrapper Script"
+.TH OTHERLIFE 6 "April 2018" "otherlife" "Other Life Wrapper Script"
 
 .SH NAME
 otherlife - Wrapper script for the Other Life MMORPG client
@@ -13,7 +13,7 @@ otherlife - Wrapper script for the Other Life MMORPG client
 Other Life is a FREE MMORPG (massively multi-player online role playing 
 game). This script provides a wrapper for the client.  It checks that the users
 ~/.olc/ directory exists and that the files ~/.olc/server.lst and
-~/.olc/main/ol.ini exist.  If these files do not exist then they will be copied
+~/.olc/<chosen config>/ol.ini exist.  If these files do not exist then they will be copied
 from the version shipped with the otherlife-data package.  The data_dir entry
 for all ~/.olc/*/ol.ini files is tested.  If any do not refer to the installed
 otherlife-data package, the user is offered the option to fix the path.  The 
