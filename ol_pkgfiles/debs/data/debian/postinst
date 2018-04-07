@@ -24,8 +24,8 @@ case "$1" in
 	TARGETDIR="/usr/share/games/OtherLife"
 	CACHEDIR="/var/cache/otherlife"
 	DOWNLOADURL="https://twinmoons.org.uk/ol/rel/193"
-	DOWNLOADMAIN="otherlife-data_1.9.3-1.zip"
-	MD5SUMMAIN="2b0cb9039e7a036d1443444f6c100d25"
+	DOWNLOADMAIN="ol_linux_data.zip"
+	MD5SUMMAIN="b39c7de45ecfe02afa23963ccfcd13af"
 	# post release updates
 	#DOWNLOADUPDATE2="x.zip"
 	#MD5SUMUPDATE2=""
