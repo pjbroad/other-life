@@ -1,6 +1,6 @@
 otherlife (1.9.5-0ubuntu1) trusty; urgency=low
 
   * 1.9.5 release, see CHANGES file at
-      https://github.com/pjbroad/other-life/blob/master/CHANGES
+      https://github.com/pjbroad/other-life/releases/tag/1.9.5.0
 
  -- Paul Broadhead <pjbroad@twinmoons.org.uk>  Mon, 2 Apr 2018 12:00:00 +0100
