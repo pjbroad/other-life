@@ -90,7 +90,11 @@ int client_version_minor=VER_MINOR;
 int client_version_release=VER_RELEASE;
 int	client_version_patch=VER_BUILD;
 int version_first_digit=10;	//protocol/game version sent to server
+#ifdef OTHER_LIFE
 int version_second_digit=26;
+#else
+int version_second_digit=28;
+#endif
 
 // Change rgb of menus etc
 #ifdef OTHER_LIFE
