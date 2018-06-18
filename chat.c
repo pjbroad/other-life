@@ -2712,7 +2712,13 @@ void update_text_windows (text_message * pmsg)
 }
 
 void recolour_message(text_message *msg){
-	if (msg->chan_idx >= CHAT_CHANNEL1 && msg->chan_idx <= CHAT_CHANNEL3 && msg->len > 0 && msg->data[0] && !msg->deleted)
+	if (msg->chan_idx >= CHAT_CHANNEL1 && msg->chan_idx <=
+#if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
+		((loadsofchannels != 3) ? CHAT_CHANNEL32 : CHAT_CHANNEL3)
+#else
+		CHAT_CHANNEL3
+#endif // if defined(OTHER_LIFE) && defined(OTHER_LIFE_EXTENDED_CHAT)
+	  && msg->len > 0 && msg->data[0] && !msg->deleted)
 	{
 		int i;
 		for(i=0; i< MAX_CHANNEL_COLORS; i++)
