@@ -31,6 +31,7 @@
  #include "cursors.h"
  #include "dialogues.h"
  #include "draw_scene.h"
+ #include "emotes.h"
  #include "errors.h"
  #include "elconfig.h"
  #include "elwindows.h"
@@ -1263,7 +1264,7 @@ void change_windows_on_top(int *var)
 {
 	int winid_list[] = { storage_win, manufacture_win, items_win, buddy_win, ground_items_win,
 						 sigil_win, elconfig_win, tab_stats_win, tab_info_win,
-						 minimap_win, questlog_win, trade_win, range_win };
+						 minimap_win, questlog_win, trade_win, range_win, emotes_win };
 	int i;
 
 	*var=!*var;
