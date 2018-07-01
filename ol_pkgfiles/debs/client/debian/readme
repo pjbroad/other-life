@@ -17,7 +17,7 @@
 git clone https://github.com/pjbroad/other-life.git other-life
 
 # Set the version number
-olver="1.9.5"
+olver="1.9.5.2"
 packagename="otherlife"
 
 # Make an original source tar ball:
