@@ -267,12 +267,17 @@ CHECK_GL_ERRORS();
 	{
 		const int scaled_6 = (int)(0.5 + win->current_scale * 6);
 		char str[10];
-		if (show_game_seconds)
-			safe_snprintf(str, sizeof(str), "%1d:%02d:%02d", real_game_minute/60, real_game_minute%60, real_game_second);
-		else
-			safe_snprintf(str, sizeof(str), " %1d:%02d ", real_game_minute/60, real_game_minute%60);
  		base_y_start -= digital_clock_height;
-		draw_string_shadowed_width(scaled_6/2, scaled_6/2 + base_y_start, (unsigned char*)str, win->len_x-scaled_6, 1,newcol_r, newcol_g, newcol_b,0.0f,0.0f,0.0f);
+		if (show_game_seconds)
+		{
+			safe_snprintf(str, sizeof(str), "%1d:%02d:%02d", real_game_minute/60, real_game_minute%60, real_game_second);
+			draw_string_shadowed_width(scaled_6/2, scaled_6/2 + base_y_start, (unsigned char*)str, win->len_x-scaled_6, 1,0.99f, 0.99f, 0.0f,0.0f,0.0f,0.0f);
+		}
+		else
+		{
+			safe_snprintf(str, sizeof(str), " %1d:%02d ", real_game_minute/60, real_game_minute%60);
+			draw_string_shadowed_width(scaled_6/2, scaled_6/2 + base_y_start, (unsigned char*)str, win->len_x-scaled_6, 1,newcol_r, newcol_g, newcol_b,0.0f,0.0f,0.0f);
+		}
 	}
 
 	/* if mouse over the either of the clocks - display the time & date */
@@ -377,7 +382,7 @@ CHECK_GL_ERRORS();
 				statsinfo[thestat].skillnames->shortname,
 				statsinfo[thestat].skillattr->base );
 			if (statsinfo[thestat].is_selected == 1)
-				draw_string_small_shadowed_zoomed(text_x+gx_adjust, y+gy_adjust, (unsigned char*)str, 1,newcol_r, newcol_g, newcol_b,0.0f,0.0f,0.0f, win->current_scale);
+				draw_string_small_shadowed_zoomed(text_x+gx_adjust, y+gy_adjust, (unsigned char*)str, 1,0.99f, 0.99f, 0.0f,0.0f,0.0f,0.0f, win->current_scale);
 			else
 				draw_string_small_shadowed_zoomed(text_x+gx_adjust, y+gy_adjust, (unsigned char*)str, 1,1.0f,1.0f,1.0f,0.0f,0.0f,0.0f, win->current_scale);
 			
