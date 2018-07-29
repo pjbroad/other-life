@@ -59,7 +59,6 @@ parts:
       ol_linux/ : data/
     override-build: |
       snapcraftctl build
-      sed -i 's|^#browser.*$|#browser = x-www-browser|g' $SNAPCRAFT_PART_INSTALL/ol_linux/ol.ini
       sed -i 's|^#use_new_selection.*$|#use_new_selection = 1|g' $SNAPCRAFT_PART_INSTALL/ol_linux/ol.ini
 
   sound:
@@ -88,5 +87,6 @@ apps:
       - opengl
       - network
       - pulseaudio
+      - desktop
     desktop: bin/otherlife.desktop
     command: desktop-launch $SNAP/bin/launcher.sh $*
