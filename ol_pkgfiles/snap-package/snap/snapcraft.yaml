@@ -1,5 +1,5 @@
 name: otherlife
-version: '1.9.5.p2'
+version: '1.9.5.git'
 summary: Other Life is a free to play, graphical MMORPG
 description: |
   Other-Life is a community based game that allows you to affect the future of the game.  Your
@@ -15,15 +15,16 @@ icon: otherlife.svg
 
 parts:
   client:
-    source: https://github.com/pjbroad/other-life/archive/1.9.5.1.zip
+    source: https://github.com/pjbroad/other-life/archive/master.zip
     build-packages: [build-essential, libcal3d12-dev, libsdl-image1.2-dev, libsdl-net1.2-dev, libxml2-dev, libopenal-dev, libvorbis-dev]
     plugin: make
-    source-subdir: "other-life-1.9.5.1"
+    source-subdir: "other-life-master"
     makefile: Makefile.linux
     make-parameters: ["release"]
     override-pull: |
       snapcraftctl pull
-      sed -i 's|^PLATFORM=.*$|#PLATFORM=""|g' other-life-1.9.5.1/make.defaults
+      sed -i 's|^PLATFORM=.*$|#PLATFORM=""|g' other-life-master/make.defaults
+      cd other-life-master/ && echo "1.9.5.git-`date +"%Y%m%d%H%M"`" > git_version
     artifacts: ["ol.x86.linux.bin"]
     stage-packages:
       - libglib2.0-0
@@ -40,7 +41,6 @@ parts:
       - libpng16-16
       - libegl1-mesa
       - libglu1-mesa
-      - libglu1
       - libgl1-mesa-dri
       - libgl1-mesa-glx
       - libglapi-mesa
