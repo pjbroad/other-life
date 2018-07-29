@@ -1,0 +1,92 @@
+name: otherlife
+version: '1.9.5.p2'
+summary: Other Life is a free to play, graphical MMORPG
+description: |
+  Other-Life is a community based game that allows you to affect the future of the game.  Your
+  actions and decisions along with all the other players will be used to influence the world of
+  your Other-Life. Unlike other MMORPG's, Other-Life players have the ability to request & approve
+  changes to the game as it evolves!
+  See http://www.other-life.com/
+  Other-Life is based on the Eternal Lands free MMORPG.
+grade: stable
+confinement: strict
+type: app
+icon: otherlife.svg
+
+parts:
+  client:
+    source: https://github.com/pjbroad/other-life/archive/1.9.5.1.zip
+    build-packages: [build-essential, libcal3d12-dev, libsdl-image1.2-dev, libsdl-net1.2-dev, libxml2-dev, libopenal-dev, libvorbis-dev]
+    plugin: make
+    source-subdir: "other-life-1.9.5.1"
+    makefile: Makefile.linux
+    make-parameters: ["release"]
+    override-pull: |
+      snapcraftctl pull
+      sed -i 's|^PLATFORM=.*$|#PLATFORM=""|g' other-life-1.9.5.1/make.defaults
+    artifacts: ["ol.x86.linux.bin"]
+    stage-packages:
+      - libglib2.0-0
+      - libsdl-net1.2
+      - libxml2
+      - libogg0
+      - libvorbis0a
+      - libvorbisfile3
+      - libopenal1
+      - libcal3d12v5
+      - libsdl-image1.2
+      - libxrandr2
+      - zlib1g
+      - libpng16-16
+      - libegl1-mesa
+      - libglu1-mesa
+      - libglu1
+      - libgl1-mesa-dri
+      - libgl1-mesa-glx
+      - libglapi-mesa
+      - libgles2-mesa
+      - libosmesa6
+      - mesa-va-drivers
+      - mesa-vdpau-drivers
+      - mesa-vulkan-drivers
+    after:
+      - desktop-glib-only
+
+  data:
+    source: https://github.com/pjbroad/other-life/releases/download/1.9.5.1/ol_linux_data.zip
+    plugin: dump
+    organize:
+      ol_linux/ : data/
+    override-build: |
+      snapcraftctl build
+      sed -i 's|^#browser.*$|#browser = x-www-browser|g' $SNAPCRAFT_PART_INSTALL/ol_linux/ol.ini
+      sed -i 's|^#use_new_selection.*$|#use_new_selection = 1|g' $SNAPCRAFT_PART_INSTALL/ol_linux/ol.ini
+
+  sound:
+    source: https://github.com/pjbroad/other-life/releases/download/1.9.5.1/otherlife-sound_1.9.3.zip
+    plugin: dump
+    organize:
+      '*' : data/
+
+  music:
+    source: https://github.com/pjbroad/other-life/releases/download/1.9.5.1/music_full.zip
+    plugin: dump
+    organize:
+      '*' : data/music/
+
+  launcher:
+    plugin: nil
+    override-build: |
+      mkdir -p $SNAPCRAFT_PART_INSTALL/bin/
+      cp -p launcher.sh $SNAPCRAFT_PART_INSTALL/bin/
+      cp -p otherlife.desktop $SNAPCRAFT_PART_INSTALL/bin/
+
+apps:
+  client:
+    plugs:
+      - x11
+      - opengl
+      - network
+      - pulseaudio
+    desktop: bin/otherlife.desktop
+    command: desktop-launch $SNAP/bin/launcher.sh $*

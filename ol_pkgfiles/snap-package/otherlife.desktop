@@ -1,0 +1,24 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=Other Life (snap)
+Comment=What are you in your other life?
+Exec=otherlife.client
+Icon=${SNAP}/meta/gui/icon.svg
+StartupNotify=true
+Terminal=false
+Type=Application
+Categories=Game;AdventureGame;
+
+Actions=Main;Test;PK;
+
+[Desktop Action Main]
+Name=Main server
+Exec=otherlife.client main
+
+[Desktop Action Test]
+Name=Test server
+Exec=otherlife.client test
+
+[Desktop Action PK]
+Name=PK server
+Exec=otherlife.client pk
