@@ -327,6 +327,7 @@ extern char
 		poison_indicator_str[60],
 		messages_indicator_str[60],
 		ranginglock_indicator_str[70],
+		glowperk_indicator_str[100],
 		/*ignore.c*/
 		no_ignores_str[50],
 		ignores_str[50],
@@ -528,7 +529,7 @@ extern char
 		questlog_deleted_str[20],
 		/* item lists */
 		cm_item_list_selected_str[40],
-		cm_item_list_names_str[100],
+		cm_item_list_names_str[120],
 		item_list_use_help_str[40],
 		item_list_pickup_help_str[40],
 		item_list_edit_help_str[40],
@@ -537,7 +538,8 @@ extern char
 		item_list_create_help_str[40],
 		item_list_magic_str[80],
 		item_list_find_str[20],
-		item_list_find_help_str [40],
+		item_list_find_help_str[40],
+		item_list_find_help_disabled_str[40],
 		/* new_character.c */
 		use_appropriate_name[500];
 #endif  //DOXYGEN_SKIP_THIS

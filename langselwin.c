@@ -48,18 +48,20 @@ static list_node_t *langsel_list = NULL;
 static LANGSEL_LIST_NODE *langsel_default_node = NULL;
 static LANGSEL_LIST_NODE *langsel_chosen_node = NULL;
 static LANGSEL_LIST_NODE *langsel_selected_node = NULL;
-#ifdef OTHER_LIFE
-  static float langsel_winRGB[4][3] = {{0.0f,0.25f,1.0f},{0.2f,0.7f,1.2f},{0.2f,1.0f,1.2f},{0x95 / 255.0f, 0x89 / 255.0f, 0x7b / 255.0f}};
-#else
-  static float langsel_winRGB[4][3] = {{0.0f,0.25f,1.0f},{0.2f,0.7f,1.2f},{0.2f,1.0f,1.2f},{newcol_r, newcol_g, newcol_b}};
-#endif
+static float langsel_winRGB[4][3] = {{0.0f,0.25f,1.0f},{0.2f,0.7f,1.2f},{0.2f,1.0f,1.2f},{0x95 / 255.0f, 0x89 / 255.0f, 0x7b / 255.0f}};
 
 static int langsel_load_list(void)
 {
 	xmlDocPtr doc;
 	xmlNodePtr cur;
 	char *error_prefix = "Reading langsel.xml: ";
-	
+
+#ifdef OTHER_LIFE
+	langsel_winRGB[3][0] = newcol_r;
+	langsel_winRGB[3][1] = newcol_g;
+	langsel_winRGB[3][2] = newcol_b;
+#endif
+
 	if ((doc = xmlReadFile("languages/langsel.xml", NULL, 0)) == NULL)
 	{
 		langsel_list_error = "Can't open file.";

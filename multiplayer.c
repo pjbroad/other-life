@@ -869,6 +869,7 @@ void process_message_from_server (const Uint8 *in_data, int data_length)
 				load_counters();
 				load_channel_colors();
 				send_video_info();
+				check_glow_perk();
 				previously_logged_in=1;
 				last_save_time= time(NULL);
 
@@ -1446,7 +1447,7 @@ void process_message_from_server (const Uint8 *in_data, int data_length)
 				  LOG_WARNING("CAUTION: Possibly forged FIRE_PARTICLES packet received.\n");
 				  break;
 				}
-				add_fire_at_tile (SDL_SwapLE16(*(Uint16 *)(in_data+7)), SDL_SwapLE16(*((Uint16 *)(in_data+3))), SDL_SwapLE16(*((Uint16 *)(in_data+5))));
+				add_fire_at_tile (SDL_SwapLE16(*(Uint16 *)(in_data+7)), SDL_SwapLE16(*((Uint16 *)(in_data+3))), SDL_SwapLE16(*((Uint16 *)(in_data+5))), 0);
 			}
 			break;
 

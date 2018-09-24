@@ -202,6 +202,7 @@ char
 	poison_indicator_str[60],
 	messages_indicator_str[60],
 	ranginglock_indicator_str[70],
+	glowperk_indicator_str[100],
 	/*loginwin.c*/
 	login_username_str[20],
 	login_password_str[20],
@@ -371,7 +372,7 @@ char
 	cm_minimap_menu_str[60],
 	cm_user_menu_str[150],
 	cm_item_list_selected_str[40],
-	cm_item_list_names_str[100],
+	cm_item_list_names_str[120],
 	cm_stats_bar_base_str[30],
 	cm_recipe_menu_str[100],
 	cm_manuwin_menu_str[50],
@@ -404,7 +405,8 @@ char
 	item_list_create_help_str[40],
 	item_list_magic_str[80],
 	item_list_find_str[20],
-	item_list_find_help_str[40];
+	item_list_find_help_str[40],
+	item_list_find_help_disabled_str[40];
 #endif
 /*! \} */
 
@@ -1486,6 +1488,7 @@ void init_help()
 	add_xml_identifier(misc,"poison_indicator",poison_indicator_str,"P||Poisoned||Not Poisoned||Poison Status",sizeof(poison_indicator_str));
 	add_xml_identifier(misc,"messages_indicator",messages_indicator_str,"M||Recent Messages||No Messages||Message Count",sizeof(messages_indicator_str));
 	add_xml_identifier(misc,"ranginglock_indicator",ranginglock_indicator_str,"R||Ranging Lock On||Ranging Lock Off||Ranging Lock Status",sizeof(ranginglock_indicator_str));
+	add_xml_identifier(misc,"glowperk_indicator",glowperk_indicator_str,"G||Glow Perk On||Glow Perk Off||Glow Perk Status||You do not have the Glow In The Dark perk",sizeof(glowperk_indicator_str));
 	add_xml_identifier(misc,"dc_note_rm",dc_note_remove,"Double-click to remove this category",sizeof(dc_note_remove));
 	add_xml_identifier(misc,"note_saved",note_saved,"Your notes have been saved",sizeof(note_saved));
 	add_xml_identifier(misc,"note_save_failed",note_save_failed,"Failed to save your notes!",sizeof(note_save_failed));
@@ -1632,9 +1635,9 @@ void init_help()
 	add_xml_identifier(misc, "cm_npcname_menu", cm_npcname_menu_str, "Copy NPC Name\nSet Map Mark", sizeof(cm_npcname_menu_str));
 	add_xml_identifier(misc, "cm_dialog_copy_menu", cm_dialog_copy_menu_str, "Exclude Responses\nRemove Newlines", sizeof(cm_dialog_copy_menu_str));
 	add_xml_identifier(misc, "cm_minimap_menu", cm_minimap_menu_str, "--\nRotate Minimap\nPin Minimap\nOpen On Start", sizeof(cm_minimap_menu_str));
-	add_xml_identifier(misc, "cm_user_menu", cm_user_menu_str, "--\nMovable Window\nBorder On\nSmall Font\nStandard Menus\n--\nShow Commands\n--\nReload Menus\nDisable Menus", sizeof(cm_user_menu_str));
+	add_xml_identifier(misc, "cm_user_menu", cm_user_menu_str, "--\nMovable Window\nBackground On\nBorder On\nSmall Font\nStandard Menus\n--\nShow Commands\n--\nReload Menus\nDisable Menus", sizeof(cm_user_menu_str));
 	add_xml_identifier(misc, "cm_item_list_selected", cm_item_list_selected_str, "Edit quantity\n--\nDelete", sizeof(cm_item_list_selected_str));
-	add_xml_identifier(misc, "cm_item_list_names", cm_item_list_names_str, "Create new list\nRename active list\n--\nDelete active list\n--\nReload from file", sizeof(cm_item_list_names_str));
+	add_xml_identifier(misc, "cm_item_list_names", cm_item_list_names_str, "Create new list\nRename active list\n--\nDelete active list\n--\nDisable find list\n--\nReload from file", sizeof(cm_item_list_names_str));
 	add_xml_identifier(misc, "cm_stats_bar_base", cm_stats_bar_base_str, "--\nAdd Bar\nRemove Bar", sizeof(cm_stats_bar_base_str));
 	add_xml_identifier(misc, "cm_recipe_menu", cm_recipe_menu_str, "Add additional recipe row\nClear selected recipe\nDelete selected recipe\nSort recipes by name", sizeof(cm_recipe_menu_str));
 	add_xml_identifier(misc, "cm_manuwin_menu", cm_manuwin_menu_str, "\n--\nDisable key presses for window", sizeof(cm_manuwin_menu_str));
@@ -1677,6 +1680,7 @@ void init_help()
 	add_xml_identifier(misc, "item_list_magic", item_list_magic_str, "Magical interference caused the list window to close O.O", sizeof(item_list_magic_str));	
 	add_xml_identifier(misc, "item_list_find", item_list_find_str, "Find: ", sizeof(item_list_find_str));
 	add_xml_identifier(misc, "item_list_find_help", item_list_find_help_str, "Find list - type text", sizeof(item_list_find_help_str));
+	add_xml_identifier(misc, "item_list_find_help_disabled", item_list_find_help_disabled_str, "Find list - (disabled)", sizeof(item_list_find_help_disabled_str));
 }
 #endif
 
