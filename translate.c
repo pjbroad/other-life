@@ -185,6 +185,8 @@ char
 	/*gamewin.c*/
 	ranginglock_enabled_str[100],
 	ranginglock_disabled_str[50],
+	close_click_targetting_on_str[50],
+	close_click_targetting_off_str[50],
 	/*gl_init.c*/
 	window_size_adjusted_str[50],
 	/*hud.c*/
@@ -732,6 +734,7 @@ char	reg_error_str[15],
 	/* encyclopedia */
 	cant_load_encycl[70],
 	/* text.c */
+	invalidnpcmark_str[50],
 	warn_currently_ignoring[50];
 #else
 	;
@@ -1242,6 +1245,7 @@ void init_errors()
 	add_xml_identifier (misc, "noanimation", no_animation_err_str, "No animation: %s!\n", sizeof(no_animation_err_str));
 	add_xml_identifier (misc, "invalid_location", invalid_location_str, "Invalid location %d,%d", sizeof(invalid_location_str));
 	add_xml_identifier (misc, "warn_currently_ignoring", warn_currently_ignoring, "Warning: %s is on your #ignore list", sizeof(warn_currently_ignoring));
+	add_xml_identifier (misc, "invalidnpcmark", invalidnpcmark_str, "Invalid string for NPC map mark.", sizeof(invalidnpcmark_str));
 
 	//XML errors. should these have their own group?
 	add_xml_identifier (misc, "badnode", xml_bad_node, "There is something wrong with one of a node's fields.", sizeof(xml_bad_node));
@@ -1494,6 +1498,8 @@ void init_help()
 	add_xml_identifier(misc,"note_save_failed",note_save_failed,"Failed to save your notes!",sizeof(note_save_failed));
 	add_xml_identifier(misc,"ranginglock_enabled",ranginglock_enabled_str,"Ranging-Lock is now enabled. Disable it or unequip ranging weapon before walking.",sizeof(ranginglock_enabled_str));
 	add_xml_identifier(misc,"ranginglock_disabled",ranginglock_disabled_str,"Ranging-Lock is now disabled.",sizeof(ranginglock_disabled_str));
+	add_xml_identifier(misc,"close_click_targetting_on",close_click_targetting_on_str,"Close-click targetting on.",sizeof(close_click_targetting_on_str));
+	add_xml_identifier(misc,"close_click_targetting_off",close_click_targetting_off_str,"Close-click targetting off.",sizeof(close_click_targetting_off_str));
 	add_xml_identifier(misc,"video_restart", video_restart_str, "Video change will take effect at next restart.", sizeof(video_restart_str));
 	add_xml_identifier(misc,"rotate_chat_log_restart", rotate_chat_log_restart_str, "Rotate chat log change will take effect at next restart.", sizeof(rotate_chat_log_restart_str));
 	add_xml_identifier(misc,"ranging_win_title", ranging_win_title_str, "Ranging", sizeof(ranging_win_title_str));

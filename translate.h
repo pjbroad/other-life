@@ -310,6 +310,8 @@ extern char
 		/*gamewin.c*/
 		ranginglock_enabled_str[100],
 		ranginglock_disabled_str[50],
+		close_click_targetting_on_str[50],
+		close_click_targetting_off_str[50],
 		/*gl_init.c*/
 		window_size_adjusted_str[50],
 		/*hud.c*/
@@ -811,6 +813,7 @@ extern char	reg_error_str[15],
 		fatal_data_error[120],
 		cant_load_encycl[70],
 		warn_currently_ignoring[50],
+		invalidnpcmark_str[50],
 		dc_note_remove[50],
 		note_saved[50],
 		note_save_failed[50];
