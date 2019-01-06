@@ -1220,10 +1220,21 @@ void popup_create_from_network( const unsigned char *payload, size_t size )
 	if (flags)
 		LOG_ERROR("%s: flags=%d set but not yet supported\n", __FUNCTION__, flags );
 
+#ifdef OTHER_LIFE
+	/* close popup if the same popup_id */
+	if ( popup_node_find_by_id( popup_id ) != NULL ) {
+		popup_node_destroy(popup_node_find_by_id( popup_id ));
+	}
+	/* size==0 means server sent 'close popup' */
+	if( !size ) {
+		return;
+	}
+#else
 	/* Ensure there is no popup with this ID */
 	if ( popup_node_find_by_id( popup_id ) != NULL ) {
 		return;
 	}
+#endif
 
 	new_popup = popup_create( title, popup_id, 0 );
 
