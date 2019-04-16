@@ -535,7 +535,7 @@ extern char
 		questlog_deleted_str[20],
 		/* item lists */
 		cm_item_list_selected_str[40],
-		cm_item_list_names_str[120],
+		cm_item_list_names_str[160],
 		item_list_use_help_str[40],
 		item_list_pickup_help_str[40],
 		item_list_edit_help_str[40],
@@ -819,6 +819,10 @@ extern char	reg_error_str[15],
 		warn_currently_ignoring[50],
 		invalidnpcmark_str[50],
 		dc_note_remove[50],
+		character_notes_saved_str[70],
+		notes_save_tooltip_str[40],
+		using_character_notes_str[60],
+		cm_use_character_notepad_str[60],
 		note_saved[50],
 		note_save_failed[50];
 #else
