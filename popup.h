@@ -99,15 +99,31 @@ typedef struct popup_t {
 	int button_widget_id;             /* Send button widget ID (if applicable) */
 } popup_t;
 
+/* Popup structure allocated for each popup beying displayed */
+
+typedef struct popup_old_t {
+	popup_id_t id;                    /* ID of this popup */
+	int old_pos_x, old_pos_y;         /* former x/y positions */
+} popup_old_t;
+
 /* List node dereferencing */
 #define POPUP_NODE(x) \
     ((popup_t*)((x)->data))
+
+#define POPUP_OLD_NODE(x) \
+    ((popup_old_t*)((x)->data))
 
 /*!
  * \ingroup popup_window
  * \brief	Initialize the popup structures
  */
 void popup_init();
+
+/*!
+ * \ingroup popup_window
+ * \brief	Free the popup structures
+ */
+void popup_cleanup();
 void popup_display();
 
 /*!
@@ -118,6 +134,16 @@ void popup_display();
  */
 
 popup_t *popup_create( const char *title, popup_id_t popup_id, int persistent );
+
+/*!
+ * \ingroup popup_window
+ * \brief	Create a backup of x/y position of a popup
+ * \param popup the popup to back up
+ * \returns The newly created popup_old
+ */
+
+popup_old_t *popup_old_create( popup_t* popup );
+
 void popup_set_text( popup_t *this_popup, const char *text );
 void popup_finish_setup( popup_t *this_popup );
 void popup_set_callback( popup_t *popup, popup_callback_t callback );
