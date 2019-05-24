@@ -50,6 +50,7 @@
 #endif /* POPUP_DEBUG */
 
 static list_node_t *popup_list;
+static list_node_t *popup_old_list;		/* store popup for repositioning new popups at the last location */
 static int popup_position_x = 500/2;
 static int popup_position_y = 480/4;
 
@@ -215,6 +216,25 @@ static popup_node_t *popup_node_find_by_id( popup_id_t id )
 	list_for_each_node( popup_list_entry, popup_list ) {
 
 		if ( POPUP_NODE(popup_list_entry)->id == id )
+			return popup_list_entry;
+	}
+
+	return NULL;
+}
+
+/*!
+ * \ingroup popup_window
+ * \brief Locate a popup node in the global list_old using the popup ID
+ * \returns The popup node on the global list_old, or NULL if not found
+ */
+
+static popup_node_t *popup_node_old_find_by_id( popup_id_t id )
+{
+	popup_node_t *popup_list_entry;
+
+	list_for_each_node( popup_list_entry, popup_old_list ) {
+
+		if ( POPUP_OLD_NODE(popup_list_entry)->id == id )
 			return popup_list_entry;
 	}
 
@@ -407,6 +427,23 @@ static popup_option_t *popup_option_create( const char *const text,
 void popup_init()
 {
 	popup_list = NULL;
+	popup_old_list = NULL;
+}
+/*!
+ * \brief called on exit
+ * \returns Nothing, as usual
+ */
+
+void popup_cleanup()
+{
+	popup_t *popup;
+	popup_old_t *popup_old;
+	while( (popup = (popup_t*)list_pop( &popup_list )) )
+		popup_free( popup );
+	while( (popup_old = (popup_old_t*)list_pop( &popup_old_list)) )
+		free( popup_old );
+	popup_list = NULL;
+	popup_old_list = NULL;
 }
 /*!
  * \ingroup popup_window
@@ -791,6 +828,7 @@ static void popup_recompute_sizes( popup_t *this_popup )
 static void popup_node_destroy( popup_node_t *this_popup_node )
 {
 	popup_t *this_popup = POPUP_NODE(this_popup_node);
+	popup_old_create( POPUP_NODE(popup_node_find_by_id( this_popup->id )) );
 
 	if ( this_popup->button_widget_id > 0 )
 		widget_destroy( this_popup->win, this_popup->button_widget_id );
@@ -853,15 +891,20 @@ int popup_send_button_clicked(widget_list *w, int mx, int my, Uint32 flags)
 
 static void popup_create_window(popup_t *this_popup)
 {
-	list_node_t *group;
+	list_node_t *group = NULL;
+	popup_old_t *popup_old = NULL;
+	if(popup_node_old_find_by_id(this_popup->id))
+	{
+		popup_old = POPUP_OLD_NODE(popup_node_old_find_by_id(this_popup->id));
+	}
 
 	POPUP_FUNC_ENTER;
 
 	this_popup->win = create_window(this_popup->title,
 									game_root_win,
 									0,
-									popup_position_x,
-                                    popup_position_y,
+									popup_old?popup_old->old_pos_x : popup_position_x,
+                                    					popup_old?popup_old->old_pos_y : popup_position_y,
 									this_popup->width,
 									this_popup->height,
 									ELW_USE_UISCALE|ELW_WIN_DEFAULT);
@@ -926,6 +969,32 @@ popup_t* popup_create( const char *title, popup_id_t id, int persistent )
 	list_push( &popup_list, new_popup );
 
 	return new_popup;
+}
+
+popup_old_t *popup_old_create( popup_t* popup )
+{
+	if(popup)
+	{
+		popup_old_t *old_popup;
+		int fresh = 0;
+		if( popup_node_old_find_by_id(popup->id) )
+		{
+			old_popup = POPUP_OLD_NODE(popup_node_old_find_by_id(popup->id));
+		}else{
+			old_popup = calloc( 1,sizeof(popup_old_t) );
+			fresh = 1;
+		}
+		
+		if (NULL!=old_popup) {
+			old_popup->id = popup->id;
+			old_popup->old_pos_x = get_window_info(popup->win)->cur_x;
+			old_popup->old_pos_y = get_window_info(popup->win)->cur_y;
+			if(fresh)
+				list_push( &popup_old_list, old_popup );
+			return old_popup;
+		}
+	}
+	return NULL;
 }
 
 /*!

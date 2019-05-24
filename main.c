@@ -53,6 +53,7 @@
 #include "particles.h"
 #include "password_manager.h"
 #include "pm_log.h"
+#include "popup.h"
 #include "questlog.h"
 #include "queue.h"
 #include "reflection.h"
@@ -133,6 +134,8 @@ void cleanup_mem(void)
 	end_actors_lists();
 	LOG_INFO("cleanup_lights()");
 	cleanup_lights();
+	LOG_INFO("popup_cleanup()");
+	popup_cleanup();
 	/* 2d objects */
 	LOG_INFO("destroy_all_2d_objects()");
 	destroy_all_2d_objects();
