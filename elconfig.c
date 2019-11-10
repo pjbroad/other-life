@@ -1903,7 +1903,7 @@ static void add_var(option_type type, char * name, char * shortname, void * var,
 	int no=our_vars.no++;
 	char *pointer;
 	float *tmp_f;
-	point *tmp_i;
+	uintptr_t *tmp_i;
 	int_min_max_func *i_func;
 	float_min_max_func *f_func;
 	va_list ap;
@@ -1927,11 +1927,11 @@ static void add_var(option_type type, char * name, char * shortname, void * var,
 			va_start(ap, tab_id);
 			//Min
 			tmp_i= calloc(1,sizeof(*tmp_i));
-			*tmp_i= va_arg(ap, point);
+			*tmp_i= va_arg(ap, uintptr_t);
 			queue_push(our_vars.var[no]->queue, tmp_i);
 			//Max
 			tmp_i= calloc(1,sizeof(*tmp_i));
-			*tmp_i= va_arg(ap, point);
+			*tmp_i= va_arg(ap, uintptr_t);
 			queue_push(our_vars.var[no]->queue, tmp_i);
 			va_end(ap);
 			*integer= (int)def;
@@ -2227,7 +2227,7 @@ static void init_ELC_vars(void)
 	add_var(OPT_BOOL,"anti_alias", "aa", &anti_alias, change_aa, 0, "Toggle Anti-Aliasing", "Anti-aliasing makes edges look smoother", VIDEO);
 #endif //ANTI_ALIAS
 #ifdef	FSAA
-	add_var(OPT_MULTI_H, "anti_aliasing", "fsaa", &fsaa_index, change_fsaa, 0, "Anti-Aliasing", "Full Scene Anti-Aliasing", VIDEO, get_fsaa_mode_str(0), 0);
+	add_var(OPT_MULTI_H, "anti_aliasing", "fsaa", &fsaa_index, change_fsaa, 0, "Anti-Aliasing", "Full Scene Anti-Aliasing", VIDEO, get_fsaa_mode_str(0), NULL);
 	for (i = 1; i < get_fsaa_mode_count(); i++)
 	{
 		if (get_fsaa_mode(i) == 1)
