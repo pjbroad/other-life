@@ -94,7 +94,7 @@ int client_version_release=VER_RELEASE;
 int	client_version_patch=VER_BUILD;
 int version_first_digit=10;	//protocol/game version sent to server
 #ifdef OTHER_LIFE
-int version_second_digit=26;
+int version_second_digit=28;
 #else
 int version_second_digit=28;
 #endif
