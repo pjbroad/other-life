@@ -1,4 +1,4 @@
-# CMAKE file for Eternal Lands
+# CMAKE file for Eternal Lands / Other Life
 #
 # Create a build sub-directory and move into it
 # 
@@ -19,10 +19,17 @@
 #
 # Example for windows using msys2
 #   cmake -G "MSYS Makefiles" -DCMAKE_INCLUDE_PATH="/mingw64/local/include" -DCMAKE_LIBRARY_PATH="/mingw64/local/lib" ..
+#
+# Example build other-life
+#   cmake -DOTHER-LIFE=1
 
 cmake_minimum_required(VERSION 3.0.2)
 
-project (Eternal-Lands)
+if (OTHER-LIFE)
+	project (Other-Life)
+else()
+	project (Eternal-Lands)
+endif()
 
 # standard options that also set source files to build
 set(CUSTOM_UPDATE 1)			# allows autoupdating of custom look information
@@ -44,9 +51,14 @@ add_definitions(
 	-DFASTER_MAP_LOAD				# Enables optimizations to speed up the process of switching between maps
 	-DFASTER_STARTUP				# An attempt to reduce the startup time of EL somewhat
 	-DMIDDLE_MOUSE_PASTE			# Paste using the middle mouse button from the primary buffer on X systems
-	# new for 1.9.4 release
-	-DNEW_EYES						# Support for different eye colors, needs new data files
 )
+
+if (NOT OTHER-LIFE)
+	add_definitions(
+		# new for 1.9.4 release
+		-DNEW_EYES						# Support for different eye colors, needs new data files
+	)
+endif()
 
 
 # Testing options (these options are possible for the a future release and should be tested)
@@ -207,12 +219,20 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3 -fomit-frame-pointer -ffast-math -pipe -fno-str
 # set the OS level defines and default executable names
 if (CMAKE_SYSTEM_NAME MATCHES "Linux")
 	if (NOT EXEC)
-		set(EXEC "el.linux.bin")
+		if (OTHER-LIFE)
+			set(EXEC "ol.linux.bin")
+		else()
+			set(EXEC "el.linux.bin")
+		endif()
 	endif()
 	add_definitions(-DLINUX)
 elseif (CMAKE_SYSTEM_NAME MATCHES "Windows")
 	if (NOT EXEC)
-		set(EXEC "el")
+		if (OTHER-LIFE)
+			set(EXEC "ol")
+		else()
+			set(EXEC "el")
+		endif()
 	endif()
 	add_definitions(-DWINDOWS -DWINVER=0x500 -mwindows -DNDEBUG)
 	set(EXTRA_LD_FLAGS "${EXTRA_LD_FLAGS} -mwindows")
@@ -224,6 +244,11 @@ endif()
 
 # any final defines needed
 add_definitions(-DELC -D_7ZIP_ST)
+if (OTHER-LIFE)
+	add_definitions(-DOTHER_LIFE -DOTHER_LIFE_EXTENDED_CHAT)
+	set(SOURCES ${SOURCES} ${SD}ext_protocol.c)
+endif()
+
 
 # default to building a release version
 if (NOT CMAKE_BUILD_TYPE)
