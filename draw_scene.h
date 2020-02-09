@@ -7,7 +7,9 @@
 #define __DRAW_SCENE_H__
 
 #include "platform.h"
+#if !defined(MAP_EDITOR)
 #include "elwindows.h"
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -123,6 +125,7 @@ void update_camera();
  */
 void CalculateFrustum();
 
+#if !defined(MAP_EDITOR)
 /*!
  * \ingroup	display
  * \brief	Window handler that updates the \see have_display flag.
@@ -130,6 +133,7 @@ void CalculateFrustum();
  *		Window handler that updates the \see have_display flag.
  */
 int update_have_display(window_info *win);
+#endif
 
 #ifdef __cplusplus
 } // extern "C"

@@ -529,7 +529,7 @@ void Achievements_System::show(void) const
 Achievements_System * Achievements_System::get_instance(void)
 {
 	static Achievements_System as;
-	static Uint32 creation_thread = SDL_ThreadID();
+	static SDL_threadID creation_thread = SDL_ThreadID();
 	if (SDL_ThreadID() != creation_thread)
 		std::cerr << __FUNCTION__ << ": Achievements system called by non-creator thread." << std::endl;
 	return &as;
@@ -645,6 +645,7 @@ void Achievements_Window::open_child(void)
 	{
 		child_win_id = create_window("child", parent->window_id, 0, 0, 0, 0, 0,
 			ELW_USE_BACKGROUND|ELW_USE_BORDER|ELW_SHOW|ELW_ALPHA_BORDER|ELW_SWITCHABLE_OPAQUE);
+		set_window_custom_scale(child_win_id, &custom_scale_factors.achievements);
 		set_window_handler(child_win_id, ELW_HANDLER_DISPLAY, (int (*)())&achievements_child_display_handler );
 	}
 	else
@@ -828,14 +829,14 @@ static int achievements_mouseover_handler(window_info *win, int mx, int my)
 
 //	A common display handler callback for keypress activity.
 //
-int achievements_keypress_handler(window_info *win, int mx, int my, Uint32 key, Uint32 unikey)
+int achievements_keypress_handler(window_info *win, int mx, int my, SDL_Keycode key_code, Uint32 key_unicode, Uint16 key_mod)
 {
 	if (!win)
 		return 0;
-	if ((key & 0xffff) == SDLK_ESCAPE) // close window if Escape pressed
+	if (key_code == SDLK_ESCAPE) // close window if Escape pressed
 	{
 		do_window_close_sound();
-		if (key & ELW_CTRL)
+		if (key_mod & KMOD_CTRL)
 			Achievements_System::get_instance()->hide_all();
 		else
 			hide_window(win->window_id);
@@ -854,7 +855,7 @@ static int achievements_click_handler(window_info *win, int mx, int my, Uint32 f
 	if (my < 0)
 		return 0;
 	Achievements_Window *object = reinterpret_cast<Achievements_Window *>(win->data);
-	if ((flags & ELW_LEFT_MOUSE) && (flags & ELW_CTRL))
+	if ((flags & ELW_LEFT_MOUSE) && (flags & KMOD_CTRL))
 		object->window_ctrl_clicked();
 	else if (flags & ELW_LEFT_MOUSE)
 		object->window_clicked();
@@ -928,6 +929,7 @@ void Achievements_Window::open(int win_pos_x, int win_pos_y)
 
 	main_win_id = create_window(their_name.c_str(), -1, 0, win_pos_x, win_pos_y, 0, 0,
 		ELW_USE_UISCALE|ELW_TITLE_BAR|ELW_DRAGGABLE|ELW_USE_BACKGROUND|ELW_USE_BORDER|ELW_SHOW|ELW_TITLE_NAME|ELW_ALPHA_BORDER|ELW_SWITCHABLE_OPAQUE);
+	set_window_custom_scale(main_win_id, &custom_scale_factors.achievements);
 	set_window_handler(main_win_id, ELW_HANDLER_DISPLAY, (int (*)())&achievements_display_handler );
 	set_window_handler(main_win_id, ELW_HANDLER_CLICK, (int (*)())&achievements_click_handler );
 	set_window_handler(main_win_id, ELW_HANDLER_MOUSEOVER, (int (*)())&achievements_mouseover_handler );

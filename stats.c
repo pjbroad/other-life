@@ -3,12 +3,11 @@
 #include "stats.h"
 #include "asc.h"
 #include "draw_scene.h"
+#include "elconfig.h"
 #include "elwindows.h"
 #include "errors.h"
 #include "gl_init.h"
-#include "global.h"
 #include "hud_statsbar_window.h"
-#include "init.h"
 #include "knowledge.h"
 #include "session.h"
 #include "tabs.h"
@@ -1111,6 +1110,7 @@ int click_stats_handler(window_info *win, int mx, int my, Uint32 flags)
 void fill_stats_win (int window_id)
 {
         //set_window_color(window_id, ELW_COLOR_BORDER, 0.0f, 1.0f, 0.0f, 0.0f);
+        set_window_custom_scale(window_id, &custom_scale_factors.stats);
         set_window_handler(window_id, ELW_HANDLER_DISPLAY, &display_stats_handler );
         set_window_handler(window_id, ELW_HANDLER_CLICK, &click_stats_handler );
 }

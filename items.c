@@ -12,7 +12,6 @@
 #include "errors.h"
 #include "gamewin.h"
 #include "gl_init.h"
-#include "global.h"
 #include "hud.h"
 #include "init.h"
 #include "interface.h"
@@ -100,8 +99,16 @@ static size_t cm_mix_but = CM_INIT_VALUE;
 static size_t cm_getall_but = CM_INIT_VALUE;
 static size_t cm_itemlist_but = CM_INIT_VALUE;
 static int mouseover_item_pos = -1;
+int items_disable_text_block = 0;
+static int text_arrow_x = 0;
+static int text_arrow_y = 0;
+static int text_arrow_width = 0;
+static int text_arrow_height = 0;
+static int mouse_over_text_arrow = 0;
+static struct { int last_dest; int move_to; int move_from; size_t string_id; Uint32 start_time; } swap_complete = {-1, -1, -1, 0, 0};
 
-static void drop_all_handler();
+static int show_items_handler(window_info * win);
+static void drop_all_handler(void);
 
 void set_shown_string(char colour_code, const char *the_text)
 {
@@ -477,6 +484,9 @@ void remove_item_from_inventory(int pos)
 {
 	used_item_counter_check_confirmation(pos, 0);
 	item_list[pos].quantity=0;
+
+	if (pos == swap_complete.move_from)
+		swap_complete.move_to = swap_complete.move_from = -1;
 	
 #ifdef NEW_SOUND
 	check_for_item_sound(pos);
@@ -529,6 +539,18 @@ void get_new_inventory_item (const Uint8 *data)
 	
 	build_manufacture_list();
 	check_castability();
+
+	// if we can, complete a swap of equipment by moving the removed item to the slot left by the new
+	if (pos == swap_complete.move_to)
+	{
+		if (item_list[swap_complete.move_from].quantity)
+		{
+			if (!move_item(swap_complete.move_from, swap_complete.move_to, -1))
+				swap_complete.move_from = swap_complete.move_to = -1;
+		}
+		else
+			swap_complete.move_from = swap_complete.move_to = -1;
+	}
 }
 
 
@@ -551,8 +573,7 @@ void draw_item(int id, int x_start, int y_start, int gridsize){
 	glEnd();
 }
 
-
-int display_items_handler(window_info *win)
+static int display_items_handler(window_info *win)
 {
 	char str[80];
 	char my_str[10];
@@ -562,6 +583,8 @@ int display_items_handler(window_info *win)
 	char *but_labels[NUMBUT] = { sto_all_str, get_all_str, drp_all_str, NULL, itm_lst_str };
 
 	glEnable(GL_TEXTURE_2D);
+
+	check_for_swap_completion();
 
 	/* 
 	* Labrat: I never realised that a store all patch had been posted to Berlios by Awn in February '07
@@ -605,6 +628,10 @@ int display_items_handler(window_info *win)
 		if(item_list[i].quantity){
 			int cur_pos;
 			int x_start,x_end,y_start,y_end;
+
+			// don't display an item that is in the proces of being moved after equipment swap
+			if (item_swap_in_progress(i))
+				continue;
 
 			//get the x and y
 			cur_pos=i;
@@ -703,17 +730,45 @@ int display_items_handler(window_info *win)
 	draw_string_small_zoomed(2, quantity_y_offset-quantity_height-1, (unsigned char*)str, 1, win->current_scale);
 
 	//now, draw the inventory text, if any.
-	if (last_items_string_id != inventory_item_string_id)
+	if (!items_disable_text_block)
 	{
-		put_small_text_in_box_zoomed((unsigned char*)inventory_item_string, strlen(inventory_item_string), win->len_x-8, items_string, win->current_scale);
-		last_items_string_id = inventory_item_string_id;
+		if (last_items_string_id != inventory_item_string_id)
+		{
+			put_small_text_in_box_zoomed((unsigned char*)inventory_item_string, strlen(inventory_item_string), win->len_x-8, items_string, win->current_scale);
+			last_items_string_id = inventory_item_string_id;
+		}
+		draw_string_small_zoomed(4, win->len_y - text_y_offset, (unsigned char*)items_string, 4, win->current_scale);
 	}
-	draw_string_small_zoomed(4, win->len_y - text_y_offset, (unsigned char*)items_string, 4, win->current_scale);
-	
+
+	glDisable(GL_TEXTURE_2D);
+
+	if (mouse_over_text_arrow)
+		glColor3f(0.99f,0.77f,0.55f);
+	else
+		glColor3f(0.77f,0.57f,0.39f);
+	mouse_over_text_arrow = 0;
+	if (items_disable_text_block)
+	{
+		glBegin(GL_LINES); /* Dn arrow */
+			glVertex3i(text_arrow_x, text_arrow_y - text_arrow_height, 0);
+			glVertex3i(text_arrow_x + text_arrow_width/2, text_arrow_y, 0);
+			glVertex3i(text_arrow_x + text_arrow_width/2, text_arrow_y, 0);
+			glVertex3i(text_arrow_x + text_arrow_width, text_arrow_y - text_arrow_height, 0);
+		glEnd();
+	}
+	else
+	{
+		glBegin(GL_LINES); /* Up arrow */
+			glVertex3i(text_arrow_x, text_arrow_y, 0);
+			glVertex3i(text_arrow_x + text_arrow_width/2, text_arrow_y - text_arrow_height, 0);
+			glVertex3i(text_arrow_x + text_arrow_width/2, text_arrow_y - text_arrow_height, 0);
+			glVertex3i(text_arrow_x + text_arrow_width, text_arrow_y, 0);
+		glEnd();
+	}
+
 	// Render the grid *after* the images. It seems impossible to code
 	// it such that images are rendered exactly within the boxes on all 
 	// cards
-	glDisable(GL_TEXTURE_2D);
 	glColor3f(newcol_r, newcol_g, newcol_b);
 
 	//draw the grids
@@ -781,16 +836,17 @@ CHECK_GL_ERRORS();
 
 
 /* return 1 if sent the move command */
-int move_item(int item_pos_to_mov, int destination_pos)
+int move_item(int item_pos_to_mov, int destination_pos, int avoid_pos)
 {
 	int drop_on_stack = 0;
+	swap_complete.last_dest = -1;
 	/* if the dragged item is equipped and the destintion is occupied, try to find another slot */
 	if ((item_pos_to_mov >= ITEM_WEAR_START) && (item_list[destination_pos].quantity)){
 		int i;
 		int have_free_pos = 0;
 		/* find first free slot, use a free slot in preference to a stack as the server does the stacking */
 		for (i = 0; i < ITEM_WEAR_START; i++){
-			if (!item_list[i].quantity){
+			if (!item_list[i].quantity && i != avoid_pos){
 				destination_pos = i;
 				have_free_pos = 1;
 				break;
@@ -830,6 +886,7 @@ int move_item(int item_pos_to_mov, int destination_pos)
 		str[1]=item_list[item_pos_to_mov].pos;
 		str[2]=destination_pos;
 		my_tcp_send(my_socket,str,3);
+		swap_complete.last_dest = destination_pos;
 		return 1;
 	}
 	else
@@ -846,14 +903,138 @@ static void equip_item(int item_pos_to_equip, int destination_pos)
 	my_tcp_send(my_socket,str,3);
 }
 
+static void prep_move_to_vacated_slot(int destination)
+{
+	swap_complete.move_from = swap_complete.last_dest;
+	swap_complete.move_to = destination;
+	swap_complete.string_id = inventory_item_string_id;
+	swap_complete.start_time = SDL_GetTicks();
+}
 
-int click_items_handler(window_info *win, int mx, int my, Uint32 flags)
+// stop expecting swap completion if we get a message, or we timeout (catch all)
+void check_for_swap_completion(void)
+{
+	if (swap_complete.move_from != -1)
+	{
+		if (swap_complete.string_id != inventory_item_string_id)
+			swap_complete.move_from = swap_complete.move_to = -1;
+		if (SDL_GetTicks() > swap_complete.start_time + 2000)
+			swap_complete.move_from = swap_complete.move_to = -1;
+	}
+}
+
+int item_swap_in_progress(int item_pos)
+{
+	return (item_pos == swap_complete.move_from) ?1: 0;
+}
+
+// If we double-click an equipable item, and one of that type is already equipped, swap them.
+//
+static int swap_equivalent_equipped_item(int from_pos)
+{
+	size_t i;
+	enum EQUIP_TYPE from_equip_type = get_item_equip_type(item_list[from_pos].id, item_list[from_pos].image_id);
+	int same_pos = -1, left_hand_pos = -1, right_hand_pos = -1, both_hands_pos = -1;
+	int item_to_swap = -1, extra_item = -1;
+
+	// stop now if we don't know about the item type
+	if (from_equip_type == EQUIP_NONE)
+		return 0;
+
+	// clear any previous "avoid destination" there may have been
+	swap_complete.last_dest = -1;
+
+	// there are several rules about swapping left and right handed items with both handed items
+	// find each of the types
+	for(i = ITEM_WEAR_START; i<ITEM_WEAR_START + ITEM_NUM_WEAR; i++)
+		if (item_list[i].quantity > 0)
+		{
+			enum EQUIP_TYPE the_type = get_item_equip_type(item_list[i].id, item_list[i].image_id);
+			if (the_type == from_equip_type)
+				same_pos = i;
+			else if (the_type == EQUIP_LEFT_HAND)
+				left_hand_pos = i;
+			else if (the_type == EQUIP_RIGHT_HAND)
+				right_hand_pos = i;
+			else if (the_type == EQUIP_BOTH_HANDS)
+				both_hands_pos = i;
+		}
+
+	// if a simple, same item type swap
+	if (same_pos != -1)
+		item_to_swap = same_pos;
+	// if equipping a both hands item, swap a right hand item first, any left hand as the extra
+	else if (from_equip_type == EQUIP_BOTH_HANDS && right_hand_pos != -1)
+	{
+		item_to_swap = right_hand_pos;
+		if (left_hand_pos != -1)
+			extra_item = left_hand_pos;
+	}
+	// equipping a both hands item, no right hand but swap any left hand item
+	else if (from_equip_type == EQUIP_BOTH_HANDS && left_hand_pos != -1)
+		item_to_swap = left_hand_pos;
+	// if theres an equipped both hands item, allow a right or left hand item to be swapped with it
+	else if (both_hands_pos != -1 && (from_equip_type == EQUIP_RIGHT_HAND || from_equip_type == EQUIP_LEFT_HAND))
+		item_to_swap = both_hands_pos;
+
+	// remove any extra item, swap_complete.last_dest will be set the the new slot for the remove item
+	if ((extra_item != -1) && !move_item(extra_item, 0, -1))
+	{
+		do_alert1_sound();
+		set_shown_string(c_red2, items_cannot_equip_str);
+		return 1;
+	}
+
+	// do the swap if any
+	if (item_to_swap != -1)
+	{
+		// avoid moving to where we put any removed extra item
+		if (move_item(item_to_swap, 0, swap_complete.last_dest))
+		{
+			equip_item(from_pos, item_to_swap);
+			prep_move_to_vacated_slot(from_pos);
+			do_get_item_sound();
+			item_dragged = -1;
+		}
+		else
+		{
+			do_alert1_sound();
+			set_shown_string(c_red2, items_cannot_equip_str);
+		}
+		return 1; // there was something to swap, and we tried, don't try other stuff
+	}
+
+	return 0; // there was nothing to swap, try other stuff
+}
+
+// common function for aut equip used by inventory and quickbar
+void try_auto_equip(int from_item)
+{
+	if (allow_equip_swap && swap_equivalent_equipped_item(from_item)) {
+		// all done, don't try direct equip
+	} else {
+		size_t i;
+		for(i = ITEM_WEAR_START; i < ITEM_WEAR_START + ITEM_NUM_WEAR; i++) {
+			if(item_list[i].quantity<1) {
+				if (!move_item(from_item, i, -1))
+				{
+					do_alert1_sound();
+					set_shown_string(c_red2, items_cannot_equip_str);
+				}
+				item_dragged=-1;
+				break;
+			}
+		}
+	}
+}
+
+static int click_items_handler(window_info *win, int mx, int my, Uint32 flags)
 {	
 	Uint8 str[100];
 	int right_click = flags & ELW_RIGHT_MOUSE;
-	int ctrl_on = flags & ELW_CTRL;
-	int shift_on = flags & ELW_SHIFT;
-	int alt_on = flags & ELW_ALT;
+	int ctrl_on = flags & KMOD_CTRL;
+	int shift_on = flags & KMOD_SHIFT;
+	int alt_on = flags & KMOD_ALT;
 	int pos;
 	actor *me;
 
@@ -865,6 +1046,14 @@ int click_items_handler(window_info *win, int mx, int my, Uint32 flags)
 
 	if (!right_click && over_button(win, mx, my) != -1)
 		do_click_sound();
+
+	if ((flags & ELW_LEFT_MOUSE) && (mx > text_arrow_x) && (mx < text_arrow_x + text_arrow_width) &&
+			(my < text_arrow_y) && (my > text_arrow_y - text_arrow_height))
+	{
+		items_disable_text_block ^= 1;
+		show_items_handler(win);
+		return 1;
+	}
 
 	if(right_click) {
 		if(item_dragged!=-1 || use_item!=-1 || storage_item_dragged!=-1){
@@ -955,17 +1144,10 @@ int click_items_handler(window_info *win, int mx, int my, Uint32 flags)
 #endif // NEW_SOUND
 		if(pos==-1) {
 		} else if(item_dragged!=-1){
-			if(item_dragged == pos){ //let's try auto equip
-				int i;
-				for(i = ITEM_WEAR_START; i<ITEM_WEAR_START+8;i++) {
-					if(item_list[i].quantity<1) {
-						move_item(pos,i);
-						item_dragged=-1;
-						break;
-					}
-				}
+			if(item_dragged == pos){
+				try_auto_equip(item_dragged);
 			} else {
-				if (move_item(item_dragged, pos)){
+				if (move_item(item_dragged, pos, -1)){
 					do_drop_item_sound();
 				}
 				else {
@@ -1113,12 +1295,15 @@ int click_items_handler(window_info *win, int mx, int my, Uint32 flags)
 			}
 			else if(item_dragged!=-1 && left_click) {
 				int can_move = (item_dragged == pos) || allow_equip_swap;
-				if (can_move && move_item(pos, 0)) {
+				if (can_move && move_item(pos, 0, -1)) {
 					equip_item(item_dragged, pos);
+					if (item_dragged != pos)
+						prep_move_to_vacated_slot(item_dragged);
 					do_get_item_sound();
 				}
 				else {
 					do_alert1_sound();
+					set_shown_string(c_red2, items_cannot_equip_str);
 				}
 				item_dragged=-1;
 			}
@@ -1141,7 +1326,7 @@ int click_items_handler(window_info *win, int mx, int my, Uint32 flags)
 	return 1;
 }
 
-void set_description_help(int pos)
+static void set_description_help(int pos)
 {
 	Uint16 item_id = item_list[pos].id;
 	int image_id = item_list[pos].image_id;
@@ -1149,13 +1334,22 @@ void set_description_help(int pos)
 		item_desc_str = get_item_description(item_id, image_id);
 }
 
-int mouseover_items_handler(window_info *win, int mx, int my) {
+static int mouseover_items_handler(window_info *win, int mx, int my) {
 	int pos;
 	
 	// check and record if mouse if over a button
 	if ((mouse_over_but = over_button(win, mx, my)) != -1)
 		return 0; // keep standard cursor
-	
+
+	if ((mx > text_arrow_x) && (mx < text_arrow_x + text_arrow_width) &&
+			(my < text_arrow_y) && (my > text_arrow_y - text_arrow_height))
+	{
+		item_help_str = items_text_toggle_help_str;
+		mouse_over_text_arrow = 1;
+		return 0;
+	}
+
+
 	if(mx>0&&mx<6*items_grid_size&&my>0&&my<6*items_grid_size){
 		pos=get_mouse_pos_in_grid(mx, my, 6, 6, 0, 0, items_grid_size, items_grid_size);
 
@@ -1207,25 +1401,25 @@ int mouseover_items_handler(window_info *win, int mx, int my) {
 	return 0;
 }
 
-int keypress_items_handler(window_info * win, int x, int y, Uint32 key, Uint32 keysym)
+static int keypress_items_handler(window_info * win, int x, int y, SDL_Keycode key_code, Uint32 key_unicode, Uint16 key_mod)
 {
 	if(edit_quantity!=-1){
 		char * str=quantities.quantity[edit_quantity].str;
 		int * len=&quantities.quantity[edit_quantity].len;
 		int * val=&quantities.quantity[edit_quantity].val;
 
-		if(key==SDLK_DELETE){
+		if(key_code == SDLK_DELETE){
 			reset_quantity(edit_quantity);
 			edit_quantity=-1;
 			return 1;
-		} else if(key==SDLK_BACKSPACE){
+		} else if(key_code == SDLK_BACKSPACE){
 			if(*len>0){
 				(*len)--;
 				str[*len]=0;
 				*val=atoi(str);
 			}
 			return 1;
-		} else if(keysym=='\r'){
+		} else if(key_code == SDLK_RETURN || key_code == SDLK_KP_ENTER){
 			if(!*val){
 				reset_quantity(edit_quantity);
 			}
@@ -1233,12 +1427,18 @@ int keypress_items_handler(window_info * win, int x, int y, Uint32 key, Uint32 k
 			quantities.selected=edit_quantity;
 			edit_quantity=-1;
 			return 1;
-		} else if(keysym>='0' && keysym<='9' && *len<5){
-			str[*len]=keysym;
-			(*len)++;
-			str[*len]=0;
-			
-			*val=atoi(str);
+		} else if(key_code == SDLK_ESCAPE){
+			reset_quantity(edit_quantity);
+			edit_quantity=-1;
+			return 1;
+		} else if(key_unicode >= '0' && key_unicode <= '9'){
+			if (*len<5)
+			{
+				str[*len]=key_unicode;
+				(*len)++;
+				str[*len]=0;
+				*val=atoi(str);
+			}
 			return 1;
 		}
 	}
@@ -1246,7 +1446,7 @@ int keypress_items_handler(window_info * win, int x, int y, Uint32 key, Uint32 k
 	return 0;
 }
 
-static void drop_all_handler ()
+static void drop_all_handler (void)
 {
 	Uint8 str[6] = {0};
 	int i;
@@ -1274,7 +1474,7 @@ static void drop_all_handler ()
 	}
 }
 
-int show_items_handler(window_info * win)
+static int show_items_handler(window_info * win)
 {
 	int i, win_x_len, win_y_len;
 	int seperator = (int)(0.5 + win->current_scale * 5);
@@ -1288,12 +1488,17 @@ int show_items_handler(window_info * win)
 	wear_items_y_offset = items_grid_size;
 	wear_items_x_offset = items_grid_size * 6 + seperator;
 
+	text_arrow_width = wear_grid_size * 0.4;
+	text_arrow_height = wear_grid_size * 0.4;
+	text_arrow_x = wear_items_x_offset;
+	text_arrow_y = items_grid_size * 6;
+
 	but_len_x = (int)(0.5 + win->current_scale * 31);
 	but_x_offset = wear_items_x_offset + 2 * wear_grid_size + seperator;
 
 	win_x_len = but_x_offset + but_len_x;
 
-	text_y_offset = (int)(0.5 + 7 * win->small_font_len_y);
+	text_y_offset = (int)(0.5 + ((items_disable_text_block) ?3 : 7) * win->small_font_len_y);
 
 	win_y_len = 6 * items_grid_size + text_y_offset + seperator;
 
@@ -1344,10 +1549,11 @@ void display_items_menu()
 		}
 		items_win= create_window(win_inventory, our_root_win, 0, items_menu_x, items_menu_y, 0, 0, ELW_USE_UISCALE|ELW_WIN_DEFAULT);
 
+		set_window_custom_scale(items_win, &custom_scale_factors.items);
 		set_window_handler(items_win, ELW_HANDLER_DISPLAY, &display_items_handler );
 		set_window_handler(items_win, ELW_HANDLER_CLICK, &click_items_handler );
 		set_window_handler(items_win, ELW_HANDLER_MOUSEOVER, &mouseover_items_handler );
-		set_window_handler(items_win, ELW_HANDLER_KEYPRESS, &keypress_items_handler );
+		set_window_handler(items_win, ELW_HANDLER_KEYPRESS, (int (*)())&keypress_items_handler );
 		set_window_handler(items_win, ELW_HANDLER_SHOW, &show_items_handler );
 		set_window_handler(items_win, ELW_HANDLER_UI_SCALE, &show_items_handler );
 		

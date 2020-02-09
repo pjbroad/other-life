@@ -406,7 +406,7 @@ void open_web_link(const char * url)
 		safe_strncpy(cp_url, url, strlen(url)+1);
 
 		// windows needs to spawn it in its own thread
-		SDL_CreateThread(only_call_from_open_web_link__go_to_url, cp_url);
+		SDL_CreateThread(only_call_from_open_web_link__go_to_url, "BrowserThread", cp_url);
 	} else {
 		ShellExecute(NULL, "open", url, NULL, NULL, SW_SHOWNOACTIVATE); //this returns an int we could check for errors, but that's mainly when you use shellexecute for local files
 #endif  //_WIN32
@@ -706,7 +706,7 @@ static int click_url_handler(window_info *win, int mx, int my, Uint32 flags)
 		vscrollbar_scroll_down(win->window_id, url_scroll_id);
 	else if (have_url_count && url_win_hover_url != NULL)
 	{
-		if (flags & ELW_CTRL)
+		if (flags & KMOD_CTRL)
 		{
 			delete_current_url(url_win_hover_url);
 			do_window_close_sound();
@@ -798,6 +798,7 @@ static int resize_url_handler(window_info *win, int new_width, int new_height)
 /* fill the URL window created as a tab. */
 void fill_url_window(int window_id)
 {
+	set_window_custom_scale(window_id, &custom_scale_factors.info);
 	set_window_handler(window_id, ELW_HANDLER_DISPLAY, &display_url_handler );
 	set_window_handler(window_id, ELW_HANDLER_CLICK, &click_url_handler );
 	set_window_handler(window_id, ELW_HANDLER_RESIZE, &resize_url_handler );

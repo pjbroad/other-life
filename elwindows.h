@@ -6,6 +6,7 @@
 #ifndef	__EL_WINDOWS_H
 #define	__EL_WINDOWS_H
 
+#include <SDL_keycode.h>
 #include "keys.h"
 #include "widgets.h"
 
@@ -62,6 +63,7 @@ typedef	struct	{
 	 */
 	/*! @{ */
 	float current_scale;
+	float *custom_scale;
 	int box_size;
 	int title_height;
 	int small_font_len_x;
@@ -222,10 +224,6 @@ typedef	struct	{
  * \name mouse click flags - first ones from events
  */
 /*! @{ */
-#define	ELW_SHIFT		SHIFT
-#define	ELW_CTRL		CTRL
-#define	ELW_ALT			ALT
-#define ELW_META		KMOD_LMETA
 #define ELW_RIGHT_MOUSE		(1<<28)
 #define ELW_MID_MOUSE		(1<<27)	// future expansion
 #define ELW_LEFT_MOUSE		(1<<26)
@@ -247,12 +245,56 @@ typedef	struct	{
 	int	display_level;
 } windows_info;
 
+/*!
+ * set of window custom scale factors
+ */
+typedef struct {
+	float trade;
+	float items;
+	float bags;
+	float spells;
+	float storage;
+	float manufacture;
+	float emote;
+	float questlog;
+	float info;
+	float buddy;
+	float stats;
+	float help;
+	float ranging;
+	float achievements;
+	float dialogue;
+} custom_scale_factors_def;
+
+extern custom_scale_factors_def custom_scale_factors; /*!<* window custom scale factors */
 extern	windows_info	windows_list; /*!< global variable defining the list of windows */
 extern int windows_on_top; /*!< global variable for whether windows appear on top of the console */
 extern int top_SWITCHABLE_OPAQUE_window_drawn; /*!< the id of the top opaque switchable window */
 extern int opaque_window_backgrounds;
 
 // windows manager function
+
+/*!
+ * \ingroup elwindows
+ * \brief   Set the window custom scale factor
+ *
+ *      This value is multipled by the global scale value to
+ * determine the specific scale used for this window.
+ *
+ * \param win_id    the id of the window to select
+ * \param scale_factor     pointer to the scaling factor
+ * \callgraph
+ */
+void set_window_custom_scale(int win_id, float *new_scale);
+
+/*!
+ * \ingroup elwindows
+ * \brief   For each window using the specifed scale, update scaling.
+ *
+ * changed_window_custom_scale	pointer to the variable from custom_scale_factors_def
+ * \callgraph
+ */
+void update_windows_custom_scale(float *changed_window_custom_scale);
 
 /*!
  * \ingroup elwindows
@@ -341,12 +383,13 @@ int		drag_windows(int mx, int my, int dx, int dy);
  *
  * \param x         x coordinate of the mouse position where the click occurred
  * \param y         y coordinate of the mouse position where the click occurred
- * \param key       the key or key combination that is pressed
- * \param unikey    the unicode value of \a key
+ * \param	key_code the SDL key code
+ * \param	key_unicode the unicode representation of the key pressed
+ * \param	key_mod the status bitmask for mod keys
  * \retval int
  * \callgraph
  */
-int		keypress_in_windows(int x, int y, Uint32 key, Uint32 unikey);
+int		keypress_in_windows(int x, int y, SDL_Keycode key_code, Uint32 key_unicode, Uint16 key_mod);
 
 /*!
  * \ingroup elwindows

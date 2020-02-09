@@ -10,6 +10,9 @@
 #include "errors.h"
 #include "gamewin.h"
 #include "hud.h"
+#ifdef OPENGL_TRACE
+#include "gl_init.h"
+#endif
 #include "init.h"
 #include "interface.h"
 #include "items.h"
@@ -604,7 +607,7 @@ static int click_ground_items_handler(window_info *win, int mx, int my, Uint32 f
 	int pos;
 	Uint8 str[10];
 	int right_click = flags & ELW_RIGHT_MOUSE;
-	int ctrl_on = flags & ELW_CTRL;
+	int ctrl_on = flags & KMOD_CTRL;
 	int yoffset = get_window_scroll_pos(win->window_id);
 
 	// only handle mouse button clicks, not scroll wheels moves
@@ -736,6 +739,7 @@ static void draw_pick_up_menu(void)
 		ground_items_win= create_window(win_bag, our_root_win, 0, ground_items_menu_x, ground_items_menu_y,
 			0, 0, ELW_USE_UISCALE|ELW_SCROLLABLE|ELW_RESIZEABLE|ELW_WIN_DEFAULT);
 
+		set_window_custom_scale(ground_items_win, &custom_scale_factors.bags);
 		set_window_handler(ground_items_win, ELW_HANDLER_DISPLAY, &display_ground_items_handler );
 		set_window_handler(ground_items_win, ELW_HANDLER_PRE_DISPLAY, &pre_display_ground_items_handler );
 		set_window_handler(ground_items_win, ELW_HANDLER_CLICK, &click_ground_items_handler );

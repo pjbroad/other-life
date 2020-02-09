@@ -85,19 +85,9 @@
 #include "fsaa/fsaa.h"
 #endif	/* FSAA */
 
+int exit_now=0;
+int restart_required=0;
 Uint32 cur_time=0, last_time=0;//for FPS
-
-char version_string[]=VER_STRING;
-int	client_version_major=VER_MAJOR;
-int client_version_minor=VER_MINOR;
-int client_version_release=VER_RELEASE;
-int	client_version_patch=VER_BUILD;
-int version_first_digit=10;	//protocol/game version sent to server
-#ifdef OTHER_LIFE
-int version_second_digit=28;
-#else
-int version_second_digit=28;
-#endif
 
 // Change rgb of menus etc
 #ifdef OTHER_LIFE
@@ -191,7 +181,7 @@ int start_rendering()
 	queue_initialise(&message_queue);
 	network_thread_data[0] = message_queue;
 	network_thread_data[1] = &done;
-	network_thread = SDL_CreateThread(get_message_from_server, network_thread_data);
+	network_thread = SDL_CreateThread(get_message_from_server, "NetworkThread", network_thread_data);
 
 	/* Loop until done. */
 	while( !done )
@@ -200,7 +190,7 @@ int start_rendering()
 
 			// handle SDL events
 			in_main_event_loop = 1;
-			while( SDL_PollEvent( &event ) )
+			while( SDL_PollEvent( &event ) && !done)
 				{
 					done = HandleEvent(&event);
 				}
@@ -251,7 +241,7 @@ int start_rendering()
 			weather_sound_control();
 #endif	//NEW_SOUND
 
-			if(!limit_fps || (cur_time-last_time && 1000/(cur_time-last_time) <= limit_fps))
+			if(!max_fps || (cur_time-last_time && 1000/(cur_time-last_time) <= max_fps))
 			{
 				weather_update();
 
@@ -367,7 +357,7 @@ int start_rendering()
 	// attempt to restart if requested
 	if(restart_required > 0){
 		LOG_INFO("Restarting %s", win_command_line);
-		SDL_CreateThread(system, win_command_line);
+		SDL_CreateThread(system, "MainThread", win_command_line);
 	}
 #endif  //WINDOWS
 */
@@ -416,7 +406,7 @@ int start_rendering()
 	return(0);
 }
 
-void	read_command_line()
+void	read_command_line(void)
 {
 	int i=1;
 	if(gargc<2)return;

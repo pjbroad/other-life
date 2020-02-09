@@ -158,17 +158,17 @@ static int popup_ok_button_handler(widget_list *w,
 }
 
 static int popup_keypress_handler(window_info *win,
-	int UNUSED(mx), int UNUSED(my), Uint32 key, Uint32 unikey)
+	int UNUSED(mx), int UNUSED(my), SDL_Keycode key_code, Uint32 key_unicode, Uint16 key_mod)
 {
 	INPUT_POPUP *ipu = ipu_from_window(win);
 	if (ipu == NULL) return 0;
 
-	if (key == SDLK_RETURN)
+	if (key_code == SDLK_RETURN || key_code == SDLK_KP_ENTER)
 	{
 		accept_popup_window (ipu);
 		return 1;
 	}
-	else if (key == SDLK_ESCAPE)
+	else if (key_code == SDLK_ESCAPE)
 	{
 		if (ipu->popup_cancel != NULL)
 			(*ipu->popup_cancel) (ipu->data);
@@ -189,7 +189,7 @@ static int popup_keypress_handler(window_info *win,
 			// set the flag again.
 			int res;
 			tfw->Flags &= ~TEXT_FIELD_NO_KEYPRESS;
-			res = widget_handle_keypress (tfw, mx - tfw->pos_x, my - tfw->pos_y, key, unikey);
+			res = widget_handle_keypress (tfw, mx - tfw->pos_x, my - tfw->pos_y, key_code, key_unicode, key_mod);
 			tfw->Flags |= TEXT_FIELD_NO_KEYPRESS;
 			return res;
 		}
@@ -300,7 +300,7 @@ void display_popup_win (INPUT_POPUP *ipu, const char* label)
 		ipu->popup_no = button_add_extended (ipu->popup_win, widget_id++, NULL, 0, 0, 0, 0, 0, 1.0, newcol_r, newcol_g, newcol_b, button_cancel);
 		widget_set_OnClick (ipu->popup_win, ipu->popup_no, popup_cancel_button_handler);
 
-		set_window_handler (ipu->popup_win, ELW_HANDLER_KEYPRESS, popup_keypress_handler);
+		set_window_handler (ipu->popup_win, ELW_HANDLER_KEYPRESS, (int (*)())&popup_keypress_handler);
 		set_window_handler (ipu->popup_win, ELW_HANDLER_UI_SCALE, popup_ui_scale_handler);
 
 		win->data = ipu;
@@ -723,6 +723,7 @@ static void open_note_tab_continued(int id)
 	int tab;
 
 	note_list[id].window = tab_add (notepad_win, note_tabcollection_id, note_list[id].name, 0, 1, ELW_USE_UISCALE);
+	set_window_custom_scale(note_list[id].window, &custom_scale_factors.info);
 	if (note_list[id].window < 0 || note_list[id].window > windows_list.num_windows)
 		return;
 	tab_win = &windows_list.window[note_list[id].window];
@@ -949,6 +950,7 @@ void fill_notepad_window(int window_id)
 {
 	int i;
 	notepad_win = window_id;
+	set_window_custom_scale(window_id, &custom_scale_factors.info);
 	set_window_handler(window_id, ELW_HANDLER_DISPLAY, &display_notepad_handler);
 	set_window_handler(window_id, ELW_HANDLER_CLICK, &click_buttonwin_handler);
 	set_window_handler(window_id, ELW_HANDLER_RESIZE, &resize_notepad_handler );
@@ -956,6 +958,7 @@ void fill_notepad_window(int window_id)
 	note_tabcollection_id = tab_collection_add (window_id, NULL, 0, 0, 0, 0);
 	widget_set_color (window_id, note_tabcollection_id, newcol_r, newcol_g, newcol_b);
 	main_note_tab_id = tab_add (window_id, note_tabcollection_id, tab_main, 0, 0, ELW_USE_UISCALE);
+	set_window_custom_scale(main_note_tab_id, &custom_scale_factors.info);
 	widget_set_color (window_id, main_note_tab_id, newcol_r, newcol_g, newcol_b);
 	set_window_handler(main_note_tab_id, ELW_HANDLER_CLICK, &click_buttonwin_handler);
 	set_window_handler(main_note_tab_id, ELW_HANDLER_RESIZE, &resize_buttonwin_handler);

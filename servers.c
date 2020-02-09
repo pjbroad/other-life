@@ -3,6 +3,7 @@
 #include "servers.h"
 #include "asc.h"
 #include "errors.h"
+#include "gl_init.h"
 #include "misc.h"
 #include "multiplayer.h"
 #include "io/elpathwrapper.h"
@@ -66,7 +67,9 @@ void set_server_details()
 		if (num == -1)
 		{
 			// Error, this is a problem!
-			LOG_ERROR("Fatal error: Server profile not found in servers.lst for server: main");
+			static char *error_str = "Fatal error: Server profile not found in servers.lst for server: main";
+			LOG_ERROR(error_str);
+			FATAL_ERROR_WINDOW(error_str);
 			exit(1);
 		}
 	}
@@ -118,6 +121,7 @@ void load_server_list(const char *filename)
 		const char *err_message = "Fatal error: %s file missing!\n";
 		LOG_ERROR(err_message, filename);
 		fprintf(stderr, err_message, filename);
+		FATAL_ERROR_WINDOW(err_message, filename);
 		exit(1);
 	}
 
@@ -130,6 +134,7 @@ void load_server_list(const char *filename)
 		LOG_ERROR(err_message, filename);
 		fprintf(stderr, err_message, filename);
 		fclose(f);
+		FATAL_ERROR_WINDOW(err_message, filename);
 		exit(1);
 	}
 	
@@ -142,6 +147,7 @@ void load_server_list(const char *filename)
 		fprintf(stderr, err_message, filename);
 		free(server_list_mem);
 		fclose(f);
+		FATAL_ERROR_WINDOW(err_message, filename);
 		exit(1);
 	}
 	fclose(f);
@@ -173,6 +179,7 @@ void load_server_list(const char *filename)
 						const char *errstg = "Fatal error: Too many servers specified in";
 						LOG_ERROR("%s %s", errstg, filename);
 						fprintf(stderr, "%s %s\n", errstg, filename);
+						FATAL_ERROR_WINDOW(errstg);
 						exit(1);
 					}
 

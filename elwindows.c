@@ -10,7 +10,6 @@
 #include "asc.h"
 #include "cursors.h"
 #include "gl_init.h"
-#include "global.h"
 #include "interface.h"
 #include "keys.h"
 #include "misc.h"
@@ -24,6 +23,25 @@
 
 #define ELW_WIN_MAX 128
 
+custom_scale_factors_def custom_scale_factors =
+{
+	.trade = 1.0f,
+	.items = 1.0f,
+	.bags = 1.0f,
+	.spells = 1.0f,
+	.storage = 1.0f,
+	.manufacture = 1.0f,
+	.emote = 1.0f,
+	.questlog = 1.0f,
+	.info = 1.0f,
+	.buddy = 1.0f,
+	.stats = 1.0f,
+	.help = 1.0f,
+	.ranging = 1.0f,
+	.achievements = 1.0f,
+	.dialogue = 1.0f,
+};
+
 windows_info	windows_list;	// the master list of windows
 
 static window_info *cur_drag_window = NULL;
@@ -35,7 +53,7 @@ static int last_opaque_window_backgrounds = 0;
 int display_window(int win_id);
 int	drag_in_window(int win_id, int x, int y, Uint32 flags, int dx, int dy);
 int	mouseover_window(int win_id, int x, int y);	// do mouseover processing for a window
-int	keypress_in_window(int win_id, int x, int y, Uint32 key, Uint32 unikey);	// keypress in the window
+int	keypress_in_window(int win_id, int x, int y, SDL_Keycode key_code, Uint32 key_unicode, Uint16 key_mod);	// keypress in the window
 
 /*
  * The intent of the windows system is to create the window once
@@ -45,13 +63,43 @@ int	keypress_in_window(int win_id, int x, int y, Uint32 key, Uint32 unikey);	// 
  *
  */
 
+void update_windows_custom_scale(float *changed_window_custom_scale)
+{
+	size_t win_id;
+	// to avoid getting out of step, scale all the variables first, then call the handers
+	for (win_id=0; win_id < windows_list.num_windows; win_id++)
+	{
+		window_info *win = &windows_list.window[win_id];
+		if ((win->custom_scale != NULL) && (win->custom_scale == changed_window_custom_scale))
+			update_window_scale(win, get_global_scale());
+	}
+	for (win_id=0; win_id < windows_list.num_windows; win_id++)
+	{
+		window_info *win = &windows_list.window[win_id];
+		if ((win->custom_scale != NULL) && (win->custom_scale == changed_window_custom_scale) && (win->ui_scale_handler != NULL))
+			(*win->ui_scale_handler)(win);
+	}
+}
+
+void set_window_custom_scale(int win_id, float *new_scale)
+{
+	window_info *win = NULL;
+	if (win_id < 0 || win_id > windows_list.num_windows)
+		return;
+	win = &windows_list.window[win_id];
+	win->custom_scale = new_scale;
+	update_window_scale(win, get_global_scale());
+	if (win->ui_scale_handler)
+		(*win->ui_scale_handler)(win);
+}
+
 void update_window_scale(window_info *win, float scale_factor)
 {
 	if (win == NULL)
 		return;
 	if (win->flags & ELW_USE_UISCALE)
 	{
-		win->current_scale = scale_factor;
+		win->current_scale = scale_factor * ((win->custom_scale == NULL) ?1.0f : *win->custom_scale);
 		win->box_size = (int)(0.5 + win->current_scale * ELW_BOX_SIZE);
 		win->title_height = (int)(0.5 + win->current_scale * ELW_TITLE_HEIGHT);
 		win->small_font_len_x = (int)(0.5 + win->current_scale * SMALL_FONT_X_LEN);
@@ -545,7 +593,7 @@ int drag_windows (int mx, int my, int dx, int dy)
 	return drag_id;
 }
 
-int	keypress_in_windows(int x, int y, Uint32 key, Uint32 unikey)
+int	keypress_in_windows(int x, int y, SDL_Keycode key_code, Uint32 key_unicode, Uint16 key_mod)
 {
 	int	done= 0;
 	int	id;
@@ -567,7 +615,7 @@ int	keypress_in_windows(int x, int y, Uint32 key, Uint32 unikey)
 					// at this level?
 					if(windows_list.window[i].order == id)
 					{
-						done = keypress_in_window (i, x, y, key, unikey);
+						done = keypress_in_window (i, x, y, key_code, key_unicode, key_mod);
 						if(done > 0)
 						{
 							if (windows_list.window[i].displayed > 0)
@@ -602,7 +650,7 @@ int	keypress_in_windows(int x, int y, Uint32 key, Uint32 unikey)
 				// at this level?
 				if(windows_list.window[i].order == id)
 				{
-					done = keypress_in_window(i, x, y, key, unikey);
+					done = keypress_in_window(i, x, y, key_code, key_unicode, key_mod);
 					if(done > 0)
 					{
 						//select_window(i);	// these never get selected
@@ -788,6 +836,7 @@ int	create_window(const char *name, int pos_id, Uint32 pos_loc, int pos_x, int p
 		win->line_color[2] = newcol_b;
 		win->line_color[3] = 0.0f;
 
+		win->custom_scale = NULL;
 		update_window_scale(win, get_global_scale());
 
 		win->init_handler = NULL;
@@ -1006,6 +1055,8 @@ int	draw_window_title(window_info *win)
 	float v_last_start = (float)160/255;
 	float v_last_end = (float)175/255;
 
+	int bar_end_x_width = (int)(0.5 + win->current_scale * 32);
+
 	if((win->flags&ELW_TITLE_BAR) == ELW_TITLE_NONE)	return 0;
 
 	/* draw the help text if the mouse is over the title bar */
@@ -1022,31 +1073,31 @@ int	draw_window_title(window_info *win)
 	glAlphaFunc(GL_GREATER,0.03f);
 	glBegin(GL_QUADS);
 
-	if (win->len_x > 64) 
+	if (win->len_x > 2 * bar_end_x_width) 
 	{
 		glTexCoord2f(u_first_end, v_first_start);
 		glVertex3i(0, -win->title_height, 0);
 		glTexCoord2f(u_first_end, v_first_end);
 		glVertex3i(0, 0, 0);
 		glTexCoord2f(u_first_start, v_first_end);
-		glVertex3i(32, 0, 0);
+		glVertex3i(bar_end_x_width, 0, 0);
 		glTexCoord2f(u_first_start, v_first_start);
-		glVertex3i(32, -win->title_height, 0);
+		glVertex3i(bar_end_x_width, -win->title_height, 0);
 
 		// draw one streched out cell to the proper size
 		glTexCoord2f(u_middle_end, v_middle_start);
-		glVertex3i(32, -win->title_height, 0);
+		glVertex3i(bar_end_x_width, -win->title_height, 0);
 		glTexCoord2f(u_middle_end, v_middle_end);
-		glVertex3i(32, 0, 0);
+		glVertex3i(bar_end_x_width, 0, 0);
 		glTexCoord2f(u_middle_start, v_middle_end);
-		glVertex3i(win->len_x-32, 0, 0);
+		glVertex3i(win->len_x-bar_end_x_width, 0, 0);
 		glTexCoord2f(u_middle_start, v_middle_start);
-		glVertex3i(win->len_x-32, -win->title_height, 0);
+		glVertex3i(win->len_x-bar_end_x_width, -win->title_height, 0);
 
 		glTexCoord2f(u_last_end, v_last_start);
-		glVertex3i(win->len_x-32, -win->title_height, 0);
+		glVertex3i(win->len_x-bar_end_x_width, -win->title_height, 0);
 		glTexCoord2f(u_last_end, v_last_end);
-		glVertex3i(win->len_x-32, 0, 0);
+		glVertex3i(win->len_x-bar_end_x_width, 0, 0);
 		glTexCoord2f(u_last_start, v_last_end);
 		glVertex3i(win->len_x, 0, 0);
 		glTexCoord2f(u_last_start, v_last_start);
@@ -1180,6 +1231,8 @@ int	draw_window_border(window_info *win)
 	
 	if(win->flags&ELW_CLOSE_BOX)
 	{
+		int cross_gap = (int)(0.5 + win->current_scale * 3);
+
 		//draw the corner, with the X in
 		glColor3f(win->border_color[0],win->border_color[1],win->border_color[2]);
 		glBegin(GL_LINE_STRIP);
@@ -1191,11 +1244,11 @@ int	draw_window_border(window_info *win)
 		glLineWidth(2.0f);
 
 		glBegin(GL_LINES);
-			glVertex2i(win->len_x-win->box_size+3, 3);
-			glVertex2i(win->len_x-3, win->box_size-3);
+			glVertex2i(win->len_x-win->box_size+cross_gap, cross_gap);
+			glVertex2i(win->len_x-cross_gap, win->box_size-cross_gap);
 		
-			glVertex2i(win->len_x-3, 3);
-			glVertex2i(win->len_x-win->box_size+3, win->box_size-3);
+			glVertex2i(win->len_x-cross_gap, cross_gap);
+			glVertex2i(win->len_x-win->box_size+cross_gap, win->box_size-cross_gap);
 		glEnd();
 
 		glLineWidth(1.0f);
@@ -1526,6 +1579,11 @@ int	click_in_window(int win_id, int x, int y, Uint32 flags)
 			/* Clicked on the resize-corner. */
 			return 1;
 		}
+		if ((win->custom_scale != NULL) && (flags & KMOD_CTRL) && ((flags & ELW_WHEEL_DOWN) || (flags & ELW_WHEEL_UP)))
+		{
+			step_win_scale_factor((flags & ELW_WHEEL_UP) ? 1 : 0, win->custom_scale);
+			return 1;
+		}
 		if(win->flags&ELW_SCROLLABLE) {
 			/* Adjust mouse y coordinates according to the scrollbar position */
 			scroll_pos = vscrollbar_get_pos(win->window_id, win->scroll_id);
@@ -1730,7 +1788,7 @@ CHECK_GL_ERRORS();
 	return 0;
 }
 
-int	keypress_in_window(int win_id, int x, int y, Uint32 key, Uint32 unikey)
+int	keypress_in_window(int win_id, int x, int y, SDL_Keycode key_code, Uint32 key_unicode, Uint16 key_mod)
 {
 	window_info *win;
 	int	mx, my;
@@ -1746,6 +1804,23 @@ int	keypress_in_window(int win_id, int x, int y, Uint32 key, Uint32 unikey)
 
 	if (mouse_in_window (win_id, x, y) > 0)
 	{
+		if (win->custom_scale != NULL)
+		{
+			int actioned = 1;
+			if (KEY_DEF_CMP(K_WINSCALEUP, key_code, key_mod))
+				step_win_scale_factor(1, win->custom_scale);
+			else if (KEY_DEF_CMP(K_WINSCALEDOWN, key_code, key_mod))
+				step_win_scale_factor(0, win->custom_scale);
+			else if (KEY_DEF_CMP(K_WINSCALEDEF, key_code, key_mod))
+				reset_win_scale_factor(1, win->custom_scale);
+			else if (KEY_DEF_CMP(K_WINSCALEINIT, key_code, key_mod))
+				reset_win_scale_factor(0, win->custom_scale);
+			else
+				actioned = 0;
+			if (actioned)
+				return 1;
+		}
+
 		mx = x - win->cur_x;
 		my = y - win->cur_y;
 
@@ -1764,7 +1839,7 @@ int	keypress_in_window(int win_id, int x, int y, Uint32 key, Uint32 unikey)
 			if (mx > W->pos_x && mx <= W->pos_x + W->len_x && my > W->pos_y && my <= W->pos_y+W->len_y)
 			{
 				if (!(W->Flags&WIDGET_DISABLED)) {
-					if ( widget_handle_keypress (W, mx - W->pos_x, my - W->pos_y, key, unikey) )
+					if ( widget_handle_keypress (W, mx - W->pos_x, my - W->pos_y, key_code, key_unicode, key_mod) )
 					{
 						// widget handled it 
 						glPopMatrix ();
@@ -1786,7 +1861,7 @@ CHECK_GL_ERRORS();
 			
 			glPushMatrix();
 			glTranslatef((float)win->cur_x, (float)win->cur_y, 0.0f);
-			ret_val = (*win->keypress_handler) (win, mx, my, key, unikey);
+			ret_val = (*win->keypress_handler) (win, mx, my, key_code, key_unicode, key_mod);
 			glPopMatrix();
 #ifdef OPENGL_TRACE
 CHECK_GL_ERRORS();

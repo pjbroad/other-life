@@ -317,7 +317,6 @@ extern char
 		/*hud.c*/
 		no_open_on_trade[100], 
 		stats_scroll_help_str[100],
-		remove_bar_message_str[50],
 		cm_action_points_str[30],
 		hud_timer_cm_str[100],
 		hud_timer_popup_title_str[25],
@@ -353,6 +352,7 @@ extern char
 		inv_keeprow_str[30],
 		quantity_edit_str[100],
 		equip_here_str[100],
+		items_text_toggle_help_str[50],
 		equip_str[20],
 		mod_click_item_help_str[50],
 		multiuse_item_help_str[50],
@@ -363,6 +363,7 @@ extern char
 		mixoneall_help_str[50],
 		itmlst_help_str[50],
 		items_stack_str[100],
+		items_cannot_equip_str[100],
 		mixbut_empty_str[80],
 		mix_empty_str[50],
 		click_clear_str[50],
@@ -484,7 +485,6 @@ extern char
 		accept_str[12],
 		/*update.c*/
 		update_complete_str[40],
-		video_restart_str[80],
 		rotate_chat_log_restart_str[80],
 		client_restart_countdown_str[40],
 		client_restarting_str[20],
