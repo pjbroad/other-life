@@ -743,9 +743,9 @@ static int display_items_handler(window_info *win)
 	glDisable(GL_TEXTURE_2D);
 
 	if (mouse_over_text_arrow)
-		glColor3f(0.99f,0.77f,0.55f);
+		glColor3f(newcol_r+0.2f, newcol_g+0.2f, newcol_b+0.2f);
 	else
-		glColor3f(0.77f,0.57f,0.39f);
+		glColor3f(newcol_r, newcol_g, newcol_b);
 	mouse_over_text_arrow = 0;
 	if (items_disable_text_block)
 	{
