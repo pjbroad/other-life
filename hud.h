@@ -243,7 +243,7 @@ int show_exp(char *text, int len);
 #endif
 
 #ifdef OTHER_LIFE
-extern Uint64 exp_lev[MAX_EXP_LEVEL];
+extern Uint64 exp_lev[MAX_EXP_LEVEL+1];
 #else
 extern Uint32 exp_lev[MAX_EXP_LEVEL];
 #endif

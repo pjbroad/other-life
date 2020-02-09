@@ -43,7 +43,7 @@ int hud_text;
 int show_help_text=1;
 int always_enlarge_text=1;
 #ifdef OTHER_LIFE
-Uint64 exp_lev[MAX_EXP_LEVEL];
+Uint64 exp_lev[MAX_EXP_LEVEL+1];
 #else
 Uint32 exp_lev[MAX_EXP_LEVEL];
 #endif
