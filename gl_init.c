@@ -954,6 +954,7 @@ void resize_root_window(void)
 
 int switch_video(int mode, int full_screen)
 {
+	Uint32 old_window_width = window_width, old_window_height = window_height;
 	video_mode=mode;
 	setup_video_mode(full_screen, mode);
 	SDL_RestoreWindow(el_gl_window);
@@ -965,7 +966,7 @@ int switch_video(int mode, int full_screen)
 		SDL_SetWindowSize(el_gl_window, window_width, window_height);
 	}
 	SDL_GetWindowSize(el_gl_window, &window_width, &window_height);
-	resize_all_root_windows(window_width, window_height);
+	resize_all_root_windows(old_window_width, window_width, old_window_height, window_height);
 	return 1;
 }
 
