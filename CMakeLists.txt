@@ -23,7 +23,7 @@
 # Example build other-life
 #   cmake -DOTHER-LIFE=1
 
-cmake_minimum_required(VERSION 3.0.2)
+cmake_minimum_required(VERSION 3.5.0)
 
 if (OTHER-LIFE)
 	project (Other-Life)
@@ -115,22 +115,20 @@ add_definitions(
 set(SD "")
 
 # Get compiler flags for used libraries
-include(FindPkgConfig)
-pkg_check_modules(SDL2 sdl2)
-if (NOT SDL2_INCLUDE_DIRS)
-	include(cmake/FindSDL2.cmake)
-endif()
-include(FindLibXml2)
+include(cmake/FindSDL2.cmake)
 include(cmake/FindSDL2_image.cmake)
 include(cmake/FindSDL2_net.cmake)
 set(OpenGL_GL_PREFERENCE LEGACY)
-include(FindOpenGL)
-include(FindOpenAL)
-include(FindZLIB)
-include(FindPNG)
-include(FindX11)
+find_package(OpenGL REQUIRED)
+find_package(OpenAL REQUIRED)
+find_package(ZLIB REQUIRED)
+find_package(PNG REQUIRED)
+find_package(LibXml2 REQUIRED)
+if (CMAKE_SYSTEM_NAME MATCHES "Linux")
+	find_package(X11)
+endif()
 if (CMAKE_SYSTEM_NAME MATCHES "Windows")
-	include(FindIconv)
+	find_package(Iconv)
 endif()
 # these definitions were re-used from Xapher's opengl client
 include(cmake/FindVorbis.cmake)
@@ -139,7 +137,7 @@ include(cmake/FindCal3d.cmake)
 
 # requird the nlohmann_json package if building for json files
 if (JSON_FILES EQUAL 1)
-	find_package(nlohmann_json 3.2.0 REQUIRED)
+	find_package(nlohmann_json REQUIRED)
 endif()
 
 # set the paths to header files
