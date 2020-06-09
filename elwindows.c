@@ -40,6 +40,7 @@ custom_scale_factors_def custom_scale_factors =
 	.ranging = 1.0f,
 	.achievements = 1.0f,
 	.dialogue = 1.0f,
+	.disable_mouse_or_keys = 0
 };
 
 windows_info	windows_list;	// the master list of windows
@@ -1041,7 +1042,7 @@ int	move_window(int win_id, int pos_id, Uint32 pos_loc, int pos_x, int pos_y)
 int	draw_window_title(window_info *win)
 {
 	float u_first_start = (float)31/255;
-	float u_first_end = 0;
+	float u_first_end = 0.5f/255.0f;
 	float v_first_start = (float)160/255;
 	float v_first_end = (float)175/255;
 
@@ -1050,7 +1051,7 @@ int	draw_window_title(window_info *win)
 	float v_middle_start = (float)160/255;
 	float v_middle_end = (float)175/255;
 
-	float u_last_start = 0;
+	float u_last_start = 0.5f/255.0f;
 	float u_last_end = (float)31/255;
 	float v_last_start = (float)160/255;
 	float v_last_end = (float)175/255;
@@ -1579,7 +1580,8 @@ int	click_in_window(int win_id, int x, int y, Uint32 flags)
 			/* Clicked on the resize-corner. */
 			return 1;
 		}
-		if ((win->custom_scale != NULL) && (flags & KMOD_CTRL) && ((flags & ELW_WHEEL_DOWN) || (flags & ELW_WHEEL_UP)))
+		if ((win->custom_scale != NULL) && (!custom_scale_factors.disable_mouse_or_keys) &&
+			(flags & KMOD_CTRL) && ((flags & ELW_WHEEL_DOWN) || (flags & ELW_WHEEL_UP)))
 		{
 			step_win_scale_factor((flags & ELW_WHEEL_UP) ? 1 : 0, win->custom_scale);
 			return 1;
@@ -1804,7 +1806,7 @@ int	keypress_in_window(int win_id, int x, int y, SDL_Keycode key_code, Uint32 ke
 
 	if (mouse_in_window (win_id, x, y) > 0)
 	{
-		if (win->custom_scale != NULL)
+		if ((win->custom_scale != NULL) && (!custom_scale_factors.disable_mouse_or_keys))
 		{
 			int actioned = 1;
 			if (KEY_DEF_CMP(K_WINSCALEUP, key_code, key_mod))
