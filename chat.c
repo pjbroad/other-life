@@ -1856,7 +1856,7 @@ static int draw_tab_details (widget_list *W)
 	int y = W->pos_y + (int)(0.5 + win->current_scale * 5);
 	int l3 = (int)(0.5 + win->current_scale * 3);
 	int l4 = (int)(0.5 + win->current_scale * 4);
-	int l7 = (int)(0.5 + win->current_scale * 7);
+	int half_plus = (int)(0.5 + win->current_scale * 4);
 	int itab;
 
 	glColor3f(newcol_r, newcol_g, newcol_b);
@@ -1867,8 +1867,8 @@ static int draw_tab_details (widget_list *W)
 	for (itab = 0; itab < tabs_in_use; itab++)
 		if ((tabs[itab].button == W->id) && (tabs[itab].channel == firstchannel + current_channel))
 		{
-			int x = W->pos_x + (int)(0.5 + win->current_scale * 2);
-			int y = W->pos_y + (int)(0.5 + win->current_scale * 1);
+			int plus_x = W->pos_x + (int)(0.5 + win->current_scale * 2) + half_plus;
+			int plus_y = W->pos_y + (int)(0.5 + win->current_scale * 2) + half_plus;
 			int i, color;
 			/* draw the "+" for the active channel */
 			for(i=0; i<MAX_CHANNEL_COLORS; i++)
@@ -1881,11 +1881,15 @@ static int draw_tab_details (widget_list *W)
 				color = channel_colors[i].color;
 				glColor3ub(colors_list[color].r1, colors_list[color].g1, colors_list[color].b1);
 			}
-			glBegin(GL_LINES);
-				glVertex2i(x+gx_adjust,y+l4);
-				glVertex2i(x+l7+gx_adjust,y+l4);
-				glVertex2i(x+l3,y+gy_adjust);
-				glVertex2i(x+l3,y+l7+gy_adjust);
+			glBegin(GL_QUADS);
+				glVertex2i(plus_x - half_plus, plus_y - 1);
+				glVertex2i(plus_x + half_plus, plus_y - 1);
+				glVertex2i(plus_x + half_plus, plus_y + 1);
+				glVertex2i(plus_x - half_plus, plus_y + 1);
+				glVertex2i(plus_x - 1, plus_y - half_plus);
+				glVertex2i(plus_x + 1, plus_y - half_plus);
+				glVertex2i(plus_x + 1, plus_y + half_plus);
+				glVertex2i(plus_x - 1, plus_y + half_plus);
 			glEnd();
 			glColor3f(newcol_r, newcol_g, newcol_b);
 			/* draw a dotted underline if input would go to this channel */
