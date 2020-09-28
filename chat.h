@@ -30,7 +30,6 @@ extern Uint8 current_channel;
 extern int firstchannel, lastchannel, loadsofchannels;
 
 #define INPUT_MARGIN 4
-#define INPUT_HEIGHT (DEFAULT_FONT_Y_LEN + 2*INPUT_MARGIN) /* 1 line, 2 margins at 4px*/
 #define INPUT_DEFAULT_FLAGS (TEXT_FIELD_EDITABLE|TEXT_FIELD_NO_KEYPRESS|WIDGET_CLICK_TRANSPARENT)
 
 #define MAX_CHANNEL_COLORS 64
@@ -40,6 +39,15 @@ typedef struct
 	Uint32 nr;
 	int color;
 } channelcolor;
+
+typedef struct
+{
+	int value;
+	const int lower;
+	const int upper;
+} max_chat_lines_def;
+
+extern max_chat_lines_def max_chat_lines;
 
 extern widget_list *input_widget;
 
@@ -52,6 +60,7 @@ extern int guild_chat_separate;		/*!< if non-zero, show GMs in a different tab *
 extern int server_chat_separate;	/*!< if non-zero, show game messages in a different tab */
 extern int mod_chat_separate;		/*!< for moderators and newbie helpers only: if non-zero, show mod chat in a different tab */
 extern int tab_bar_win;			 /*!< handler for the tab bar window */
+extern int enable_chat_show_hide;	/*!< config option to enable show/hide of the chat system */
 
 /*!
  * \brief   Moves the chat input widget to a different window
@@ -104,7 +113,7 @@ void clear_chat_wins (void);
  * \ingroup chat_window
  * \brief   Parse text as console input
  *
- *      A common routine to parse input.  Input can be local chat, 
+ *      A common routine to parse input.  Input can be local chat,
  * 	#commands, %options channel or personal chat.
  *
  * \param data       the input text
@@ -147,9 +156,9 @@ void clear_input_line (void);
 
 /*!
  * \ingroup chat_window
- * \brief   Handle a keypress of the root window 
+ * \brief   Handle a keypress of the root window
  *
- *      Handles a keypress in the root window as if it were pressed in the chat window input field. 
+ *      Handles a keypress in the root window as if it were pressed in the chat window input field.
  *
  * \param key
  * \param unikey
@@ -180,16 +189,6 @@ void paste_in_input_field (const Uint8 *text);
  * \callgraph
  */
 void display_chat (void);
-
-/*!
- * \ingroup chat_window
- * \brief   Updates the chat window text zoom
- *
- *      Updates the chat window text zoom
- *
- * \callgraph
- */
-void chat_win_update_zoom (void);
 
 /*!
  * \ingroup chat_bar
@@ -273,6 +272,43 @@ void set_next_tab_channel(void);
 int get_tab_bar_x(void);
 int get_tab_bar_y(void);
 int get_tabbed_chat_end_x(void);
+
+int get_input_height();
+
+void open_chat(void);
+void toggle_chat(void);
+void enable_chat_shown(void);
+int is_chat_shown(void);
+
+
+/*!
+ * \ingroup chat_window
+ *
+ * \brief	Get the current number of chat lines shown.
+ *
+ * \retval	the number of lines
+ *
+ * \callgraph
+ */
+int get_lines_to_show(void);
+
+/*!
+ * \ingroup chat_window
+ *
+ * \brief	Decrement the number of chat lines shown.
+ *
+ * \callgraph
+ */
+void dec_lines_to_show(void);
+
+/*!
+ * \ingroup chat_window
+ *
+ * \brief	Set the number of chat lines shown to zero.
+ *
+ * \callgraph
+ */
+void clear_lines_to_show(void);
 
 #ifdef __cplusplus
 } // extern "C"

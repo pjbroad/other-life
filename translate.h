@@ -187,6 +187,7 @@ extern char 	tt_walk[30],
 		tt_use_witem[30], 
 		tt_trade[30], 
 		tt_attack[30],
+		tt_chat[30],
 		tt_inventory[30],
 		tt_spell[30],
 		tt_manufacture[30],
@@ -319,12 +320,16 @@ extern char
 		ranginglock_disabled_str[50],
 		close_click_targetting_on_str[50],
 		close_click_targetting_off_str[50],
-		/*gl_init.c*/
+		/* gl_init.c and window size strings */
 		window_size_adjusted_str[50],
+		reset_res_str[50],
+		set_res_str[50],
+		save_res_str[50],
+		show_res_str[50],
 		/*hud.c*/
 		no_open_on_trade[100], 
 		stats_scroll_help_str[100],
-		cm_action_points_str[30],
+		cm_statsbar_str[70],
 		hud_timer_cm_str[100],
 		hud_timer_popup_title_str[25],
 		/* hud_indicators.cpp */
@@ -511,7 +516,7 @@ extern char
 		cm_title_menu_str[150],
 		cm_title_help_str[50],
 		cm_items_menu_str[190],
-		cm_storage_menu_str[90],
+		cm_storage_menu_str[110],
 		cm_astro_menu_str[80],
 		cm_ranging_menu_str[50],
 		cm_dialog_options_str[80],
@@ -527,6 +532,11 @@ extern char
 		cm_recipe_menu_str[100],
 		cm_manuwin_menu_str[50],
 		cm_encycl_base_str[150],
+		cm_options_default_str[50],
+		cm_options_initial_str[50],
+#ifdef JSON_FILES
+		cm_options_per_character_str[50],
+#endif
 		/* user_menus.cpp */
 		um_invalid_command_str[50],
 		um_invalid_line_str[50],

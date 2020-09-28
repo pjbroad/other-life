@@ -88,7 +88,7 @@ void init_update()
 		download_cur_file= NULL;
 		download_cur_md5= NULL;
 	}
-	
+
 	// load the server list
 	num_update_servers= 0;
 	update_server[0]= '\0';
@@ -98,11 +98,11 @@ void init_update()
 	} else {
 		char    buffer[1024];
 		char	*ptr;
-		
+
 		ptr= fgets(buffer, sizeof(buffer), fp);
 		while(ptr && !ferror(fp) && num_update_servers < sizeof(update_servers)){
 			int len= strlen(buffer);
-			
+
 			// is this line worth handling?
 			if(len > 6 && *buffer > ' ' && *buffer != '#'){
 				while(isspace(buffer[len-1])){
@@ -125,7 +125,7 @@ void init_update()
 		update_servers[0]= "";
 		return;
 	}
-	
+
 	// start the process
 	if(download_mutex){
 		strcpy(files_lst, "files.lst");
@@ -176,7 +176,7 @@ static void do_handle_update_download(struct http_get_struct *get)
 			} else {
 				LOG_ERROR("Unable to finish %s processing (%d)", files_lst, errno);
 			}
-			
+
 			// and go back to normal processing
 			return;
 		}
@@ -185,7 +185,7 @@ static void do_handle_update_download(struct http_get_struct *get)
 		assert(get->thread_index<MAX_THREADS);
 		SDL_WaitThread(thread_list[get->thread_index], NULL);
 		thread_list[get->thread_index] = NULL;
-		
+
 		//no, we need to free the memory and try again
 		if(get->fp){
 			fclose(get->fp);
@@ -197,7 +197,7 @@ static void do_handle_update_download(struct http_get_struct *get)
 	if(update_attempt_count++ < 3){
 		char	filename[1024];
 		FILE    *fp;
-		
+
 		// select a server
 		if(num_update_servers > 1){
 			int num;
@@ -291,7 +291,7 @@ static int do_threaded_update(void *ptr)
 		char	filename[1024];
 		char    asc_md5[256];
 		Uint8	md5[16];
-		
+
 		// parse the line
 		filename[0]= '\0';
 		asc_md5[0]= '\0';
@@ -309,7 +309,7 @@ static int do_threaded_update(void *ptr)
 				// convert the md5 to binary
 				for(i=0; i<16; i++){
 					int val;
-					
+
 					strncpy(buffer, asc_md5+i*2, 2);
 					buffer[2]= '\0';
 					sscanf(buffer, "%x", &val);
@@ -323,7 +323,7 @@ static int do_threaded_update(void *ptr)
 				}
 			}
 		}
-			
+
 		// read the next line, if any
 		buf= gzgets(fp, buffer, 1024);
 	}
@@ -349,7 +349,7 @@ void add_to_download(const char *filename, const Uint8 *md5)
 		download_MD5s[download_queue_size]= calloc(1, 16);
 		memcpy(download_MD5s[download_queue_size], md5, 16);
 		download_queue_size++;
-		
+
 		// start a thread if one isn't running
 		if(!download_cur_file){
 			char	buffer[1024];
@@ -387,7 +387,7 @@ void handle_file_download(struct http_get_struct *get)
 	if(!get){   // huh? what are you doing?
 		return;
 	}
-	
+
 	// lock the mutex
 	CHECK_AND_LOCK_MUTEX(download_mutex);
 	if(get->status == 0){
@@ -400,7 +400,7 @@ void handle_file_download(struct http_get_struct *get)
 			if(allow_restart){
 				if(strstr(download_cur_file, "2dobjects/")==NULL && strstr(download_cur_file, "3dobjects/")==NULL && strstr(download_cur_file, "maps/")==NULL && strstr(download_cur_file, "music/")==NULL && strstr(download_cur_file, "textures/")==NULL && strstr(download_cur_file, ".menu")==NULL)
 					restart_required++;
-				if(strstr(download_cur_file, ".menu") > 0)
+				if(strstr(download_cur_file, ".menu") != NULL)
 					reload_user_menus();
 				if(restart_required == 1)
 				{
@@ -434,7 +434,7 @@ void handle_file_download(struct http_get_struct *get)
 
 	// now, release everything
 	free(get);
-	
+
 	// lock the mutex
 	CHECK_AND_LOCK_MUTEX(download_mutex);
 	if(download_queue_size > 0 && !download_cur_file){
@@ -531,7 +531,7 @@ static int http_get_file_thread_handler(void *specs){
 	spec->status= http_get_file(spec->server, spec->path, spec->fp);
 	fclose(spec->fp);
 	spec->fp= NULL;
-	
+
 	// check to see if the file is correct
 	if (spec->md5 && *spec->md5)
 	{
@@ -581,9 +581,9 @@ static int http_get_file(char *server, char *path, FILE *fp)
 	if(!http_sock){
 		return(2);  // failed to open the socket
 	}
-	
-	// send the GET request, try to avoid ISP caching	
-	
+
+	// send the GET request, try to avoid ISP caching
+
 	safe_snprintf(message, sizeof(message), "GET %s HTTP/1.1\r\nHost: %s\r\nCONNECTION:CLOSE\r\nCACHE-CONTROL:NO-CACHE\r\nREFERER:%s\r\nUSER-AGENT:AUTOUPDATE %s\r\n\r\n", path, server, "autoupdate", FILE_VERSION);
 	//printf("%s",message);
 	len= strlen(message);
@@ -597,7 +597,7 @@ static int http_get_file(char *server, char *path, FILE *fp)
 	while(len > 0)
 	{
 		char buf[1024];
-		
+
 		memset(buf, 0, 1024);
 		// get a packet
 		len= SDLNet_TCP_Recv(http_sock, buf, 1024);
@@ -605,7 +605,7 @@ static int http_get_file(char *server, char *path, FILE *fp)
 		if(!got_header)
 		{
 			int i;
-			
+
 			// check for http status
 			sscanf(buf, "HTTP/%*s %i ", &http_status);
 
@@ -634,7 +634,7 @@ static int http_get_file(char *server, char *path, FILE *fp)
 		}
 	}
 	SDLNet_TCP_Close(http_sock);
-	
+
 	if(http_status != 200) {
 		if(http_status != 0){
 			return(http_status);
@@ -666,10 +666,11 @@ static void draw_update_interface (window_info *win)
 	char str[200];
 	float window_ratio = (float) win->len_y / 480.0f;
 
-	draw_string_zoomed ((win->len_x - (strlen(update_complete_str) * win->default_font_len_x)) / 2, 200 * window_ratio, (unsigned char*)update_complete_str, 0, win->current_scale);
+	draw_string_zoomed_centered(win->len_x/2, 200 * window_ratio,
+		(const unsigned char*)update_complete_str, 0, win->current_scale);
 
 /*	Possibly use this box to display the list of files updated?
-	
+
 	glDisable(GL_TEXTURE_2D);
 	glColor3f(newcol_r, newcol_g, newcol_b);
 	glBegin(GL_LINES);
@@ -682,7 +683,7 @@ static void draw_update_interface (window_info *win)
 	glEnd();
 	glEnable(GL_TEXTURE_2D);
 */
-	
+
 	if (update_countdown != 0)
 	{
 		safe_snprintf (str, sizeof(str), client_restart_countdown_str, update_countdown);
@@ -692,9 +693,10 @@ static void draw_update_interface (window_info *win)
 		safe_strncpy (str, client_restarting_str, sizeof(str));
 		exit_now = 1;
 	}
-		
-	draw_string_zoomed ((win->len_x - (strlen (str) * win->default_font_len_x)) / 2, win->len_y - (200 * window_ratio), (unsigned char*)str, 0, win->current_scale);
-	
+
+	draw_string_zoomed_centered(win->len_x/2, win->len_y - (200 * window_ratio),
+		(const unsigned char*)str, 0, win->current_scale);
+
 	glDisable (GL_ALPHA_TEST);
 #ifdef OPENGL_TRACE
 CHECK_GL_ERRORS();
@@ -768,7 +770,8 @@ void create_update_root_window (int width, int height, int time, int next_window
 			return;
 		win = &windows_list.window[update_root_win];
 
-		update_root_restart_id = button_add_extended (update_root_win, update_root_restart_id, NULL, 0, 0, 0, 0, 0, win->current_scale, 1.0f, 1.0f, 1.0f, restart_now_label);
+		update_root_restart_id = button_add_extended (update_root_win, update_root_restart_id, NULL, 0, 0, 0, 0, 0, win->current_scale, restart_now_label);
+		widget_set_color(update_root_win, update_root_restart_id, 1.0f, 1.0f, 1.0f);
 		widget_move(update_root_win, update_root_restart_id,
 			(width - widget_get_width(update_root_win, update_root_restart_id)) /2,
 			height - 2 * widget_get_height(update_root_win, update_root_restart_id));
@@ -779,6 +782,6 @@ void create_update_root_window (int width, int height, int time, int next_window
 		widget_set_OnClick(update_root_win, update_root_restart_id, &click_update_root_restart);
 		widget_set_OnClick(update_root_win, update_root_abort_id, &click_update_root_abort);
 	}
-	
+
 	init_update_interface (1.0, time, width, height, next_window);
 }

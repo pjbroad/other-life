@@ -29,10 +29,10 @@ parts:
     source-type: git
     # Include for stable release, comment out for dev build, comment out for latest commit dev release
     # source-tag: 1.9.5.8
-    build-packages: [build-essential, libcal3d12-dev, libsdl2-image-dev, libsdl2-net-dev, libxml2-dev, libopenal-dev, libvorbis-dev, libpng-dev]
+    build-packages: [build-essential, libcal3d12-dev, libsdl2-image-dev, libsdl2-net-dev, libsdl2-ttf-dev, libxml2-dev, libopenal-dev, libvorbis-dev, libpng-dev]
     plugin: cmake
     # Add -DVERSION_PREFIX=x.y.z for dev build, remove for release
-    configflags:  ["-DCMAKE_BUILD_TYPE=release", "-DEXEC=el.linux.bin", "-DVERSION_PREFIX=1.9.5", "-DLOCAL_NLOHMANN_JSON=On"]
+    configflags:  ["-DCMAKE_BUILD_TYPE=release", "-DEXEC=el.linux.bin", "-DVERSION_PREFIX=1.9.5", "-DLOCAL_NLOHMANN_JSON=On", "-DTTF=On" ]
     stage-packages:
       - libglib2.0-0
       - libsdl2-net-2.0-0
@@ -43,6 +43,7 @@ parts:
       - libopenal1
       - libcal3d12v5
       - libsdl2-image-2.0-0
+      - libsdl2-ttf-2.0-0
       - libxrandr2
       - zlib1g
       - libpng16-16
@@ -60,8 +61,8 @@ parts:
       - desktop-glib-only
 
   data:
-    source: https://github.com/raduprv/Eternal-Lands/releases/download/1.9.5.7/el_195_p7_data_files.zip
-    source-checksum: md5/c58b6f374d0f9ce3f0aa0fe4eab348d5
+    source: https://twinmoons.org.uk/el/git/el_195_latest_data.zip
+    source-checksum: md5/8354f13b7d9109402cbfa29061b301c5
     plugin: dump
     organize:
       el_data/ : data/

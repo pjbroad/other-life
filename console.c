@@ -1281,7 +1281,7 @@ int knowledge_command(char *text, int len)
 			safe_strncpy(this_string, knowledge_list[i].name, sizeof(this_string));
 			if ( (cr = strchr(this_string, '\n')) != NULL)
 				*cr = '\0';
-			if (your_info.researching == i)
+			if ((!knowledge_list[i].present) && (your_info.researching == i))
 				safe_strcat(this_string, knowledge_reading_book_tag, sizeof(this_string));
 			// highlight books that have been read, unread or being read
 			if (knowledge_list[i].present)
@@ -1365,11 +1365,7 @@ int command_help(char *text, int len)
 {
 	// help can open the Enc!
 	if(auto_open_encyclopedia)
-	{
-		view_tab (&tab_help_win, &tab_help_collection_id, HELP_TAB_HELP);
-	}
-	// this use to return 0 - to fall thru and send it to the server
-	// but the server does not handle the command and Entropy says it never did
+		view_tab (MW_HELP, tab_help_collection_id, HELP_TAB_HELP);
 	return 1;
 }
 
@@ -1636,6 +1632,9 @@ void save_local_data(void)
 	unload_questlog();
 	save_item_lists();
 	save_channel_colors();
+#ifdef JSON_FILES
+	save_character_options();
+#endif
 }
 
 
@@ -1695,6 +1694,54 @@ static int command_change_pass(char *text, int len)
 	return 0;
 }
 
+static int command_reset_res(char *text, int len)
+{
+	char str[80];
+	restore_starting_video_mode();
+	safe_snprintf(str, sizeof(str), "%s %dx%d", reset_res_str, window_width, window_height);
+	LOG_TO_CONSOLE(c_yellow1, str);
+	return 1;
+}
+
+static int command_set_res(char *text, int len)
+{
+	text = getparams(text);
+	if (*text)
+	{
+		int new_width = 0, new_height = 0;
+		new_width = atoi(text);
+		text = getparams(text);
+		if (*text)
+			new_height = atoi(text);
+		if ((new_width > 0) && (new_height > 0))
+		{
+			char str[80];
+			set_client_window_size(new_width, new_height);
+			safe_snprintf(str, sizeof(str), "%s %dx%d", set_res_str, window_width, window_height);
+			LOG_TO_CONSOLE(c_yellow1, str);
+			return 1;
+		}
+	}
+	LOG_TO_CONSOLE(c_red1, um_invalid_command_str);
+	return 1;
+}
+
+static int command_save_res(char *text, int len)
+{
+	char str[80];
+	set_user_defined_video_mode();
+	safe_snprintf(str, sizeof(str), "%s %dx%d", save_res_str, window_width, window_height);
+	LOG_TO_CONSOLE(c_yellow1, str);
+	return 1;
+}
+
+static int command_show_res(char *text, int len)
+{
+	char str[80];
+	safe_snprintf(str, sizeof(str), "%s %dx%d", show_res_str, window_width, window_height);
+	LOG_TO_CONSOLE(c_yellow1, str);
+	return 1;
+}
 
 #ifdef CONTEXT_MENUS_TEST
 int cm_test_window(char *text, int len);
@@ -1815,6 +1862,12 @@ add_command("horse", &horse_cmd);
 	add_command("q", &command_quantity);
 	add_command(quantity_str, &command_quantity);
 	add_command("change_pass", &command_change_pass);
+
+	add_command("reset_res", &command_reset_res);
+	add_command("set_res", &command_set_res);
+	add_command("save_res", &command_save_res);
+	add_command("show_res", &command_show_res);
+
 	command_buffer_offset = NULL;
 }
 

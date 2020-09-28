@@ -32,6 +32,7 @@
 #include "text.h"
 #include "translate.h"
 
+using namespace eternal_lands;
 
 namespace Indicators
 {
@@ -40,12 +41,19 @@ namespace Indicators
 	class Vars
 	{
 		public:
-			static const float zoom(void) { return scale; }
-			static const int space(void) { return (int)(0.5 + scale * 5); }
-			static const int border(void) { return (int)(0.5 + scale * 2); }
-			static const float font_x(void) { return DEFAULT_FONT_X_LEN; }
-			static const float font_y(void) { return DEFAULT_FONT_Y_LEN; }
-			static const int y_len(void) { return static_cast<int>(border() + zoom() * font_y() + 0.5); }
+			static float zoom(void) { return scale; }
+			static int space(void) { return (int)(0.5 + scale * 5); }
+			static int border(void) { return (int)(0.5 + scale * 2); }
+			static float font_x(void)
+			{
+				return FontManager::get_instance()
+					.max_width_spacing(FontManager::Category::UI_FONT);
+			}
+			static float font_y(void)
+			{
+				return FontManager::get_instance().line_height(FontManager::Category::UI_FONT);
+			}
+			static int y_len(void) { return static_cast<int>(border() + zoom() * font_y() + 0.5); }
 			static void set_scale(float new_scale) { scale = new_scale; }
 		private:
 			static float scale;
@@ -483,9 +491,12 @@ namespace Indicators
 		std::vector<Basic_Indicator *>::iterator i = get_over(mx);
 		if (win && (i < indicators.end()))
 		{
+			eternal_lands::FontManager &fmgr = eternal_lands::FontManager::get_instance();
 			std::string tooltip("");
 			(*i)->get_tooltip(tooltip);
-			int x_offset = -static_cast<int>(Vars::border() + win->small_font_len_x * (1 + tooltip.size()) + 0.5);
+			int width = fmgr.line_width(win->font_category, (const unsigned char*)tooltip.c_str(),
+				tooltip.length(), win->current_scale_small);
+			int x_offset = -(Vars::border() + width);
 			if ((win->cur_x + x_offset) < 0)
 				x_offset = win->len_x;
 			show_help(tooltip.c_str(), x_offset, Vars::border(), win->current_scale);
@@ -601,20 +612,25 @@ namespace Indicators
 		unsigned int x = 0;
 		unsigned int y = 0;
 
+		if (indicators_win < 0)
+		{
+			*opts = option_settings;
+			*pos = position_settings;
+			return;
+		}
+
 		std::vector<Basic_Indicator *>::iterator i;
 		for (i=indicators.begin(); i<indicators.end(); ++i, shift++)
 			flags |= (((*i)->not_active()) ?1 :0) << shift;
 
-		if (!default_location && (indicators_win >= 0))
-		{
+		if (!default_location)
 			flags |= 1 << 24;
-			x = static_cast<unsigned int>(windows_list.window[indicators_win].cur_x);
-			y = static_cast<unsigned int>(windows_list.window[indicators_win].cur_y);
-		}
 		flags |= background_on << 25;
 		flags |= border_on << 26;
-
 		*opts = flags;
+
+		x = static_cast<unsigned int>(windows_list.window[indicators_win].cur_x);
+		y = static_cast<unsigned int>(windows_list.window[indicators_win].cur_y);
 		*pos = x | (y<<16);
 	}
 

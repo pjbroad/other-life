@@ -8,6 +8,7 @@
 #include "elconfig.h"
 #include "elwindows.h"
 #include "errors.h"
+#include "gamewin.h"
 #include "gl_init.h"
 #include "hud.h"
 #include "hud_quickspells_window.h"
@@ -20,15 +21,12 @@
 #include "spells.h"
 #include "sound.h"
 
-int quickspell_win = -1;
 int num_quickspell_slots = 6;
 int quickspells_relocatable = 0;
 mqbdata * mqb_data[MAX_QUICKSPELL_SLOTS+1]={NULL};//mqb_data will hold the magic quickspells name, image, pos.
 
 static int default_quickspells_x = -1;
 static int default_quickspells_y = -1;
-static int saved_quickspells_x = 0;
-static int saved_quickspells_y = 0;
 static int quickspell_y_space = -1;
 static int quickspells_loaded = 0;
 static int quickspell_size = -1;
@@ -71,6 +69,7 @@ static Uint32 get_flags(int win_id)
 // returns true if the window is not in the default place, false if it is, even if it can be relocated
 static int is_relocated(void)
 {
+	int quickspell_win = get_id_MW(MW_QUICKSPELLS);
 	window_info *win = NULL;
 	if (quickspell_win < 0 || quickspell_win >= windows_list.num_windows)
 		return 1;
@@ -86,6 +85,7 @@ static int is_relocated(void)
 // enable/disable window title bar and dragability
 static void toggle_quickspells_moveable(void)
 {
+	int quickspell_win = get_id_MW(MW_QUICKSPELLS);
 	Uint32 flags = get_flags(quickspell_win);
 	if (!quickspells_moveable)
 	{
@@ -94,7 +94,7 @@ static void toggle_quickspells_moveable(void)
 		change_flags (quickspell_win, flags);
 		quickspells_moveable = 1;
 	}
-	else 
+	else
 	{
 		flags |= ELW_SHOW_LAST;
 		flags &= ~(ELW_DRAGGABLE | ELW_TITLE_BAR);
@@ -105,8 +105,10 @@ static void toggle_quickspells_moveable(void)
 
 
 // return the window to it's default position
-static void reset_quickspells() 
+static void reset_quickspells()
 {
+	int quickspell_win = get_id_MW(MW_QUICKSPELLS);
+	limit_win_scale_to_default(get_scale_WM(MW_QUICKSPELLS));
 	quickspells_dir = VERTICAL;
 	quickspells_moveable = 0;
 	if (quickspells_relocatable)
@@ -251,8 +253,11 @@ CHECK_GL_ERRORS();
 
 	if(quickspell_over!=-1 && mqb_data[quickspell_over])
 	{
+		float zoom = win->current_scale_small;
 		int x = 0, y = 0;
-		int len_str = (strlen(mqb_data[quickspell_over]->spell_name) + 1) * win->small_font_len_x;
+		int len_str = get_string_width_zoom((const unsigned char*)mqb_data[quickspell_over]->spell_name, win->font_category, zoom)
+			+ get_char_width_zoom(' ', win->font_category, zoom);
+
 		// vertical place left (or right) and aligned with slot
 		if (quickspells_dir==VERTICAL)
 		{
@@ -378,7 +383,7 @@ static int ui_scale_quickspell_handler(window_info *win)
 {
 	quickspell_size = (int)(0.5 + win->current_scale * 20);
 	quickspell_x_len = (int)(0.5 + win->current_scale * 26);
-	default_quickspells_x = window_width - (int)(0.5 + win->current_scale * 60);
+	default_quickspells_x = window_width - HUD_MARGIN_X + (int)(0.5 + win->current_scale * 4);
 	default_quickspells_y = get_hud_logo_size();
 	quickspell_y_space = (int)(0.5 + win->current_scale * 30);
 	if (!quickspells_relocatable)
@@ -400,6 +405,7 @@ static int ui_scale_quickspell_handler(window_info *win)
 
 void init_quickspell(void)
 {
+	int quickspell_win = get_id_MW(MW_QUICKSPELLS);
 	Uint32 flags = ELW_USE_UISCALE | ELW_CLICK_TRANSPARENT;
 
 	if (!quickspells_relocatable)
@@ -408,10 +414,12 @@ void init_quickspell(void)
 		quickspells_moveable = 0;
 	}
 	if (quickspells_moveable)
-		flags |= ELW_TITLE_BAR | ELW_DRAGGABLE;	
+		flags |= ELW_TITLE_BAR | ELW_DRAGGABLE;
 
 	if (quickspell_win < 0){
-		quickspell_win = create_window ("Quickspell", -1, 0, saved_quickspells_x, saved_quickspells_y, 0, 0, flags);
+		quickspell_win = create_window ("Quickspell", -1, 0, get_pos_x_MW(MW_QUICKSPELLS), get_pos_y_MW(MW_QUICKSPELLS), 0, 0, flags);
+		set_id_MW(MW_QUICKSPELLS, quickspell_win);
+		set_window_custom_scale(quickspell_win, MW_QUICKSPELLS);
 		set_window_handler(quickspell_win, ELW_HANDLER_DISPLAY, &display_quickspell_handler);
 		set_window_handler(quickspell_win, ELW_HANDLER_CLICK, &click_quickspell_handler);
 		set_window_handler(quickspell_win, ELW_HANDLER_MOUSEOVER, &mouseover_quickspell_handler );
@@ -612,7 +620,7 @@ void save_quickspells(void)
 				mqb_data[i]->spell_name, fname);
 			break;
 		}
-		
+
 		LOG_DEBUG("Wrote spell '%s' to file '%s'",
 			mqb_data[i]->spell_name, fname);
 	}
@@ -701,11 +709,12 @@ void add_quickspell(void)
 // if relocatable, save the position and options to the el.cfg file
 void get_quickspell_options(unsigned int *options, unsigned int *position)
 {
-	if (quickspells_relocatable && quickspell_win >= 0 && quickspell_win < windows_list.num_windows)
-	{
+	int quickspell_win = get_id_MW(MW_QUICKSPELLS);
+	if (quickspell_win >= 0 && quickspell_win < windows_list.num_windows)
 		*position = windows_list.window[quickspell_win].cur_x | (windows_list.window[quickspell_win].cur_y << 16);
-		*options = (quickspells_dir & 1) | ((quickspells_moveable & 1) << 1);
-	}
+	else
+		*position = get_pos_x_MW(MW_QUICKSPELLS) | (get_pos_y_MW(MW_QUICKSPELLS) << 16);
+	*options = (quickspells_dir & 1) | ((quickspells_moveable & 1) << 1);
 }
 
 
@@ -714,8 +723,7 @@ void set_quickspell_options(unsigned int options, unsigned int position)
 {
 	if (quickspells_relocatable)
 	{
-		saved_quickspells_x = position & 0xFFFF;
-		saved_quickspells_y = position >> 16;
+		set_pos_MW(MW_QUICKSPELLS, position & 0xFFFF, position >> 16);
 		quickspells_dir = options & 1;
 		quickspells_moveable = (options & 2) >> 1;
 	}
