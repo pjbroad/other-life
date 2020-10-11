@@ -21,8 +21,6 @@ extern "C" {
 #define VERTICAL 1
 /*! @} */
 
-#define MAX_EXP_LEVEL 200
-
 typedef enum
 {
 	HUD_INTERFACE_NEW_CHAR, /*!< the interface for the character creation screen */
@@ -30,6 +28,13 @@ typedef enum
 	HUD_INTERFACE_LAST      /*!< the last interface used */
 } hud_interface;
 
+#ifdef OTHER_LIFE
+#define MAX_EXP_LEVEL 200
+extern Uint64 exp_lev[MAX_EXP_LEVEL];
+#else
+#define MAX_EXP_LEVEL 180
+extern Uint32 exp_lev[MAX_EXP_LEVEL];
+#endif
 
 extern int hud_text;
 extern int hud_x;
@@ -202,9 +207,5 @@ int show_exp(char *text, int len);
 } // extern "C"
 #endif
 
-#ifdef OTHER_LIFE
-extern Uint64 exp_lev[MAX_EXP_LEVEL+1];
-#else
-extern Uint32 exp_lev[MAX_EXP_LEVEL];
-#endif
+
 #endif	//__HUD_H

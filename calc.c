@@ -61,11 +61,8 @@ double last_res=0;
 
 //XP table
 //using exp_lev from hud.c
-#ifndef OTHER_LIFE
-  #define XPT_MAX 179
-#endif
-
-# define XPLDIFF(a,b) (exp_lev[b]-exp_lev[a])
+#define XPT_MAX (MAX_EXP_LEVEL - 1)
+#define XPLDIFF(a,b) (exp_lev[b]-exp_lev[a])
 #define XPL(a) (exp_lev[a])
 
 //Parsing functions
@@ -114,11 +111,7 @@ static int reduce_stack(CalcStack* cs)
 {
 	CalcTok *cs1,*cs2,*cs3,*cs4, nt;
 	int t1,t2,t3,t4;
-#ifdef OTHER_LIFE
-	const int max_exp_level = MAX_EXP_LEVEL;
-#else
-	const int max_exp_level = XPT_MAX;
-#endif		   
+
 	cs1=calcinspect(cs,0);
 	cs2=calcinspect(cs,-1);
 	cs3=calcinspect(cs,-2);
@@ -134,7 +127,7 @@ static int reduce_stack(CalcStack* cs)
 	{
 		int lvl;
 		calcpop(cs, 2);
-		if (cs1->value >= 0 && cs1->value <= max_exp_level)
+		if (cs1->value >= 0 && cs1->value <= XPT_MAX)
 		{
 			nt.type = CALCTOK_NUM;
 			lvl = (int)trunc(cs1->value);
@@ -152,10 +145,10 @@ static int reduce_stack(CalcStack* cs)
 	{
 		int i;
 		calcpop(cs, 2);
-		if (cs1->value >= 0 && cs1->value <= XPL(max_exp_level))
+		if (cs1->value >= 0 && cs1->value <= XPL(XPT_MAX))
 		{
 			nt.type = CALCTOK_NUM;
-			for (i = 0; i <= max_exp_level; i++)
+			for (i = 0; i <= XPT_MAX; i++)
 			{
 				if (XPL(i) >= cs1->value)
 					break;
@@ -215,9 +208,9 @@ static int reduce_stack(CalcStack* cs)
 	//Q operator
 	if(t1 == CALCTOK_NUM && t2 == CALCTOK_QOP){
 		calcpop(cs, 2);
-		if(cs1->value <= exp_lev[max_exp_level]){
+		if(cs1->value <= exp_lev[XPT_MAX]){
 			int i=0;
-			while(cs1->value >= exp_lev[i]) i++;
+			while ((i <= XPT_MAX) && (cs1->value >= exp_lev[i])) i++;
 			nt.type = CALCTOK_NUM;
 			nt.value = i-1;
 			calcpush(cs, &nt);

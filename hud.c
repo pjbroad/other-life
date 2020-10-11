@@ -39,11 +39,7 @@ int hud_y= 48;
 int hud_text;
 int show_help_text=1;
 int always_enlarge_text=1;
-#ifdef OTHER_LIFE
-Uint64 exp_lev[MAX_EXP_LEVEL+1];
-#else
-Uint32 exp_lev[MAX_EXP_LEVEL];
-#endif
+Uint64 exp_lev[MAX_EXP_LEVEL];
 int logo_click_to_url = 1;
 #ifdef OTHER_LIFE
 char LOGO_URL_LINK[128] = "http://www.other-life.com";
@@ -327,6 +323,7 @@ void build_levels_table()
 	int i;
 #ifdef OTHER_LIFE
 	Uint64 exp=100;
+
 	exp_lev[0]=0;
 	for(i=1;i<MAX_EXP_LEVEL;i++)
 	{
@@ -337,7 +334,7 @@ void build_levels_table()
 	}
 #else
 	Uint32 exp=100;
-	for(i=1;i<180;i++)
+	for(i=1;i<MAX_EXP_LEVEL;i++)
 	{
 		if(i<=10)exp+=exp*40/100;
 		else
