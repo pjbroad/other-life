@@ -4,7 +4,7 @@
 #include "asc.h"
 #include "elwindows.h"
 #include "encyclopedia.h"
-#include "gamewin.h"
+
 static int help_menu_scroll_id = 0;
 static size_t helppage;
 

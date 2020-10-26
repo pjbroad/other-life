@@ -2690,10 +2690,8 @@ static void init_ELC_vars(void)
 	add_var(OPT_BOOL,"im_other_player_view_hp_bar","im_ophpbar",&im_other_player_view_hp_bar, change_var, 0, "Other players instance banners - health bars", "Show other players health bars when using instance mode",HUD);
 	add_var(OPT_BOOL,"im_other_player_banner_bg","im_opbbg",&im_other_player_banner_bg, change_var, 0, "Other players instance banners - background", "Show other players banners background when using instance mode",HUD);
 	add_var(OPT_BOOL,"im_other_player_show_banner_on_damage","im_opbdmg",&im_other_player_show_banner_on_damage, change_var, 0, "Other players instance banners - show hp on damage", "Show other players banners for a while if player gets hit when using instance mode",HUD);
-	//add_var(OPT_FLOAT,"hud_rgb_r","hud_rgb_r",&newcol_r,change_float,newcol_r,"HUD RGB (R)","Sets the R component of the HUD",HUD,0.0,1.0,0.01);
-	//add_var(OPT_FLOAT,"hud_rgb_g","hud_rgb_g",&newcol_g,change_float,newcol_g,"HUD RGB (G)","Sets the G component of the HUD",HUD,0.0,1.0,0.01);
-	//add_var(OPT_FLOAT,"hud_rgb_b","hud_rgb_b",&newcol_b,change_float,newcol_b,"HUD RGB (B)","Sets the B component of the HUD",HUD,0.0,1.0,0.01);
 	// HUD TAB
+
 
 	// CHAT TAB
 	add_var(OPT_MULTI,"windowed_chat", "winchat", &use_windowed_chat, change_windowed_chat, 1, "Chat Display Style", "How do you want your chat to be displayed?", CHAT, "Old behavior", "Tabbed chat", "Chat window", NULL);
@@ -3584,7 +3582,8 @@ static void elconfig_populate_tabs(void)
 				widget_width = ELCONFIG_SCALED_VALUE(250);
 				widget_id = multiselect_add_extended(window_id, elconfig_free_widget_id++, NULL,
 					window_width - TAB_MARGIN - widget_width, current_y, widget_width,
-					ELCONFIG_SCALED_VALUE(80), elconf_scale, 0.77f, 0.59f, 0.39f, 0.32f, 0.23f, 0.15f, 0);
+					ELCONFIG_SCALED_VALUE(80), elconf_scale, gui_color[0], gui_color[1], gui_color[2],
+					gui_invert_color[0], gui_invert_color[1], gui_invert_color[2], 0);
 				for (iopt = 0; iopt < var->args.multi.count; ++iopt)
 				{
 					const char *label = var->args.multi.elems[iopt].label;
@@ -3625,7 +3624,8 @@ static void elconfig_populate_tabs(void)
 				x = current_x + widget_get_width(window_id, label_id) + SPACING;
 				widget_id = multiselect_add_extended(window_id, elconfig_free_widget_id++,
 					NULL, x, current_y, ELCONFIG_SCALED_VALUE(350), ELCONFIG_SCALED_VALUE(80),
-					elconf_scale, 0.77f, 0.59f, 0.39f, 0.32f, 0.23f, 0.15f, 0);
+					elconf_scale, gui_color[0], gui_color[1], gui_color[2], gui_invert_color[0],
+					gui_invert_color[1], gui_invert_color[2], 0);
 				dx = 0;
 				for (iopt = 0; iopt < var->args.multi.count; ++iopt)
 				{
@@ -3771,7 +3771,7 @@ void display_elconfig_win(void)
 		if (elconfig_win >=0 && elconfig_win < windows_list.num_windows)
 			update_window_scale(&windows_list.window[elconfig_win], elconf_scale);
 		check_proportional_move(MW_CONFIG);
-		set_window_color(elconfig_win, ELW_COLOR_BORDER, newcol_r, newcol_g, newcol_b, 0.0f);
+		set_window_color(elconfig_win, ELW_COLOR_BORDER, gui_color[0], gui_color[1], gui_color[2], 0.0f);
 		set_window_font_category(elconfig_win, CONFIG_FONT);
 		set_window_handler(elconfig_win, ELW_HANDLER_DISPLAY, &display_elconfig_handler );
 		set_window_handler(elconfig_win, ELW_HANDLER_UI_SCALE, &ui_scale_elconfig_handler );

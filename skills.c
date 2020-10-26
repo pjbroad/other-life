@@ -4,7 +4,6 @@
 #include "asc.h"
 #include "elwindows.h"
 #include "encyclopedia.h"
-#include "gamewin.h"
 
 static int skills_menu_scroll_id = 0;
 static size_t skillspage;

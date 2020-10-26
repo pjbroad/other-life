@@ -18,14 +18,19 @@
 #include "textures.h"
 #include "widgets.h"
 #include "sound.h"
-#include "gamewin.h"
 
 #define ELW_WIN_MAX 128
 
 #ifdef OTHER_LIFE
-const GLfloat gui_color[3] = { 0x95 / 255.0f, 0x89 / 255.0f, 0x7b / 255.0f };
+const GLfloat gui_color[3] = { 0.58f, 0.54f, 0.48 };
+const GLfloat gui_invert_color[3] = { 0.24f, 0.21f, 0.18f };
+const GLfloat gui_bright_color[3] = { 0.72f, 0.72f, 0.64 };
+const GLfloat gui_dull_color[3] = { 0.30f, 0.28f, 0.25f };
 #else
 const GLfloat gui_color[3] = { 0.77f, 0.57f, 0.39f };
+const GLfloat gui_invert_color[3] = { 0.32f, 0.23f, 0.15f };
+const GLfloat gui_bright_color[3] = { 0.95f, 0.76f, 0.52f };
+const GLfloat gui_dull_color[3] = { 0.40f, 0.30f, 0.20f };
 #endif
 
 // Managed Windows
@@ -1159,13 +1164,13 @@ int	create_window(const char *name, int pos_id, Uint32 pos_loc, int pos_x, int p
 		win->back_color[1] = 0.0f;
 		win->back_color[2] = 0.0f;
 		win->back_color[3] = 0.4f;
-		win->border_color[0] = newcol_r;
-		win->border_color[1] = newcol_g;
-		win->border_color[2] = newcol_b;
+		win->border_color[0] = gui_color[0];
+		win->border_color[1] = gui_color[1];
+		win->border_color[2] = gui_color[2];
 		win->border_color[3] = 0.0f;
-		win->line_color[0] = newcol_r;
-		win->line_color[1] = newcol_g;
-		win->line_color[2] = newcol_b;
+		win->line_color[0] = gui_color[0];
+		win->line_color[1] = gui_color[1];
+		win->line_color[2] = gui_color[2];
 		win->line_color[3] = 0.0f;
 
 		win->custom_scale = NULL;

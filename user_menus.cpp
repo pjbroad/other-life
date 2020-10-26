@@ -98,7 +98,6 @@ BBC News||#open_url http://news.bbc.co.uk/
 #include "io/elpathwrapper.h"
 #include "translate.h"
 #include "user_menus.h"
-#include "gamewin.h"
 
 namespace UserMenus
 {
@@ -416,9 +415,9 @@ namespace UserMenus
 		if (menus.empty())
 		{
 			if (mouse_over_window)
-				glColor3f(newcol_r, newcol_g, newcol_b);
+				glColor3fv(gui_color);
 			else
-				glColor3f(0.40f,0.30f,0.20f);
+				glColor3fv(gui_dull_color);
 			if (use_small_font)
 				draw_string_small_zoomed(curr_x, window_y_pad, (const unsigned char *)um_no_menus_str, 1, win->current_scale);
 			else
@@ -443,9 +442,9 @@ namespace UserMenus
 			if ((current_mouseover_menu == i) || (open_menu == i))
 				glColor3f(1.0f,1.0f,1.0f);
 			else if (mouse_over_window)
-				glColor3f(newcol_r, newcol_g, newcol_b);
+				glColor3fv(gui_color);
 			else
-				glColor3f(0.40f,0.30f,0.20f);
+				glColor3fv(gui_dull_color);
 			if (use_small_font)
 				draw_string_small_zoomed(curr_x, window_y_pad, (const unsigned char *)menus[i]->get_name().c_str(), 1, win->current_scale);
 			else

@@ -42,7 +42,6 @@ extern int game_root_win; /*!< the root (game) window */
 extern int use_old_clicker;
 extern int include_use_cursor_on_animals;
 extern int cm_banner_disabled;
-extern float newcol_r, newcol_g, newcol_b;
 extern int auto_disable_ranging_lock;
 extern int target_close_clicked_creature;
 extern int open_close_clicked_bag;

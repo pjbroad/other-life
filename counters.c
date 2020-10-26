@@ -24,7 +24,6 @@
 #include "gl_init.h"
 #endif
 #include "translate.h"
-#include "gamewin.h"
 
 #define NUM_COUNTERS 15
 
@@ -773,7 +772,7 @@ static int display_counters_handler(window_info *win)
 	x = left_panel_width;
 
 	glDisable(GL_TEXTURE_2D);
-	glColor3f(newcol_r, newcol_g, newcol_b);
+	glColor3fv(gui_color);
 	glBegin(GL_LINES);
 
 	glVertex3i(x, 0, 0);
@@ -828,7 +827,7 @@ static int display_counters_handler(window_info *win)
 		}
 
 		if (cm_selected_entry == j)
-			glColor3f(newcol_r, newcol_g, newcol_b);
+			glColor3fv(gui_color);
 		else if ((selected_counter_id == KILLS || selected_counter_id == DEATHS) && counters[i][j].extra)
 			glColor3f(0.8f, 0.2f, 0.2f);
 		else if (selected_entry == j)

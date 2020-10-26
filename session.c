@@ -20,7 +20,6 @@
 #include "gl_init.h"
 #endif
 #include "widgets.h"
-#include "gamewin.h"
 
 static const unsigned char* skill_label = (const unsigned char*)"Skill";
 static const unsigned char* total_exp_label = (const unsigned char*)"Total Exp";
@@ -240,7 +239,7 @@ int display_session_handler(window_info *win)
 	y += y_step;
 
 	glDisable(GL_TEXTURE_2D);
-	glColor3f(newcol_r, newcol_g, newcol_b);
+	glColor3fv(gui_color);
 	glBegin(GL_LINES);
 	glVertex3i(0, y, 0);
 	glVertex3i(win->len_x, y, 0);

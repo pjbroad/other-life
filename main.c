@@ -57,7 +57,9 @@
 #include "particles.h"
 #include "password_manager.h"
 #include "pm_log.h"
+#ifdef OTHER_LIFE
 #include "popup.h"
+#endif
 #include "questlog.h"
 #include "queue.h"
 #include "reflection.h"
@@ -92,13 +94,6 @@ int exit_now=0;
 int restart_required=0;
 Uint32 cur_time=0, last_time=0;//for FPS
 
-// Change rgb of menus etc
-#ifdef OTHER_LIFE
-  float newcol_r = 0x95 / 255.0f, newcol_g = 0x89 / 255.0f, newcol_b = 0x7b / 255.0f;
-#else
-  float newcol_r = 0.77f, newcol_g = 0.57f, newcol_b = 0.39f;
-#endif
-// note that langselwin.c is a special case and needs altering manually
 
 int gargc;
 char **  gargv;
@@ -126,8 +121,10 @@ void cleanup_mem(void)
 	end_actors_lists();
 	LOG_INFO("cleanup_lights()");
 	cleanup_lights();
+#ifdef OTHER_LIFE
 	LOG_INFO("popup_cleanup()");
 	popup_cleanup();
+#endif
 	/* 2d objects */
 	LOG_INFO("destroy_all_2d_objects()");
 	destroy_all_2d_objects();

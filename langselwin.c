@@ -1,8 +1,8 @@
 /*
-	langselwin.c - Shows a language selection window if no language specified in ini
+	langselwin.c - Shows a language selection window if no language specified in the ini file.
 
 	Each available language is displayed from languages/langsel.xml.  The user can click on
-	their preferred language and then press save which will save the value in ini.
+	their preferred language and then press save which will save the value in the ini file.
 	Beside the save button a note can be displayed explaining a bit about languages in EL.
 	If the language "en" is chosen the client will continue to open the login/new
 	character/rules screen.   Otherwise, the client will be restarted.  All the text and
@@ -32,7 +32,6 @@
 #include "openingwin.h"
 #include "rules.h"
 #include "sound.h"
-#include "gamewin.h"
 
 typedef struct { char *code; unsigned char *text; char *save; char *note; } LANGSEL_LIST_NODE;
 
@@ -48,7 +47,7 @@ static list_node_t *langsel_list = NULL;
 static LANGSEL_LIST_NODE *langsel_default_node = NULL;
 static LANGSEL_LIST_NODE *langsel_chosen_node = NULL;
 static LANGSEL_LIST_NODE *langsel_selected_node = NULL;
-static float langsel_winRGB[4][3] = {{0.0f,0.25f,1.0f},{0.2f,0.7f,1.2f},{0.2f,1.0f,1.2f},{0.77f, 0.57f, 0.39f}};
+static float langsel_winRGB[4][3] = {{0.0f,0.25f,1.0f},{0.2f,0.7f,1.2f},{0.2f,1.0f,1.2f},{1.0f, 1.0f, 1.0f}};
 
 
 static int langsel_load_list(void)
@@ -57,11 +56,9 @@ static int langsel_load_list(void)
 	xmlNodePtr cur;
 	char *error_prefix = "Reading langsel.xml: ";
 
-#ifdef OTHER_LIFE
-	langsel_winRGB[3][0] = newcol_r;
-	langsel_winRGB[3][1] = newcol_g;
-	langsel_winRGB[3][2] = newcol_b;
-#endif
+	langsel_winRGB[3][0] = gui_color[0];
+	langsel_winRGB[3][1] = gui_color[1];
+	langsel_winRGB[3][2] = gui_color[2];
 
 	if ((doc = xmlReadFile("languages/langsel.xml", NULL, 0)) == NULL)
 	{
@@ -601,7 +598,7 @@ int display_langsel_win(void)
 	langsel_chosen_node = langsel_default_node;
 
 	/* create and show the root window */
-	langsel_rootwin = create_window("", -1, -1, 0, 0, window_width, window_height, ELW_USE_UISCALE|ELW_TITLE_NONE|ELW_SHOW_LAST);
+	langsel_rootwin = create_window("", -1, -1, 0, 0, window_width, window_height, ELW_TITLE_NONE|ELW_SHOW_LAST);
 	set_window_handler(langsel_rootwin, ELW_HANDLER_DISPLAY, &langsel_display_root_handler );
 	set_window_handler(langsel_rootwin, ELW_HANDLER_RESIZE, &langsel_rootwin_resize_handler);
 	show_window(langsel_rootwin);

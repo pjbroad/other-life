@@ -405,8 +405,8 @@ static int display_astrology_handler(window_info *win)
 	GLfloat right_colors[6];
 	int i;
 
-	glColor3f(newcol_r, newcol_g, newcol_b);
-	
+	glColor3fv(gui_color);
+
 	switch(astrology_display_type)
 	{
 		case adtTwoProgressBars:
@@ -545,7 +545,7 @@ static int display_astrology_handler(window_info *win)
 	}
 
 	glDisable(GL_TEXTURE_2D);
-//	glColor3f(newcol_r, newcol_g, newcol_b);
+//	glColor3fv(gui_color);
 
 	//draw progress borders
 	glLineWidth (2.0f);
