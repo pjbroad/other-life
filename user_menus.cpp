@@ -341,7 +341,7 @@ namespace UserMenus
 
 
 	//
-	//	return current window position and option values, normally for saving in cfg
+	//	return current window position and option values, normally for saving in the cfg file
 	//
 	void Container::get_options(int *win_x, int *win_y, int *options)
 	{
@@ -366,7 +366,7 @@ namespace UserMenus
 
 
 	//
-	//	set window position and option, normally from cfg
+	//	set window position and option, normally from the cfg file
 	//
 	void Container::set_options(int win_x, int win_y, int options)
 	{

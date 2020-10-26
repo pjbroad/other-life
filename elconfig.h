@@ -6,16 +6,6 @@
 #ifndef __ELCONFIG_H__
 #define __ELCONFIG_H__
 
-#ifndef INIFILE
-  #ifdef OTHER_LIFE
-    #define INIFILE "ol.ini"
-    #define CFGFILE "ol.cfg"
-  #else
-    #define INIFILE "el.ini"
-    #define CFGFILE "el.cfg"
-  #endif
-#endif
-
 #include "queue.h"
 #include "translate.h"
 
@@ -23,6 +13,7 @@
 extern "C" {
 #endif
 
+extern const char * ini_filename;
 extern float water_tiles_extension;
 extern int show_game_seconds;
 extern int skybox_update_delay;
@@ -34,7 +25,7 @@ extern float pointer_size;
 #endif // NEW_CURSOR
 extern Uint32 max_actor_texture_handles;
 
-extern int write_ini_on_exit; /*< variable that determines if ini file is rewritten on exit of the program */
+extern int write_ini_on_exit; /*< variable that determines if the ini file is rewritten on exit of the program */
 
 extern int video_mode_set;
 extern int no_adjust_shadows;
@@ -98,7 +89,7 @@ typedef enum
 {
 	COMMAND_LINE_SHORT_VAR,	/*!< for abbreviated variable names from the command line */
 	COMMAND_LINE_LONG_VAR,	/*!< for full variable names from the command line */
-	INI_FILE_VAR,		/*!< for variables names from ini */
+	INI_FILE_VAR,		/*!< for variables names from the ini file */
 	IN_GAME_VAR		/*!< for names of variables changed in the games */
 } var_name_type;
 
@@ -341,7 +332,7 @@ void options_loaded(void);
  * Set previously stored multi-select variables.
  *
  * Some multi-select variables cannot be reliably set because they are not fully
- * initialized before el.ini is read. The values for these variables are stored,
+ * initialized before the ini file is read. The values for these variables are stored,
  * and the variables are set to the correct option afterwards using this function.
  * The initialization is done as follows:
  * 1. if only an index is stored, and it is a valid index, that is used.

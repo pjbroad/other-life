@@ -57,6 +57,14 @@
 #include "missiles.h"
 #include "threads.h"
 
+#ifndef DEF_INFO
+ #ifdef OTHER_LIFE
+   #define DEF_INFO "16"
+ #else
+   #define DEF_INFO ""
+ #endif
+#endif
+
 #ifdef OTHER_LIFE
   #include "gl_init.h"
   #include "ext_protocol.h"

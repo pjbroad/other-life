@@ -2370,10 +2370,10 @@ void get_actor_damage(int actor_id, int damage)
 
 		act->damage=damage;
 		act->damage_ms=2000;
-	        if((int)(act->cur_health - damage) > 0)
-		        act->cur_health-=damage;
-	        else
-		        act->cur_health=0;	     
+		if(act->cur_health > (Uint16)damage)
+			act->cur_health -= damage;
+		else
+			act->cur_health = 0;
 
 		if (act->cur_health <= 0) {
 #ifdef NEW_SOUND
@@ -2420,10 +2420,8 @@ void get_actor_heal(int actor_id, int quantity)
 			act->damage_ms=2000;
 			act->last_health_loss=cur_time;
 		}
-	        //if((unsigned int)act->max_health >= (unsigned int)(act->cur_health + quantity))
-		        act->cur_health+=quantity;
-	        //else
-	        //        act->cur_health = act->max_health;
+
+		act->cur_health+=quantity;
 	}
 	//if we got here, it means we don't have this actor, so get it from the server...
 }

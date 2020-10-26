@@ -155,8 +155,8 @@ static int cm_selected_id = -1;
 static int cm_entry_count = -1;
 static int cm_floating_flag = 0;
 unsigned int floating_counter_flags = 0;		/* persisted in cfg file */
-int floating_session_counters = 0;				/* persisted in ini */
-int enable_used_item_counter = 0;				/* persisted in ini */
+int floating_session_counters = 0;			/* persisted in ini file */
+int enable_used_item_counter = 0;			/* persisted in ini file */
 
 int sort_counter_func(const void *a, const void *b)
 {

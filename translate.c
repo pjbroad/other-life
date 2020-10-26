@@ -611,7 +611,6 @@ char	reg_error_str[15],
 	invalid_video_mode[75],
 	failed_sdl_net_init[30],
 	failed_sdl_timer_init[30],
-	cant_read_elini[50],
 	must_use_tabs[80],
 	init_opengl_str[35],
 	init_random_str[35],
@@ -1195,7 +1194,6 @@ void init_console()
 void init_errors()
 {
 #ifdef ELC
-	char str[128];
 	group_id * actors=&(errors[0]);
 	group_id * load=&(errors[1]);
 	group_id * misc=&(errors[2]);
@@ -1231,8 +1229,6 @@ void init_errors()
 	add_xml_identifier(load,"font",cant_load_font,"Unable to load font",sizeof(cant_load_font));
 	add_xml_identifier(load,"fatal",fatal_error_str,"Fatal",sizeof(fatal_error_str));
 	add_xml_identifier(load,"noe3d",no_e3d_list,"Couldn't read e3dlist.txt",sizeof(no_e3d_list));
-	safe_snprintf(str, sizeof(str), "Couldn't read configuration file %s", INIFILE);
-	add_xml_identifier(load,"elini",cant_read_elini,str,sizeof(cant_read_elini));
 	add_xml_identifier(load,"invmap",invalid_map,"%s is an invalid map!",sizeof(invalid_map));
 	add_xml_identifier(load,"parsenotes",cant_parse_notes,"Unable to parse xml notepad. It will be overwritten.",sizeof(cant_parse_notes));
 	add_xml_identifier(load,"noteswrong",notes_wrong,"Document of the wrong type. It will be overwritten.",sizeof(notes_wrong));
@@ -1429,15 +1425,15 @@ void init_help()
 	add_xml_identifier(misc,"trade",no_open_on_trade,"You can't open this window while on trade.",sizeof(no_open_on_trade));
 	add_xml_identifier(misc,"user",login_username_str,"Username:",sizeof(login_username_str));
 	add_xml_identifier(misc,"pass",login_password_str,"Password:",sizeof(login_password_str));
+	add_xml_identifier(misc,"passmngr_enabled",passmngr_enabled_str,"Open/close password manager window.",sizeof(passmngr_enabled_str));
+	add_xml_identifier(misc,"passmngr_disabled",passmngr_disabled_str,"Password manager is disabled, see server tab in settings.",sizeof(passmngr_disabled_str));
+	add_xml_identifier(misc,"show_passwords",show_passwords_str,"Show Passwords",sizeof(show_passwords_str));
+	add_xml_identifier(misc,"login_select_window",login_select_window_str,"Select Login",sizeof(login_select_window_str));
 #ifdef OTHER_LIFE
 	add_xml_identifier(misc,"login_rules",login_rules_str,"If you log into this game, you accept the rules of Other-Life. Press F5 to read them in game.",sizeof(login_rules_str));
 #else
 	add_xml_identifier(misc,"login_rules",login_rules_str,"If you log into this game, you accept the rules of Eternal Lands. Press F5 to read them in game.",sizeof(login_rules_str));
 #endif
-	add_xml_identifier(misc,"passmngr_enabled",passmngr_enabled_str,"Open/close password manager window.",sizeof(passmngr_enabled_str));
-	add_xml_identifier(misc,"passmngr_disabled",passmngr_disabled_str,"Password manager is disabled, see server tab in settings.",sizeof(passmngr_disabled_str));
-	add_xml_identifier(misc,"show_passwords",show_passwords_str,"Show Passwords",sizeof(show_passwords_str));
-	add_xml_identifier(misc,"login_select_window",login_select_window_str,"Select Login",sizeof(login_select_window_str));
 	add_xml_identifier(misc,"stoall",sto_all_str,"Sto All",sizeof(sto_all_str));
 	add_xml_identifier(misc,"getall",get_all_str,"Get All",sizeof(get_all_str));
 	add_xml_identifier(misc,"drpall",drp_all_str,"Drp All",sizeof(drp_all_str));

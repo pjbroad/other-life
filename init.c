@@ -92,10 +92,8 @@
 #ifdef  CUSTOM_UPDATE
 #include "custom_update.h"
 #endif  //CUSTOM_UPDATE
-#ifdef OTHER_LIFE
-#include "stats.h"
-#endif
-#define	CFG_VERSION 7	// change this when critical changes to cfg are made that will break it
+
+#define	CFG_VERSION 7	// change this when critical changes to the cfg file are made that will break it
 
 char configdir[256]="./";
 #ifdef DATA_DIR
@@ -104,6 +102,11 @@ char datadir[256]=DATA_DIR;
 char datadir[256]="./";
 #endif //DATA_DIR
 
+#ifdef OTHER_LIFE
+static const char *cfg_filename = "ol.cfg";
+#else
+static const char *cfg_filename = "el.cfg";
+#endif
 static int no_lang_in_config = 0;
 
 #ifndef FASTER_MAP_LOAD
@@ -169,12 +172,9 @@ static void read_config(void)
 	if ( !read_el_ini () )
 	{
 		// oops, the file doesn't exist, give up
-#ifdef OTHER_LIFE
-		const char *err_stg = "Failure reading ol.ini";
-#else
-		const char *err_stg = "Failure reading el.ini";
-#endif
-		fprintf(stderr, "%s\n", err_stg);
+		char err_stg[80];
+		safe_snprintf(err_stg, sizeof(err_stg), "Failure reading %s", ini_filename);
+		fprintf(stderr, "%s", err_stg);
 		LOG_ERROR(err_stg);
 		SDL_Quit ();
 		FATAL_ERROR_WINDOW(err_stg);
@@ -198,13 +198,12 @@ static void read_bin_cfg(void)
 	FILE *f = NULL;
 	bin_cfg cfg_mem;
 	int i;
-	const char *fname = CFGFILE;
 	size_t ret;
 	int have_quickspells = 1, have_chat_win = 1;
 
 	memset(&cfg_mem, 0, sizeof(cfg_mem));	// make sure its clean
 
-	f=open_file_config_no_local(fname,"rb");
+	f=open_file_config_no_local(cfg_filename,"rb");
 	if(f == NULL)return;//no config file, use defaults
 	ret = fread(&cfg_mem,1,sizeof(cfg_mem),f);
 	fclose(f);
@@ -220,7 +219,7 @@ static void read_bin_cfg(void)
 		have_quickspells = have_chat_win = 0;
 	else if (ret != sizeof(cfg_mem))
 	{
-		LOG_ERROR("%s() failed to read %s\n", __FUNCTION__, fname);
+		LOG_ERROR("%s() failed to read %s\n", __FUNCTION__, cfg_filename);
 		return;
 	}
 
@@ -359,9 +358,9 @@ void save_bin_cfg(void)
 	bin_cfg cfg_mem;
 	int i;
 
-	f=open_file_config(CFGFILE,"wb");
+	f=open_file_config(cfg_filename,"wb");
 	if(f == NULL){
-		LOG_ERROR("%s: %s \"%s\": %s\n", reg_error_str, cant_open_file, CFGFILE, strerror(errno));
+		LOG_ERROR("%s: %s \"%s\": %s\n", reg_error_str, cant_open_file, cfg_filename, strerror(errno));
 		return;//blah, whatever
 	}
 	memset(&cfg_mem, 0, sizeof(cfg_mem));	// make sure its clean

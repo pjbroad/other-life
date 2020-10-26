@@ -1,7 +1,7 @@
 #include <string.h>
-#include "elconfig.h"
 #include "servers.h"
 #include "asc.h"
+#include "elconfig.h"
 #include "errors.h"
 #include "gl_init.h"
 #include "misc.h"
@@ -55,7 +55,7 @@ void set_server_details()
 	safe_strncpy(id, check_server_id_on_command_line(), sizeof(id));
 	if (!strcmp(id, ""))
 	{
-	        safe_strncpy(id, "main", sizeof(id));
+		safe_strncpy(id, "main", sizeof(id));
 	}
 	num = find_server_from_id(id);
 	if (num == -1)
@@ -87,12 +87,12 @@ void set_server_details()
 		
 		mkdir_tree(get_path_config(), 0);
 		// First, try to copy the ini file out of $CONF/main
-		safe_snprintf(src, sizeof(src), "%smain/%s", get_path_config_base(),INIFILE);
-		safe_snprintf(dest, sizeof(dest), "%s%s", get_path_config(),INIFILE);
+		safe_snprintf(src, sizeof(src), "%smain/%s", get_path_config_base(), ini_filename);
+		safe_snprintf(dest, sizeof(dest), "%s%s", get_path_config(), ini_filename);
 		copy_file(src, dest);
 		// Secondly, try to copy the ini file out of $CONF (this will fail without harm if above succeeds)
-		safe_snprintf(src, sizeof(src), "%s/%s", get_path_config_base(),INIFILE);
-		safe_snprintf(dest, sizeof(dest), "%s%s", get_path_config(),INIFILE);
+		safe_snprintf(src, sizeof(src), "%s/%s", get_path_config_base(), ini_filename);
+		safe_snprintf(dest, sizeof(dest), "%s%s", get_path_config(), ini_filename);
 		copy_file(src, dest);
 	}
 }
