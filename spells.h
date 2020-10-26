@@ -41,7 +41,6 @@ extern int spell_result; /*!< spell_errors type - server return status for last 
 extern int show_poison_count; /*!< true if showing poison counts in UI */
 /*! @} */
 
-void draw_weather_icon(int id, int x_start, int y_start, int gridsize, int alpha, int grayed);
 
 /*!
  * \ingroup spells_window
@@ -157,6 +156,7 @@ mqbdata* build_quickspell_data(const Uint32 spell_id);
 //#define BUFF_DURATION_DEBUG
 void here_is_a_buff_duration(Uint8 duration);
 void check_then_do_buff_duration_request(void);
+int command_buff_duration(char *text, int len);
 
 #ifdef __cplusplus
 } // extern "C"

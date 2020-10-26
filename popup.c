@@ -1007,10 +1007,10 @@ popup_old_t *popup_old_create( popup_t* popup )
 			fresh = 1;
 		}
 		
-		if (NULL!=old_popup && popup->win != -1) {
+		if (NULL!=old_popup && popup->win >= 0 && popup->win < windows_list.num_windows) {
 			old_popup->id = popup->id;
-			old_popup->old_pos_x = get_window_info(popup->win)->cur_x;
-			old_popup->old_pos_y = get_window_info(popup->win)->cur_y;
+			old_popup->old_pos_x = windows_list.window[popup->win].cur_x;
+			old_popup->old_pos_y = windows_list.window[popup->win].cur_y;
 			if(fresh)
 				list_push( &popup_old_list, old_popup );
 			return old_popup;

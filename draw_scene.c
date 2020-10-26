@@ -99,7 +99,7 @@ float hold_camera = 0.0;   // backup of the rz value before kludge is applied
 int last_texture=-2;
 int cons_text;
 int icons_text;
-int weather_text;
+
 int ground_detail_text;
 
 float clouds_movement_u=-8;

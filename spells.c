@@ -90,6 +90,7 @@ static int have_error_message=0;
 static int we_have_spell=-1; //selected spell
 static int on_spell=-1;//mouse over this spell
 static int poison_drop_counter = 0;
+static int weather_text = 0;
 
 typedef struct {
 	unsigned char desc[120];
@@ -823,6 +824,34 @@ static void time_out(const float x_start, const float y_start, const float grids
 	glColor3f(1.0f, 1.0f, 1.0f);
 }
 
+static void draw_weather_icon(int id, int x_start, int y_start, int gridsize, int alpha, int grayed)
+{
+	// Each icon is 32x32 and stored in weather.dds|bmp
+	// Acid Rain is the first icon @ 0,0-31,31
+	float u_start,v_start,u_end,v_end;
+
+	u_start = 0.25f * (id % 8);
+	v_start = 0.25f * (id / 8);
+	u_end = u_start + 0.25f;
+	v_end = v_start + 0.5f;
+
+	bind_texture(weather_text);
+	if(alpha) {
+		glEnable(GL_ALPHA_TEST);
+		glAlphaFunc(GL_GREATER, 0.05f);
+		glBegin(GL_QUADS);
+			draw_2d_thing(u_start,v_start,u_end,v_end, x_start,y_start,x_start+gridsize,y_start+gridsize);
+		glEnd();
+		glDisable(GL_ALPHA_TEST);
+	} else {
+		glBegin(GL_QUADS);
+			draw_2d_thing(u_start,v_start,u_end,v_end, x_start,y_start,x_start+gridsize,y_start+gridsize);
+		glEnd();
+	}
+
+	if(grayed) gray_out(x_start,y_start,gridsize);
+}
+
 void display_spells_we_have(void)
 {
 	Uint32 i;
@@ -883,12 +912,12 @@ void display_spells_we_have(void)
 	}
         if(is_raining && is_acid_rain_day)
         {
-	        if(x_start == -1)
-	                x_start = 0;
-	        else
-	                x_start += 33;
-               //draw_string_small_shadowed(x_start,y_start,"ACID\nRAIN",2,1.0f,1.0f,1.0f,0.0f,0.0f,0.0f);
-	        draw_weather_icon(0, x_start, y_start, 32, 1, 0);
+		if(x_start == -1)
+			x_start = 0;
+		else
+			x_start += 33;
+		//draw_string_small_shadowed(x_start,y_start,"ACID\nRAIN",2,1.0f,1.0f,1.0f,0.0f,0.0f,0.0f);
+		draw_weather_icon(0, x_start, y_start, 32, 1, 0);
 	}
 
 #ifdef OPENGL_TRACE
@@ -943,35 +972,6 @@ static int draw_switcher(window_info *win){
 	}
 	glEnable(GL_TEXTURE_2D);
 	return 1;
-}
-
-void draw_weather_icon(int id, int x_start, int y_start, int gridsize, int alpha, int grayed)
-{
-	// Each icon is 32x32 and stored in weather.dds|bmp
-	// Acid Rain is the first icon @ 0,0-31,31
-	float u_start,v_start,u_end,v_end;
-
-	u_start = 0.25f * (id % 8);
-	v_start = 0.25f * (id / 8);
-	u_end = u_start + 0.25f;
-	v_end = v_start + 0.5f;
-
-	bind_texture(weather_text);
-	if(alpha) {
-		glEnable(GL_ALPHA_TEST);
-		glAlphaFunc(GL_GREATER, 0.05f);
-		glBegin(GL_QUADS);
-			draw_2d_thing(u_start,v_start,u_end,v_end, x_start,y_start,x_start+gridsize,y_start+gridsize);
-		glEnd();
-		glDisable(GL_ALPHA_TEST);
-	} else {
-		glBegin(GL_QUADS);
-			draw_2d_thing(u_start,v_start,u_end,v_end, x_start,y_start,x_start+gridsize,y_start+gridsize);
-		glEnd();
-	}
-
-	if(grayed) gray_out(x_start,y_start,gridsize);
-	
 }
 
 void draw_spell_icon(int id,int x_start, int y_start, int gridsize, int alpha, int grayed){

@@ -961,7 +961,7 @@ int get_window_content_width(int window_id);
 int cm_title_handler(window_info *win, int widget_id, int mx, int my, int option);
 
 // low level functions
-window_info	*get_window_info(int win_id);
+//window_info	*get_window_info(int win_id);
 //window_info	*get_window_by_name(const Uint8 *name);
 
 // default handlers - VERY basic
