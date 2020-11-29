@@ -221,56 +221,6 @@ char* safe_strcasestr (const char* haystack, size_t haystack_len, const char* ne
 
 /*!
  * \ingroup	misc_utils
- * \brief	The function copies the string from source to dest
- *
- * 		The function copies the string from source to destination, and put a terminating \\0
- *
- * \param	dest The destination char array
- * \param	source The source char array
- * \todo	We should just use strcpy instead...
- */
-void my_strcp(char *dest,const char * source);
-
-/*!
- * \ingroup	misc_utils
- * \brief	The function copies the string from source to dest, but no more than n characters
- *
- * 		The function copies the string from source to destination, but no more than n characters. It also puts an ending \\0
- *
- * \param	dest The destination char array
- * \param	source The source char array
- * \param	len The number of bytes you wish to copy
- */
-void my_strncp (char *dest, const char *source, size_t len);
-
-/*!
- * \ingroup	misc_utils
- * \brief	Compares n bytes of the 2 strings (case insensitive)
- *
- * 		The function compares n bytes of the 2 strings. It is not case sensitive
- *
- * \param	dest The first string
- * \param	src The second string
- * \param	len The number of bytes to compare
- * \retval Sint32	Returns 1 on match, 0 if the strings doesn't match.
- */
-Sint32 my_strncompare(const char *dest, const char *src, Sint32 len);
-
-/*!
- * \ingroup	misc_utils
- * \brief	Compares the 2 strings
- *
- * 		The function compares the 2 strings, calls my_strncompare.
- *
- * \param	dest The first string
- * \param	src The second string
- * \retval Sint32 	Returns 1 on match, 0 if the strings doesn't match.
- * \sa my_strncompare
- */
-Sint32 my_strcompare(const char *dest, const char *src);
-
-/*!
- * \ingroup	misc_utils
  * \brief	Checks if len/2 characters of the string is uppercase
  *
  * 		Checks if len/2 characters of the string is uppercase

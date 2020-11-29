@@ -126,7 +126,7 @@ static void load_harvestable_list(void)
 	{
 		if (fscanf (f, "%254s", strLine) != 1)
 			break;
-		my_strncp (harvestable_objects[i], strLine, sizeof (harvestable_objects[i]));
+		safe_strncpy(harvestable_objects[i], strLine, sizeof (harvestable_objects[i]));
 
 		i++;
 		if(!fgets(strLine, sizeof(strLine), f)) {
@@ -153,7 +153,7 @@ static void load_entrable_list(void)
 		{
 			if (fscanf (f, "%254s", strLine) != 1)
 				break;
-			my_strncp (entrable_objects[i], strLine, sizeof (entrable_objects[i]));
+			safe_strncpy(entrable_objects[i], strLine, sizeof (entrable_objects[i]));
 
 			i++;
 			if(!fgets(strLine, sizeof(strLine), f))break;
@@ -167,7 +167,7 @@ static void read_config(void)
 	// Set our configdir
 	const char * tcfg = get_path_config();
 
-	my_strncp (configdir, tcfg , sizeof(configdir));
+	safe_strncpy(configdir, tcfg , sizeof(configdir));
 
 	if ( !read_el_ini () )
 	{
@@ -779,6 +779,7 @@ void init_stuff(void)
 	init_attribf();
 
 	init_statsinfo_array();
+	init_floating_messages();
 
 	//Read the books for i.e. the new char window
 	init_books();

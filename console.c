@@ -416,7 +416,7 @@ int test_for_console_command(char *text, int length)
 		/* Look for a matching command */
 		for(i = 0; i < command_count; i++) {
 			cmd_len = strlen(commands[i].command);
-			if(strlen(text) >= cmd_len && my_strncompare(text, commands[i].command, cmd_len) && (isspace(text[cmd_len]) || text[cmd_len] == '\0')) {
+			if(strlen(text) >= cmd_len && !strncasecmp(text, commands[i].command, cmd_len) && (isspace(text[cmd_len]) || text[cmd_len] == '\0')) {
 				/* Command matched */
 				if(commands[i].callback && commands[i].callback(text+cmd_len, length-cmd_len)) {
 					/* The command was handled and we don't want to send it to the server */
@@ -841,7 +841,7 @@ int command_unmark_special(char *text, int len, int do_log)
 	if(*text) {
 		for (i = 0; i < max_mark; i ++)
 		{
-			if (my_strcompare(marks[i].text, text) && (marks[i].x != -1))
+			if (!strcasecmp(marks[i].text, text) && (marks[i].x != -1))
 			{
 				char str[512];
 				marks[i].x = marks[i].y = -1;
@@ -1324,7 +1324,7 @@ int command_msg(char *text, int len)
 
 	// find first space, then skip any spaces
 	text = getparams(text);
-	if(my_strncompare(text, "all", 3))
+	if(!strncasecmp(text, "all", 3))
 	{
 		print_all_messages();
 	}
@@ -1386,7 +1386,7 @@ int command_storage(char *text, int len)
 		int nb = len - i - 1;
 		if (nb > sizeof (storage_filter) - 1)
 			nb = sizeof (storage_filter) - 1;
-		my_strncp (storage_filter, text+i+1, nb+1);
+		safe_strncpy(storage_filter, text+i+1, nb+1);
 	}
 
 	if (have_storage_list)
@@ -1566,7 +1566,7 @@ int command_ckdata(char *text, int len)
 	/* if we have an expected value, compare then display an appropriate message */
 	if (*expected_digest_str)
 	{
-		if (my_strcompare(digest_str, expected_digest_str))
+		if (!strcasecmp(digest_str, expected_digest_str))
 			LOG_TO_CONSOLE(c_green2,"ckdata: File matches expected checksum");
 		else
 			LOG_TO_CONSOLE(c_red2,"ckdata: File does not match expected checksum");

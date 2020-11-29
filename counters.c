@@ -451,9 +451,11 @@ void increment_counter(int counter_id, const char *name, int quantity, int extra
 
 	if (floating_session_counters && (floating_counter_flags & (1 << i)))
 	{
-		char str[128];
-		safe_snprintf(str, sizeof(str), "%s: %u", name, counters[i][j].n_session);
+		size_t buf_len = strlen(name) + 20; // room for " : [+/-]4294967296\0"
+		char *str = malloc(buf_len);
+		safe_snprintf(str, buf_len, "%s: %u", name, counters[i][j].n_session);
 		add_floating_message(yourself, str, FLOATINGMESSAGE_NORTH, 0.3, 0.3, 1.0, 1500);
+		free(str);
 	}
 
 	sort_counter(counter_id);
@@ -1298,7 +1300,7 @@ void catch_counters_text(const char* text)
 		return;
 
 	/* Your xxx ... */
-	if (my_strncompare(text, "Your ", 5))
+	if (!strncasecmp(text, "Your ", 5))
 	{
 		int i;
 		char *mess_ends[] = {" has been destroyed", " broke, sorry!"};
@@ -1325,7 +1327,7 @@ void catch_counters_text(const char* text)
 	}
 
 	/* "<user name> found a/an/a[n] " */
-	else if (my_strncompare(text, search_str[0], search_len[0]))
+	else if (!strncasecmp(text, search_str[0], search_len[0]))
 	{
 		size_t start_from = search_len[0];
 		size_t could_not_carry_index = get_string_occurance(". What a pity ", text, text_len, 1);
@@ -1338,7 +1340,7 @@ void catch_counters_text(const char* text)
 		{
 			char *gold_str = "bag of gold, getting ";
 			size_t gold_len = strlen(gold_str);
-			if (my_strncompare(&text[start_from], gold_str, gold_len))
+			if (!strncasecmp(&text[start_from], gold_str, gold_len))
 			{
 				int quanity = atoi(&text[start_from+gold_len]);
 				increment_counter(MISC_EVENTS, "Total gold coin from bags", quanity, 0);
@@ -1365,7 +1367,7 @@ void catch_counters_text(const char* text)
 	}
 
 	/* loose coin find */
-	else if (my_strncompare(text, "You found ", 10) && strstr(text, " coins."))
+	else if (!strncasecmp(text, "You found ", 10) && strstr(text, " coins."))
 	{
 		int quantity = atoi(&text[10]);
 		increment_counter(MISC_EVENTS, "Total loose gold coin", quantity, 0);
@@ -1373,7 +1375,7 @@ void catch_counters_text(const char* text)
 	}
 
 	/* extra harvest exp */
-	else if (my_strncompare(text, "You gained ", 11) && strstr(text, " extra harvesting exp."))
+	else if (!strncasecmp(text, "You gained ", 11) && strstr(text, " extra harvesting exp."))
 	{
 		int quantity = atoi(&text[11]);
 		increment_counter(MISC_EVENTS, "Total extra harvesting exp", quantity, 0);
@@ -1381,7 +1383,7 @@ void catch_counters_text(const char* text)
 	}
 
 	/* you hurt yourself */
-        else if (my_strncompare(text, "You hurt yourself, and lost ", 28) && strstr(text, " HPs."))
+        else if (!strncasecmp(text, "You hurt yourself, and lost ", 28) && strstr(text, " HPs."))
 	{
 		increment_counter(MISC_EVENTS, "You hurt yourself", 1, 0);
 	}
@@ -1391,7 +1393,7 @@ void catch_counters_text(const char* text)
 	{
 		int i;
 		for (i=1; i<num_search_str; i++)
-			if (my_strncompare(text, search_str[i], search_len[i]))
+			if (!strncasecmp(text, search_str[i], search_len[i]))
 			{
 				increment_counter(MISC_EVENTS, count_str[i], 1, 0);
 				if (i==1)

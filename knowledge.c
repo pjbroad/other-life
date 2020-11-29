@@ -205,7 +205,7 @@ void update_research_rate(void)
 			int i;
 			for(i=0; i<num_xattribs; i++)
 			{
-				if(my_strcompare(xattribs[i].name,"Rationality"))
+				if(!strcasecmp(xattribs[i].name,"Rationality"))
 					break;
 			}
 			if(i<num_xattribs)

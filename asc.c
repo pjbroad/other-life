@@ -281,50 +281,6 @@ char* safe_strcasestr (const char* haystack, size_t haystack_len, const char* ne
 	return NULL;
 }
 
-void my_strcp(char *dest,const char * source)
-{
-	while(*source)
-	{
-		*dest++=*source++;
-	}
-	*dest='\0';
-}
-
-void my_strncp (char *dest, const char *source, size_t len)
-{
-	while (*source != '\0' && --len > 0)
-	{
-		*dest++ = *source++;
-	}
-	*dest = '\0';
-}
-
-Sint32 my_strncompare(const char *dest, const char *src, Sint32 len)
-{
-	int i;
-	char ch1,ch2;
-
-	for(i=0;i<len;i++)
-		{
-			ch1=src[i];
-			ch2=dest[i];
-			if(ch1>=65 && ch1<=90)ch1+=32;//make lowercase
-			if(ch2>=65 && ch2<=90)ch2+=32;//make lowercase
-			if(ch1!=ch2)break;
-		}
-	if(i!=len)return 0;
-	else return 1;
-}
-
-Sint32 my_strcompare(const char *dest, const char *src)
-{
-	Uint32 len;
-
-	len=strlen(dest);
-	if(len!=strlen(src))return 0;
-	return(my_strncompare(dest, src, len));
-}
-
 // is this string more then one character and all alpha in it are CAPS?
 Sint32 my_isupper(const char *src, int len)
 {
@@ -474,7 +430,7 @@ void get_string_value(char *buf, size_t maxlen, const xmlNode *node)
 	if (!node->children)
 		buf[0] = '\0';
 	else
-		my_strncp(buf, (const char*)node->children->content, maxlen);
+		safe_strncpy(buf, (const char*)node->children->content, maxlen);
 }
 
 void get_item_string_value(char *buf, size_t maxlen, const xmlNode *item,

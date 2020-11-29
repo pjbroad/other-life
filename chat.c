@@ -490,7 +490,7 @@ static int add_chat_tab(int nlines, Uint8 channel)
 			channels[ichan].newchan = 1;
 			channels[ichan].highlighted = 0;
 
-			my_strncp(title,(tab_label(channel))->name, sizeof(title));
+			safe_strncpy(title,(tab_label(channel))->name, sizeof(title));
 
 			channels[ichan].tab_id = tab_add (chat_win, chat_tabcollection_id, title, 0, 1, 0);
 			set_window_flag (channels[ichan].tab_id, ELW_CLICK_TRANSPARENT);
@@ -749,15 +749,15 @@ static void change_to_current_chat_tab(const char *input)
 	{
 		channel = firstchannel + current_channel;
 	}
-	else if(my_strncompare(input, "#gm ", 4) || (my_strncompare(input, gm_cmd_str, strlen(gm_cmd_str)) && input_len > strlen(gm_cmd_str)+1 && input[strlen(gm_cmd_str)] == ' '))
+	else if(!strncasecmp(input, "#gm ", 4) || (!strncasecmp(input, gm_cmd_str, strlen(gm_cmd_str)) && input_len > strlen(gm_cmd_str)+1 && input[strlen(gm_cmd_str)] == ' '))
 	{
 		channel = CHAT_GM;
 	}
-	else if(my_strncompare(input, "#mod ", 5) || (my_strncompare(input, mod_cmd_str, strlen(mod_cmd_str)) && input_len > strlen(mod_cmd_str)+1 && input[strlen(mod_cmd_str)] == ' '))
+	else if(!strncasecmp(input, "#mod ", 5) || (!strncasecmp(input, mod_cmd_str, strlen(mod_cmd_str)) && input_len > strlen(mod_cmd_str)+1 && input[strlen(mod_cmd_str)] == ' '))
 	{
 		channel = CHAT_MOD;
 	}
-	else if(my_strncompare(input, "#bc ", 4) || (my_strncompare(input, bc_cmd_str, strlen(bc_cmd_str)) && input_len > strlen(bc_cmd_str)+1 && input[strlen(bc_cmd_str)] == ' '))
+	else if(!strncasecmp(input, "#bc ", 4) || (!strncasecmp(input, bc_cmd_str, strlen(bc_cmd_str)) && input_len > strlen(bc_cmd_str)+1 && input[strlen(bc_cmd_str)] == ' '))
 	{
 		channel = CHAT_SERVER;
 	}
@@ -1781,7 +1781,7 @@ static unsigned int chan_int_from_name(char * name, int * return_length)
 	}
 	while(step->next != NULL) {
 		step = step->next;
-		if(my_strncompare(((chan_name*)(step->data))->name, cname, strlen(((chan_name*)(step->data))->name))) {
+		if(!strncasecmp(((chan_name*)(step->data))->name, cname, strlen(((chan_name*)(step->data))->name))) {
 			if(return_length != NULL) {
 				*return_length = strlen(((chan_name*)(step->data))->name);
 			}
@@ -2254,15 +2254,15 @@ static void change_to_current_tab(const char *input)
 	{
 		channel = firstchannel + current_channel;
 	}
-	else if(my_strncompare(input, "#gm ", 4) || (my_strncompare(input, gm_cmd_str,strlen(gm_cmd_str)) && input_len > strlen(gm_cmd_str)+1 && input[strlen(gm_cmd_str)] == ' '))
+	else if(!strncasecmp(input, "#gm ", 4) || (!strncasecmp(input, gm_cmd_str,strlen(gm_cmd_str)) && input_len > strlen(gm_cmd_str)+1 && input[strlen(gm_cmd_str)] == ' '))
 	{
 		channel = CHAT_GM;
 	}
-	else if(my_strncompare(input, "#mod ", 5) || (my_strncompare(input, mod_cmd_str, strlen(mod_cmd_str)) && input_len > strlen(mod_cmd_str)+1 && input[strlen(mod_cmd_str)] == ' '))
+	else if(!strncasecmp(input, "#mod ", 5) || (!strncasecmp(input, mod_cmd_str, strlen(mod_cmd_str)) && input_len > strlen(mod_cmd_str)+1 && input[strlen(mod_cmd_str)] == ' '))
 	{
 		channel = CHAT_MOD;
 	}
-	else if(my_strncompare(input, "#bc ", 4) || (my_strncompare(input, bc_cmd_str, strlen(bc_cmd_str)) && input_len > strlen(bc_cmd_str)+1 && input[strlen(bc_cmd_str)] == ' '))
+	else if(!strncasecmp(input, "#bc ", 4) || (!strncasecmp(input, bc_cmd_str, strlen(bc_cmd_str)) && input_len > strlen(bc_cmd_str)+1 && input[strlen(bc_cmd_str)] == ' '))
 	{
 		channel = CHAT_SERVER;
 	}
