@@ -82,6 +82,7 @@ typedef enum
 	CENTER_PASSWORD
 } ver_alignment;
 
+#include "client_serv.h"
 #include "gl_init.h"
 #include "text.h"
 #include "widgets.h"
@@ -89,6 +90,7 @@ typedef enum
 #ifdef __cplusplus
 
 #include <array>
+#include <stdexcept>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -745,7 +747,7 @@ public:
 	 * 	cursor position
 	 */
 	std::tuple<ustring, int, int> reset_soft_breaks(const unsigned char *text, size_t text_len,
-		const TextDrawOptions& options, ssize_t cursor = -1, float *max_line_width = 0);
+		const TextDrawOptions& options, ssize_t cursor = -1, int *max_line_width = nullptr);
 	/*!
 	 * \brief Recompute where the line breaks in a string should occur
 	 *
@@ -823,8 +825,6 @@ public:
 #ifndef MAP_EDITOR2
 	void draw_ortho_ingame_string(const unsigned char* text, size_t len,
 		float x, float y, float z, int max_lines, float zoom_x, float zoom_y) const;
-	void draw_ingame_string(const unsigned char* text, size_t len,
-		float x, float y, int max_lines, float zoom_x, float zoom_y) const;
 #endif // ! MAP_EDITOR2
 #endif // ELC
 
@@ -1433,7 +1433,7 @@ public:
 	 * 	cursor position
 	 */
 	std::tuple<ustring, int, int> reset_soft_breaks(Category cat, const unsigned char *text,
-		size_t text_len, const TextDrawOptions& options, int cursor = -1, float *max_line_width = nullptr)
+		size_t text_len, const TextDrawOptions& options, int cursor = -1, int *max_line_width = nullptr)
 	{
 		TextDrawOptions cat_options = TextDrawOptions(options).scale_zoom(font_scales[cat]);
 		return get(cat, options.zoom())
@@ -1538,17 +1538,11 @@ public:
 	}
 #ifdef ELC
 #ifndef MAP_EDITOR2
-	void draw_ortho_ingame_string(const unsigned char* text, size_t len,
+	void draw_ortho_ingame_string(Category cat, const unsigned char* text, size_t len,
 		float x, float y, float z, int max_lines, float zoom_x, float zoom_y)
 	{
-		get(NAME_FONT, zoom_y).draw_ortho_ingame_string(text, len, x, y, z, max_lines,
-			zoom_x * font_scales[NAME_FONT], zoom_y * font_scales[NAME_FONT]);
-	}
-	void draw_ingame_string(const unsigned char* text, size_t len,
-		float x, float y, int max_lines, float zoom_x, float zoom_y)
-	{
-		get(CHAT_FONT, zoom_y).draw_ingame_string(text, len, x, y, max_lines,
-			zoom_x * font_scales[CHAT_FONT], zoom_y * font_scales[CHAT_FONT]);
+		get(cat, zoom_y).draw_ortho_ingame_string(text, len, x, y, z, max_lines,
+			zoom_x * font_scales[cat], zoom_y * font_scales[cat]);
 	}
 #endif // !MAP_EDITOR_2
 #endif // ELC
@@ -1910,7 +1904,7 @@ void get_top_bottom(const unsigned char* text, size_t len, font_cat cat, float t
  * \return The wrapped text, and the new number of lines in the text
  */
 int reset_soft_breaks(unsigned char *text, int len, int size, font_cat cat,
-	float text_zoom, int width, int *cursor, float *max_line_width);
+	float text_zoom, int width, int *cursor, int *max_line_width);
 /*!
  * \ingroup text_font
  * \brief Wrap a text so that it fits into a window
@@ -2423,10 +2417,8 @@ void draw_messages(int x, int y, text_message *msgs, int msgs_size, Uint8 filter
 void draw_console_separator(int x_space, int y, int width, float text_zoom);
 #ifdef ELC
 #ifndef MAP_EDITOR2
-void draw_ortho_ingame_string(float x, float y, float z,
-	const unsigned char *text, int max_lines, float zoom_x, float zoom_y);
-void draw_ingame_string(float x, float y, const unsigned char *text,
-	int max_lines, float zoom_x, float zoom_y);
+void draw_ortho_ingame_string(float x, float y, float z, const unsigned char *text, int max_lines,
+	font_cat cat, float zoom_x, float zoom_y);
 #endif // !MAP_EDITOR2
 #endif // ELC
 

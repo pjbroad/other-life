@@ -11,12 +11,14 @@
 #include "elwindows.h"
 #endif
 #include "events.h"
+#include "eye_candy_wrapper.h"
 #include "gamewin.h"
 #include "gl_init.h"
 #include "hud.h"
 #include "hud_timer.h"
 #include "interface.h"
 #include "items.h"
+#include "main.h"
 #include "map.h"
 #include "multiplayer.h"
 #include "new_actors.h"
@@ -28,7 +30,6 @@
 #include "spells.h"
 #include "sound.h"
 #include "storage.h"
-#include "text.h"
 #include "tiles.h"
 #include "weather.h"
 

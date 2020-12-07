@@ -11,7 +11,6 @@ typedef struct text_message text_message;
 #include <stdlib.h>
 #include <SDL_types.h>
 #include "platform.h"
-#include "eye_candy_wrapper.h"
 #include "font.h"
 
 #ifdef __cplusplus
@@ -69,8 +68,6 @@ extern int show_timestamp;
 extern int dark_channeltext;
 
 extern int log_chat; /*!< flag stating whether to log server messages or not */
-
-extern ec_reference harvesting_effect_reference;
 
 extern int emote_filter; //used to ignore text lines of emotes only
 
@@ -435,18 +432,6 @@ int rewrap_message(text_message* msg, font_cat cat, float zoom, int width, int *
 
 void cleanup_text_buffers(void);
 
-
-
-/*!
- * \ingroup text_font
- * \brief Start or stop the harvesting effect
- *
- *       Start or stop the harvesting eye candy effect dependent on the
- * 	state of the \sa harvesting flag
- *
- * \callgraph
- */
-void check_harvesting_effect(void);
 
 /*!
  * \ingroup text_font

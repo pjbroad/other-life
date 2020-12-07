@@ -42,6 +42,7 @@
 #ifdef OTHER_LIFE
  #include "ext_protocol.h"
 #endif
+#include "eye_candy_wrapper.h"
 #include "gl_init.h"
 #include "hud.h"
 #include "icon_window.h"

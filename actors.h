@@ -14,6 +14,7 @@
 #include <SDL_mutex.h>
 #include "bbox_tree.h"
 #include "cal_types.h"
+#include "chat.h"
 #include "client_serv.h"
 #include "platform.h"
 #include "tiles.h"
@@ -47,8 +48,10 @@ extern int use_alpha_banner;	/*!< Use_alpha_banner defines if an alpha backgroun
 #define PKABLE_COMPUTER_CONTROLLED 5	/*!< Draw the actors name in red*/
 /*! \} */
 
-/*! Max text len to display into bubbles overhead*/
-#define MAX_CURRENT_DISPLAYED_TEXT_LEN	60
+/*! The maximum number of lines in the overhead text */
+#define MAX_CURRENT_DISPLAYED_TEXT_LINES 3
+/*! Max text len to display into bubbles overhead */
+#define MAX_CURRENT_DISPLAYED_TEXT_LEN (MAX_TEXT_MESSAGE_LENGTH + MAX_CURRENT_DISPLAYED_TEXT_LINES + 1)
 
 // default duration in ms of a step when an actor is walking
 #define DEFAULT_STEP_DURATION 250
@@ -630,13 +633,15 @@ typedef struct
 	char ghost;		/*!< Sets the actor type to ghost (Disable lightning, enable blending (GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA))*/
 	char has_alpha;		/*!< is alpha blending needed for this actor? */
 	int kind_of_actor;	/*!< Defines the kind_of_actor (NPC, HUMAN, COMPUTER_CONTROLLED_HUMAN, PKABLE, PKABLE_COMPUTER_CONTROLLED)*/
-	Uint32 buffs;		/*!<Contains the buffs on this actor as bits (currently only invisibility)*/
+	Uint32 buffs;		/*!< Contains the buffs on this actor as bits (currently only invisibility)*/
 	/*! \} */
 
 	/*! \name Overhead text (text bubbles)*/
 	/*! \{ */
 	char current_displayed_text[MAX_CURRENT_DISPLAYED_TEXT_LEN]; /*!< If the text is displayed in a bubble over the actor, this holds the text*/
-	int current_displayed_text_time_left;	/*!< Defines the remaining time the overhead text should be displayed*/
+	int current_displayed_text_lines;     /*!< The number of lines of text */
+	int current_displayed_text_width;     /*!< Width of the text in pixels, before perspective scaling */
+	int current_displayed_text_time_left; /*!< Defines the remaining time the overhead text should be displayed*/
 	/*! \} */
 
 	/*! \name Unused variables*/
