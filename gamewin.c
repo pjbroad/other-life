@@ -1273,6 +1273,7 @@ static int display_game_handler (window_info *win)
 			draw_lake_tiles ();
 		}
 
+		setup_cloud_texturing();
 		draw_tile_map();
 		CHECK_GL_ERRORS ();
 		display_2d_objects();
@@ -2025,10 +2026,6 @@ static int keypress_game_handler (window_info *win, int mx, int my, SDL_Keycode 
 	{
 		return 1;
 	}
-	else if (KEY_DEF_CMP(K_TABCOMPLETE, key_code, key_mod) && input_text_line.len > 0)
-	{
-		do_tab_complete(&input_text_line);
-	}
 	else if (KEY_DEF_CMP(K_TURNLEFT, key_code, key_mod))
 	{
 		//Moved delay to my_tcp_send
@@ -2163,15 +2160,14 @@ static int keypress_game_handler (window_info *win, int mx, int my, SDL_Keycode 
 	{
 		if (object_under_mouse != -1 && thing_under_the_mouse == UNDER_MOUSE_3D_OBJ && objects_list[object_under_mouse])
 		{
-			run_pawn_map_function ("play_with_object_pos", "ii", object_under_mouse, key & ELW_SHIFT ? 1: 0);
+			run_pawn_map_function("play_with_object_pos", "ii", object_under_mouse, key_mod & KMOD_SHIFT ? 1: 0);
 		}
 		else
 		{
-			run_pawn_server_function ("pawn_test", "s", "meep!");
+			run_pawn_server_function("pawn_test", "s", "meep!");
 		}
 	}
 #endif
-
 	else if (key_code == SDLK_F8)
 	{
 		static int ison = 0;
@@ -2237,7 +2233,6 @@ static int keypress_game_handler (window_info *win, int mx, int my, SDL_Keycode 
 	{
 		Uint8 ch = key_to_char (key_unicode);
 
-		reset_tab_completer();
 		if (ch == '`' || KEY_DEF_CMP(K_CONSOLE, key_code, key_mod))
 		{
 			if (have_mouse) {toggle_have_mouse(); keep_grabbing_mouse=1;}
