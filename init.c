@@ -107,7 +107,9 @@ char datadir[256]="./";
 
 #ifdef JSON_FILES
 static const char *client_state_filename = "client_state.json";
-#elif OTHER_LIFE
+#endif
+
+#if OTHER_LIFE
 static const char *cfg_filename = "ol.cfg";
 #else
 static const char *cfg_filename = "el.cfg";
