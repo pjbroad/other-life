@@ -29,6 +29,8 @@ extern "C"
 #define tool_select 2
 #define tool_clone 3
 
+extern int toolbar_button_height;
+
 extern int mouse_x;
 extern int mouse_y;
 extern int mouse_delta_x;
@@ -63,7 +65,7 @@ extern char move_tile_a_tile;
 extern char move_tile_a_height;
 extern int tiles_no;
 extern int tile_offset;
-extern char view_tiles_list;
+extern int tiles_win;
 extern char view_heights_list;
 extern char view_new_map_menu;
 
@@ -85,7 +87,9 @@ extern int buttons_text;
 extern int map_has_changed;
 extern int show_position_on_minimap;
 
+void set_toolbar_button_size(void);
 int check_interface_buttons();
+void check_toolbar_mouseover(void);
 void get_world_x_y();
 void Enter2DMode();
 void Leave2DMode();

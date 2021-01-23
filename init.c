@@ -209,13 +209,7 @@ static void load_cstate(void)
 	{
 		enum managed_window_enum i;
 		for (i = 0; i < MW_MAX; i++)
-		{
-			int pos_x = 0, pos_y = 0;
-			get_dict_name_WM(i, window_dict_name, sizeof(window_dict_name));
-			pos_x = json_cstate_get_int(window_dict_name, "pos_x", 0);
-			pos_y = json_cstate_get_int(window_dict_name, "pos_y", 0);
-			set_pos_MW(i, pos_x, pos_y);
-		}
+			get_json_window_state_MW(i);
 	}
 
 	zoom_level = json_cstate_get_float("camera", "zoom", 0.0f);
@@ -517,13 +511,7 @@ static void save_cstate(void)
 	{
 		enum managed_window_enum i;
 		for (i = 0; i < MW_MAX; i++)
-		{
-			int pos_x = 0, pos_y = 0;
-			get_dict_name_WM(i, window_dict_name, sizeof(window_dict_name));
-			set_save_pos_MW(i, &pos_x, &pos_y);
-			json_cstate_set_int(window_dict_name, "pos_x", pos_x);
-			json_cstate_set_int(window_dict_name, "pos_y", pos_y);
-		}
+			set_json_window_state_MW(i);
 	}
 
 	json_cstate_set_float("camera", "zoom", zoom_level);
@@ -946,7 +934,7 @@ void init_stuff(void)
 	LOG_DEBUG("Init actor defs");
 	init_actor_defs();
 	LOG_DEBUG("Init actor defs done");
-	read_emotes_defs("", "emotes.xml");
+	read_emotes_defs();
 
 	missiles_init_defs();
 
