@@ -149,6 +149,8 @@ static int TAB_TAG_HEIGHT = 0;	// the height of the tab at the top of the window
 // This is because its too complex to resize and cannot simpely be destroyed and re-created.
 static float elconf_scale = 0;
 static float elconf_custom_scale = 1.0f;
+static float elconf_desc_size = 0.0f;
+static float elconf_desc_max_height = 0.0f;
 static int recheck_window_scale = 0;
 #define ELCONFIG_SCALED_VALUE(BASE) ((int)(0.5 + ((BASE) * elconf_scale)))
 #endif
@@ -649,9 +651,7 @@ static void change_ui_scale(float *var, float *value)
 		hud_y = HUD_MARGIN_Y;
 
 	update_windows_scale(ui_scale);
-
-	if (input_widget != NULL)
-		input_widget_move_to_win(input_widget->window_id);
+	update_console_input_size_and_position();
 }
 
 static void change_elconf_win_scale_factor(float *var, float *value)
@@ -1271,6 +1271,12 @@ static void change_enable_chat_show_hide(int * var)
 	enable_chat_shown();
 }
 
+static void change_console_input_at_top(int * var)
+{
+	*var= !*var;
+	update_console_input_size_and_position();
+}
+
 static void change_max_chat_lines(int * var, int value)
 {
 	if(value>=0) *var= value;
@@ -1348,17 +1354,7 @@ static void change_chat_zoom(float *var, float *value)
 
 	*var = (disable_auto_highdpi_scale) ? *value : get_highdpi_scale() * *value;
 	change_windows_font(CHAT_FONT);
-	// FIXME?
-	if (input_widget != NULL)
-	{
-		text_field *tf= input_widget->widget_info;
-		if (use_windowed_chat != 2)
-		{
-			int text_height = get_text_height(tf->nr_lines, CHAT_FONT, input_widget->size);
-			widget_resize(input_widget->window_id, input_widget->id,
-				input_widget->len_x, tf->y_space*2 + text_height);
-		}
-	}
+	update_console_input_zoom();
 }
 
 #ifdef TTF
@@ -2704,6 +2700,7 @@ static void init_ELC_vars(void)
 	// CHAT TAB
 	add_var(OPT_MULTI,"windowed_chat", "winchat", &use_windowed_chat, change_windowed_chat, 1, "Chat Display Style", "How do you want your chat to be displayed?", CHAT, "Old behavior", "Tabbed chat", "Chat window", NULL);
 	add_var(OPT_BOOL, "enable_chat_show_hide", "ecsh", &enable_chat_show_hide, change_enable_chat_show_hide, 0, "Enable Show/Hide For Chat", "If enabled, you can show or hide chat either using the #K_CHAT key (usually ALT+c) or using the optional icon-bar icon.", CHAT);
+	add_var(OPT_BOOL, "console_input_at_top", "ciat", &console_input_at_top, change_console_input_at_top, 0, "Console Input At Top Of Window", "If set, console input will be located at the top of the window.", CHAT);
 	add_var(OPT_INT,"max_chat_lines","mcl",&max_chat_lines.value,change_max_chat_lines,10,"Maximum Number Of Chat Lines","For Tabbed and Old behaviour chat modes, this value sets the maximium number of lines of chat displayed.",CHAT, max_chat_lines.lower, max_chat_lines.upper);
 	add_var(OPT_BOOL,"local_chat_separate", "locsep", &local_chat_separate, change_separate_flag, 0, "Separate Local Chat", "Should local chat be separate?", CHAT);
 	// The forces that be want PMs always global, so that they're less likely to be ignored
@@ -3233,7 +3230,7 @@ static int display_elconfig_handler(window_info *win)
 	// Draw the long description of an option
 	draw_string_zoomed_width_font(TAB_MARGIN, elconfig_menu_y_len-LONG_DESC_SPACE,
 		elconf_description_buffer, window_width, MAX_LONG_DESC_LINES, win->font_category,
-		elconf_scale * DEFAULT_SMALL_RATIO);
+		elconf_desc_size);
 
 	// Show the context menu help message
 	if (is_mouse_over_option)
@@ -3312,7 +3309,7 @@ static int multiselect_click_handler(widget_list *widget, int mx, int my, Uint32
 
 static int mouseover_option_handler(widget_list *widget, int mx, int my)
 {
-	int i;
+	int i, nr_lines;
 
 	//Find the label in our_vars
 	for (i = 0; i < our_vars.no; i++)
@@ -3328,11 +3325,35 @@ static int mouseover_option_handler(widget_list *widget, int mx, int my)
 		// We're still on the same variable
 		return 1;
 
+	elconf_desc_size = elconf_scale * DEFAULT_SMALL_RATIO;
 	safe_strncpy((char*)elconf_description_buffer, (const char*)our_vars.var[i]->display.desc,
 		sizeof(elconf_description_buffer));
-	reset_soft_breaks(elconf_description_buffer, strlen((const char*)elconf_description_buffer),
-		sizeof(elconf_description_buffer), CONFIG_FONT, elconf_scale * DEFAULT_SMALL_RATIO,
+	nr_lines = reset_soft_breaks(elconf_description_buffer, strlen((const char*)elconf_description_buffer),
+		sizeof(elconf_description_buffer), CONFIG_FONT, elconf_desc_size,
 		elconfig_menu_x_len - 2*TAB_MARGIN, NULL, NULL);
+	if (nr_lines > MAX_LONG_DESC_LINES)
+	{
+		// Drats, the description does not fit. Try to reduce the font size, but not less than 75%
+		// otherwise it becomes too small to read.
+		float min_size = 0.75 * elconf_desc_size, max_size = elconf_desc_size;
+		for (int itry = 0; itry < 3; ++itry)
+		{
+			float size = 0.5 * (min_size + max_size);
+			int height;
+			int nr_lines = reset_soft_breaks(elconf_description_buffer,
+				strlen((const char*)elconf_description_buffer), sizeof(elconf_description_buffer),
+				CONFIG_FONT, size, elconfig_menu_x_len - 2*TAB_MARGIN, NULL, NULL);
+			height = get_text_height(nr_lines, CONFIG_FONT, size);
+			if (height > elconf_desc_max_height)
+				max_size = size;
+			else
+				min_size = size;
+		}
+		elconf_desc_size = min_size;
+		reset_soft_breaks(elconf_description_buffer,
+				strlen((const char*)elconf_description_buffer), sizeof(elconf_description_buffer),
+				CONFIG_FONT, elconf_desc_size, elconfig_menu_x_len - 2*TAB_MARGIN, NULL, NULL);
+	}
 
 	last_description_idx = i;
 
@@ -3771,8 +3792,8 @@ void display_elconfig_win(void)
 		elconf_scale = ui_scale * elconf_custom_scale;
 		CHECKBOX_SIZE = ELCONFIG_SCALED_VALUE(15);
 		SPACING = ELCONFIG_SCALED_VALUE(5);
-		LONG_DESC_SPACE = SPACING +
-			MAX_LONG_DESC_LINES * get_line_height(CONFIG_FONT, elconf_scale * DEFAULT_SMALL_RATIO);
+		elconf_desc_max_height = MAX_LONG_DESC_LINES * get_line_height(CONFIG_FONT, elconf_scale * DEFAULT_SMALL_RATIO);
+		LONG_DESC_SPACE = SPACING + elconf_desc_max_height;
 		TAB_TAG_HEIGHT = tab_collection_calc_tab_height(CONFIG_FONT, elconf_scale);
 		elconfig_menu_x_len = 4 * TAB_MARGIN + 4 * SPACING + CHECKBOX_SIZE
 			+ 50 * ELCONFIG_SCALED_VALUE(DEFAULT_FIXED_FONT_WIDTH)
