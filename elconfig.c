@@ -2891,7 +2891,6 @@ static void init_ELC_vars(void)
 	add_var(OPT_BOOL,"skybox_show_sky","sky", &skybox_show_sky, change_sky_var,1,"Show Sky", "Enable the sky box.", GFX);
 /* 	add_var(OPT_BOOL,"reflect_sky","reflect_sky", &reflect_sky, change_var,1,"Reflect Sky", "Sky Performance Option. Disable these from top to bottom until you're happy", GFX); */
 	add_var(OPT_BOOL,"skybox_show_clouds","sky_clouds", &skybox_show_clouds, change_sky_var,1,"Show Clouds", "Sky Performance Option. Disable these from top to bottom until you're happy", GFX);
-/*	add_var(OPT_BOOL,"horizon_fog","horizon_fog", &skybox_show_horizon_fog, change_sky_var,1,"Show Horizon Fog", "Sky Performance Option. Disable these from top to bottom until you're happy", GFX); */
 	add_var(OPT_BOOL,"skybox_show_sun","sky_sun", &skybox_show_sun, change_sky_var,1,"Show Sun", "Sky Performance Option. Disable these from top to bottom until you're happy", GFX);
 	add_var(OPT_BOOL,"skybox_show_moons","sky_moons", &skybox_show_moons, change_sky_var,1,"Show Moons", "Sky Performance Option. Disable these from top to bottom until you're happy", GFX);
 	add_var(OPT_BOOL,"skybox_show_stars","sky_stars", &skybox_show_stars, change_sky_var,1,"Show Stars", "Sky Performance Option. Disable these from top to bottom until you're happy", GFX);
@@ -3638,7 +3637,7 @@ static void elconfig_populate_tabs(void)
 					current_x, current_y, 0, elconf_scale, (char*)var->display.str);
 				widget_width = spin_button_width;
 				widget_id = spinbutton_add_extended(window_id, elconfig_free_widget_id++, NULL,
-					window_width - TAB_MARGIN + widget_width, current_y, widget_width, line_height,
+					window_width - TAB_MARGIN - widget_width, current_y, widget_width, line_height,
 					SPIN_FLOAT, var->var, var->args.fmmif.min(), var->args.fmmif.max(),
 					var->args.fmmif.interval, elconf_scale);
 				widget_set_OnKey(window_id, widget_id, (int (*)())spinbutton_onkey_handler);
