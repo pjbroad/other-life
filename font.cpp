@@ -18,6 +18,7 @@
 #include "elloggingwrapper.h"
 #include "exceptions/extendedexception.hpp"
 #include "io/elpathwrapper.h"
+#include "init.h"
 #include "gl_init.h"
 #include "textures.h"
 
@@ -82,12 +83,19 @@ bool pos_selected(const select_info *sel, size_t imsg, size_t ichar)
 #ifdef TTF
 TTF_Font* open_font(const std::string& file_name, int point_size)
 {
-	// First try to interpret ttf_file_name as a path relative to ttf_directory. If that fails,
-	// try as an absolute path.
-	std::string path = ttf_directory + file_name;
+	// First try to interpret ttf_file_name as a path relative to the data directory. If that fails,
+	// try a path relative to the ttf_directory. If that also fails, try as an absolute path.
+	std::string path = datadir + file_name;
 	TTF_Font *font = TTF_OpenFont(path.c_str(), point_size);
 	if (!font)
-		font = TTF_OpenFont(file_name.c_str(), point_size);
+	{
+		path = ttf_directory + file_name;
+		font = TTF_OpenFont(path.c_str(), point_size);
+		if (!font)
+		{
+			font = TTF_OpenFont(file_name.c_str(), point_size);
+		}
+	}
 	return font;
 }
 #endif
@@ -256,7 +264,7 @@ Font::Font(Font&& font): _font_name(font.font_name()), _file_name(font.file_name
 	_vertical_advance(font._vertical_advance), _font_top_offset(font._font_top_offset),
 	_digit_center_offset(font._digit_center_offset), _password_center_offset(font._password_center_offset),
 	_max_advance(font._max_advance), _max_digit_advance(font._max_digit_advance),
-	_avg_advance(font._avg_advance), _spacing(font._spacing),
+	_max_name_advance(font._max_name_advance), _avg_advance(font._avg_advance), _spacing(font._spacing),
 	_scale_x(font._scale_x), _scale_y(font._scale_y),
 #ifdef TTF
 	_point_size(font._point_size), _outline(font._outline),
@@ -271,7 +279,7 @@ Font::Font(const FontOption& option): _font_name(option.font_name()),
 	_block_width(font_block_width), _line_height(default_vertical_advance + 1),
 	_vertical_advance(default_vertical_advance), _font_top_offset(0),
 	_digit_center_offset(option.font_number() == 2 ? 10 : 9), _password_center_offset(0),
-	_max_advance(12), _max_digit_advance(12), _avg_advance(12), _spacing(0),
+	_max_advance(12), _max_digit_advance(12), _max_name_advance(12), _avg_advance(12), _spacing(0),
 	_scale_x(11.0 / 12), _scale_y(1.0),
 #ifdef TTF
 	_point_size(0), _outline(0),
@@ -320,7 +328,6 @@ Font::Font(const FontOption& option): _font_name(option.font_name()),
 			12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
 			12, 12, 12, 12, 12, 12
 		} };
-		_max_digit_advance = *std::max_element(char_widths.begin() + 16, char_widths.begin() + 26);
 		_spacing = 4;
 	}
 	else if (font_nr == 2)
@@ -336,7 +343,6 @@ Font::Font(const FontOption& option): _font_name(option.font_name()),
 			 8,  8, 10, 10, 10,  8, 10, 10,  8,  8,  8, 12, 12, 12,
 			10, 10, 12, 10, 12, 12
 		} };
-		_max_digit_advance = *std::max_element(char_widths.begin() + 16, char_widths.begin() + 26);
 		_spacing = 2;
 	}
 	else
@@ -344,6 +350,14 @@ Font::Font(const FontOption& option): _font_name(option.font_name()),
 		std::fill(char_widths.begin(), char_widths.end(), 12);
 		_flags |= Flags::FIXED_WIDTH;
 	}
+
+	int digit_start = get_position('0');
+	int digit_end = get_position('9') + 1;
+	int lower_start = get_position('a');
+	int lower_end = get_position('z') + 1;
+	int upper_start = get_position('A');
+	int upper_end = get_position('Z') + 1;
+	int underscore_pos = get_position('_');
 
 	for (size_t pos = 0; pos < nr_glyphs; ++pos)
 	{
@@ -364,6 +378,12 @@ Font::Font(const FontOption& option): _font_name(option.font_name()),
 	}
 	_avg_advance = calc_average_advance();
 	_password_center_offset = asterisk_centers[font_nr];
+	_max_digit_advance = *std::max_element(char_widths.begin() + digit_start, char_widths.begin() + digit_end);
+	_max_name_advance = std::max({_max_digit_advance,
+		char_widths[underscore_pos],
+		*std::max_element(char_widths.begin() + upper_start, char_widths.begin() + upper_end),
+		*std::max_element(char_widths.begin() + lower_start, char_widths.begin() + lower_end)
+	});
 }
 
 #ifdef TTF
@@ -371,7 +391,7 @@ Font::Font(const FontOption& option, int height): _font_name(option.font_name())
 	_file_name(option.file_name()), _flags(IS_TTF), _texture_width(0), _texture_height(0),
 	_metrics(), _block_width(0), _line_height(0), _vertical_advance(0), _font_top_offset(0),
 	_digit_center_offset(0), _password_center_offset(0), _max_advance(0), _max_digit_advance(0),
-	_avg_advance(0), _spacing(0), _scale_x(1.0), _scale_y(1.0), _point_size(),
+	_max_name_advance(0), _avg_advance(0), _spacing(0), _scale_x(1.0), _scale_y(1.0), _point_size(),
 	_outline(std::round(float(height) / (font_block_height - 2))), _texture_id()
 {
 	_point_size = find_point_size(height);
@@ -440,6 +460,11 @@ int Font::average_width_spacing(float zoom) const
 int Font::max_digit_width_spacing(float zoom) const
 {
 	return std::round((_max_digit_advance + _spacing) * _scale_x * zoom);
+}
+
+int Font::max_name_width_spacing(float zoom) const
+{
+	return std::round((_max_name_advance + _spacing) * _scale_x * zoom);
 }
 
 int Font::line_width(const unsigned char* str, size_t len, float zoom) const
@@ -1455,8 +1480,6 @@ bool Font::build_texture_atlas()
 		return false;
 	}
 
-	// First try to interpret ttf_file_name as a path relative to ttf_directory. If that fails,
-	// try as an absolute path.
 	int point_size = _point_size ? _point_size : ttf_point_size;
 	TTF_Font *font = open_font(_file_name.c_str(), point_size);
 	if (!font)
@@ -1529,17 +1552,33 @@ bool Font::build_texture_atlas()
 	_block_width = size;
 	_line_height = _vertical_advance = size;
 	_font_top_offset = y_delta;
-	int digit_top = std::min_element(_metrics.begin() + 16, _metrics.begin() + 26,
+
+	int digit_start = get_position('0');
+	int digit_end = get_position('9') + 1;
+	int lower_start = get_position('a');
+	int lower_end = get_position('z') + 1;
+	int upper_start = get_position('A');
+	int upper_end = get_position('Z') + 1;
+	int underscore_pos = get_position('_');
+
+	int digit_top = std::min_element(_metrics.begin() + digit_start, _metrics.begin() + digit_end,
 		[](const Metrics& m0, const Metrics& m1) { return m0.top < m1.top; })->top;
-	int digit_bottom = std::max_element(_metrics.begin() + 16, _metrics.begin() + 26,
+	int digit_bottom = std::max_element(_metrics.begin() + digit_start, _metrics.begin() + digit_end,
 		[](const Metrics& m0, const Metrics& m1) { return m0.bottom < m1.bottom; })->bottom;
 	_digit_center_offset = (digit_top + digit_bottom) / 2;
 	int pos = get_position('*');
 	_password_center_offset = (_metrics[pos].top + _metrics[pos].bottom) / 2;
 	_max_advance = std::max_element(_metrics.begin(), _metrics.end(),
 		[](const Metrics& m0, const Metrics& m1) { return m0.advance < m1.advance; })->advance;
-	_max_digit_advance = std::max_element(_metrics.begin() + 16, _metrics.begin() + 26,
+	_max_digit_advance = std::max_element(_metrics.begin() + digit_start, _metrics.begin() + digit_end,
 		[](const Metrics& m0, const Metrics& m1) { return m0.advance < m1.advance; })->advance;
+	_max_name_advance= std::max({_max_digit_advance,
+		_metrics[underscore_pos].advance,
+		std::max_element(_metrics.begin() + upper_start, _metrics.begin() + upper_end,
+			[](const Metrics& m0, const Metrics& m1) { return m0.advance < m1.advance; })->advance,
+		std::max_element(_metrics.begin() + lower_start, _metrics.begin() + lower_end,
+			[](const Metrics& m0, const Metrics& m1) { return m0.advance < m1.advance; })->advance
+	});
 	_avg_advance = calc_average_advance();
 	_scale_x = _scale_y = float(font_block_height - 2) / size;
 	_flags |= Flags::HAS_TEXTURE;
@@ -1604,6 +1643,24 @@ void FontManager::initialize_ttf()
 	}
 
 	size_t nr_existing_fonts = _options.size();
+	// First load from the game fonts directory
+	std::string fonts_dir = std::string(datadir) + "/fonts";
+	for (const char* pattern: patterns)
+	{
+		search_files_and_apply(fonts_dir.c_str(), pattern,
+			[](const char *fname_ptr) {
+				size_t dir_name_len = strlen(datadir);
+				std::string fname;
+				if (!strncmp(fname_ptr, datadir, dir_name_len))
+					fname = fname_ptr + dir_name_len;
+				else
+					fname = fname_ptr;
+				FontOption option(fname);
+				if (!option.failed())
+					FontManager::get_instance()._options.push_back(std::move(option));
+			}, 0);
+	}
+	// Now search files in the user specified fonts directory
 	for (const char* pattern: patterns)
 	{
 		search_files_and_apply(ttf_directory, pattern,
@@ -1677,10 +1734,7 @@ Font& FontManager::get(Category cat, float text_zoom)
 			if (it != _fonts.end())
 				return it->second;
 			else
-{
-printf("huh. not found\n");
 				font_idxs[cat] = idx = 0;
-}
 		}
 		else
 		{
@@ -1873,6 +1927,10 @@ int get_avg_char_width_zoom(font_cat cat, float zoom)
 int get_max_digit_width_zoom(font_cat cat, float zoom)
 {
 	return FontManager::get_instance().max_digit_width_spacing(cat, zoom);
+}
+int get_max_name_width_zoom(font_cat cat, float zoom)
+{
+	return FontManager::get_instance().max_name_width_spacing(cat, zoom);
 }
 int get_buf_width_zoom(const unsigned char* str, size_t len, font_cat cat, float zoom)
 {
