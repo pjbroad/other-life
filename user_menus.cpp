@@ -459,7 +459,7 @@ namespace UserMenus
 		update_standard_window_position(win);
 
 		// enable the title bar if the window ends up off screen - resolution change perhaps
-		if ((win->cur_x + 20 > window_width) || (win->cur_y + 10 > window_height))
+		if ((standard_window_position == STND_POS_NONE) && ((win->cur_x + 20 > window_width) || (win->cur_y + 10 > window_height)))
 			set_title_state(win, true);
 
 		int curr_x = window_x_pad;
@@ -647,8 +647,8 @@ namespace UserMenus
 			// find all the menu files and build a list of path+filenames for later
 #ifdef WINDOWS
 			struct _finddata_t c_file;
-			long hFile;
-			if ((hFile = _findfirst(glob_path.c_str(), &c_file)) != -1L)
+			intptr_t hFile;
+			if ((hFile = _findfirst(glob_path.c_str(), &c_file)) != static_cast<intptr_t>(-1))
 			{
 				do
 					filelist.push_back(search_paths[i] + std::string(c_file.name));
