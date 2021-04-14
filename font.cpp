@@ -1374,7 +1374,7 @@ void Font::draw_ortho_ingame_string(const unsigned char* text, size_t len,
 				float u_start, u_end, v_start, v_end;
 				get_texture_coordinates(pos, u_start, u_end, v_start, v_end);
 
-				int x_left = cur_x + _metrics[pos].x_off;
+				float x_left = cur_x + _metrics[pos].x_off;
 
 				glTexCoord2f(u_start, v_start); glVertex3f(x_left,            cur_y+char_height+_outline, z);
 				glTexCoord2f(u_start, v_end);   glVertex3f(x_left,            cur_y-_outline,             z);
@@ -1429,7 +1429,10 @@ bool Font::render_glyph(size_t i_glyph, int size, int y_delta, int outline_size,
 		glyph_surface = TTF_RenderGlyph_Blended(font, glyph, black);
 		if (!glyph_surface)
 		{
-			LOG_ERROR("Failed to render TTF glyph outline: %s", TTF_GetError());
+			const char* locale = setlocale(LC_ALL, "");
+			LOG_ERROR("Failed to render outline for TTF glyph '%lc' in font \"%s\": %s", glyphs[i_glyph],
+				_font_name.c_str(), TTF_GetError());
+			setlocale(LC_ALL, locale);
 			return false;
 		}
 
@@ -1437,7 +1440,10 @@ bool Font::render_glyph(size_t i_glyph, int size, int y_delta, int outline_size,
 		SDL_Surface *fg_surface = TTF_RenderGlyph_Blended(font, glyph, white);
 		if (!fg_surface)
 		{
-			LOG_ERROR("Failed to render TTF glyph: %s", TTF_GetError());
+			const char* locale = setlocale(LC_ALL, "");
+			LOG_ERROR("Failed to render TTF glyph '%lc' in font \"%s\": %s", glyphs[i_glyph],
+				_font_name.c_str(), TTF_GetError());
+			setlocale(LC_ALL, locale);
 			return false;
 		}
 
@@ -1451,7 +1457,10 @@ bool Font::render_glyph(size_t i_glyph, int size, int y_delta, int outline_size,
 		glyph_surface = TTF_RenderGlyph_Blended(font, glyph, white);
 		if (!glyph_surface)
 		{
-			LOG_ERROR("Failed to render TTF glyph: %s", TTF_GetError());
+			const char* locale = setlocale(LC_ALL, "");
+			LOG_ERROR("Failed to render TTF glyph '%lc' in font \"%s\": %s", glyphs[i_glyph],
+				_font_name.c_str(), TTF_GetError());
+			setlocale(LC_ALL, locale);
 			return false;
 		}
 	}
@@ -1497,7 +1506,25 @@ bool Font::render_glyph(size_t i_glyph, int size, int y_delta, int outline_size,
 
 int Font::find_point_size(int height)
 {
-	int min = 0, max = 2 * height;
+	// If the point size is too small, we may run into problems later where the size of the
+	// glyph becomes zero. This leads to an error in the generation of the texture atlas, which
+	// will reset the font to the default font. It is hard to distinguish such errors, where the
+	// font size is simply too small, from real rendering issues. So we cap the point size at a
+	// minimum of 6, which seems to be a safe limit.
+	static const int min_point_size = 6;
+
+	int min = min_point_size, max = 2 * height;
+	if (max <= min)
+	{
+		// Height is too small. Check if the font will open at the minimum point size. If not
+		// return 0 to use the default point size and hope for the best.
+		TTF_Font *font = open_font(_file_name.c_str(), min);
+		if (!font)
+			return 0;
+		TTF_CloseFont(font);
+		return min;
+	}
+
 	while (max > min + 1)
 	{
 		int mid = (min + max) / 2;
