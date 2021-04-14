@@ -144,12 +144,14 @@ namespace UserMenus
 			void close_window(void) { command_queue.clear(); if (win_id >= 0) hide_window(win_id); }
 			void set_options(int win_x, int win_y, int options);
 			void get_options(int *win_x, int *win_y, int *options) const;
+#ifdef OTHER_LIFE
+			void extern_reload(void) { if ((win_id >= 0) && (win_id < windows_list.num_windows)) reload(&windows_list.window[win_id]); }
+#endif
 #ifdef JSON_FILES
 			void read_options(const char *dict_name);
 			void write_options(const char *dict_name) const;
 #endif
 			static Container * get_instance(void);
-			void reload(void);
 			static int action_handler(window_info *win, int widget_id, int mx, int my, int option) { return get_instance()->action(widget_id, option); }
 			static void pre_show_handler(window_info *win, int widget_id, int mx, int my, window_info *cm_win) { get_instance()->pre_show(win, widget_id, mx, my, cm_win); }
 
@@ -179,6 +181,7 @@ namespace UserMenus
 
 			void update_standard_window_position(window_info *win);
 			void set_title_state(window_info *win, bool title_state) { title_on = (title_state) ?1:0; set_win_flag(&win->flags, ELW_TITLE_BAR, title_on); }
+			void reload(window_info *win);
 			void recalc_win_width(window_info *win);
 			int display(window_info *win);
 			int action(size_t active_menu, int option);
@@ -343,7 +346,7 @@ namespace UserMenus
 		cm_bool_line(context_id, ELW_CM_MENU_LEN+CM_SHOWCMD, &just_echo, NULL);
 
 		ui_scale_changed(&windows_list.window[win_id]);
-		reload();
+		reload(&windows_list.window[win_id]);
 
 	} // Container::open_window()
 
@@ -445,7 +448,7 @@ namespace UserMenus
 	{
 		// if the menus need reloading, try it now
 		if (reload_menus)
-			reload();
+			reload(win);
 
 		// update the command queue
 		command_queue.process(just_echo);
@@ -620,7 +623,7 @@ namespace UserMenus
 	//
 	// load, or reload, the menu files
 	//
-	void Container::reload(void)
+	void Container::reload(window_info *win)
 	{
 		// if a context menu is currently showing, do not reload yet
 		if (cm_window_shown() != CM_INIT_VALUE)
@@ -678,14 +681,14 @@ namespace UserMenus
 		}
 
 		current_mouseover_menu = menus.size();
-		recalc_win_width(&windows_list.window[win_id]);
+		recalc_win_width(win);
 
 		// if there are no user menus but we're not trying standard menus...
 		// unless already controlled this session, enable standard menus and reload
 		if (menus.empty() && !include_datadir && auto_include_datadir)
 		{
 			include_datadir = 1;
-			reload();
+			reload(win);
 		}
 
 	} // end Container::reload()
@@ -874,8 +877,8 @@ namespace UserMenus
 			case ELW_CM_MENU_LEN+CM_BACKGND: set_win_flag(&win->flags, ELW_USE_BACKGROUND, background_on); break;
 			case ELW_CM_MENU_LEN+CM_BORDER: set_win_flag(&win->flags, ELW_USE_BORDER, border_on); break;
 			case ELW_CM_MENU_LEN+CM_FONT: recalc_win_width(win); break;
-			case ELW_CM_MENU_LEN+CM_STANDMENU: auto_include_datadir = false; reload(); break;
-			case ELW_CM_MENU_LEN+CM_RELOAD: reload(); break;
+			case ELW_CM_MENU_LEN+CM_STANDMENU: auto_include_datadir = false; reload(win); break;
+			case ELW_CM_MENU_LEN+CM_RELOAD: reload(win); break;
 			case ELW_CM_MENU_LEN+CM_DISABLE: toggle_user_menus(&enable_user_menus); break;
 		}
 
@@ -933,11 +936,13 @@ extern "C"
 			UserMenus::Container::get_instance()->open_window();
 	}
 
+#ifdef OTHER_LIFE
 	void reload_user_menus(void)
 	{
 		if (ready_for_user_menus)
-			UserMenus::Container::get_instance()->reload();
+			UserMenus::Container::get_instance()->extern_reload();
 	}
+#endif
 
 	void destroy_user_menus(void) { UserMenus::Container::get_instance()->destroy(); }
 }
