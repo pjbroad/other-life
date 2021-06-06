@@ -1,6 +1,6 @@
-otherlife-data (1.9.3-1ubuntu1) trusty; urgency=low
+otherlife-data (1.9.5.9-0ubuntu1) bionic; urgency=low
 
-  * 1.9.3 release, see CHANGES file at
-      https://github.com/pjbroad/other-life/blob/master/CHANGES
+  * 1.9.5 release, see CHANGES file at
+      https://github.com/pjbroad/other-life/releases/tag/1.9.5.9
 
  -- Paul Broadhead <pjbroad@twinmoons.org.uk>  Mon, 02 Apr 2018 12:00:00 +0100

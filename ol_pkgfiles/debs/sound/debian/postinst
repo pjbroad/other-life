@@ -20,25 +20,25 @@ set -e
 
 case "$1" in
 	configure)
-	
+
 	TARGETDIR="/usr/share/games/OtherLife/sound"
 	CACHEDIR="/var/cache/otherlife"
-	DOWNLOADURL="https://twinmoons.org.uk/ol/rel/193"
-	DOWNLOADMAIN="otherlife-sound_1.9.3.zip"
-	MD5SUMMAIN="28678c3fce12780859ab29d673658681"
+	DOWNLOADURL="https://github.com/pjbroad/other-life/releases/download/1.9.5.9"
+	DOWNLOADMAIN="otherlife-sound_1.9.5.9.zip"
+	MD5SUMMAIN="b441ce65da967c937ac030f219fdd9ae"
 
 	[ -f ~paul/ol/installpkg/localdownload ] && DOWNLOADURL="https://harry/~paul/ol"
 
 	mkdir -p $CACHEDIR
 	cd $CACHEDIR
-	
+
 	# remove old downloads
-	#rm -f xxx.zip
+	rm -f otherlife-sound_1.9.3.zip
 
 	# if we already have an archive check the md5sum is ok and remove if not
 	[ ! -f "$DOWNLOADMAIN" ] || echo "$MD5SUMMAIN $DOWNLOADMAIN" | md5sum -c - || rm -fv $DOWNLOADMAIN
-	
-	# Use existing file or download it 
+
+	# Use existing file or download it
 	if [ ! -f "$DOWNLOADMAIN" ]
 	then
 		wget -P "." -v --progress="dot:mega" --no-check-certificate $DOWNLOADURL/$DOWNLOADMAIN
@@ -54,7 +54,7 @@ case "$1" in
 	cd sound
 	chown -R root:root .
 	chmod -R a=rX .
-	
+
 	# make the file lists
 	FILELIST="otherlife-sound.filelist"
 	DIRLIST="otherlife-sound.dirlist"
@@ -67,17 +67,18 @@ case "$1" in
 	[ ! -s $DIRLIST ] || cat $DIRLIST | xargs rmdir --ignore-fail-on-non-empty > /dev/null 2>&1 || true
 	chmod -R +w .
 	cp --remove-destination -rpf $UNPACKDIR/sound/* .
-	
+
 	rm -rf $UNPACKDIR
-    ;;
 
-    abort-upgrade|abort-remove|abort-deconfigure)
-    ;;
+	;;
 
-    *)
-        echo "postinst called with unknown argument \`$1'" >&2
-        exit 1
-    ;;
+	abort-upgrade|abort-remove|abort-deconfigure)
+	;;
+
+	*)
+		echo "postinst called with unknown argument \`$1'" >&2
+		exit 1
+	;;
 esac
 
 # dh_installdeb will replace this with shell code automatically

@@ -197,7 +197,7 @@ fi
 chmod +wr $serverfile
 
 # see if we intend to use non-standard build
-ol_client=/usr/games/ol.x86.linux.bin
+ol_client=/usr/games/ol.linux.bin
 if [ -r ~/.olc/ol_client ]
 then
 	tmp_ol_client="$(cat ~/.olc/ol_client)"

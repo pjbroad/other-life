@@ -23,56 +23,58 @@ case "$1" in
 	
 	TARGETDIR="/usr/share/games/OtherLife"
 	CACHEDIR="/var/cache/otherlife"
-	DOWNLOADURL="https://twinmoons.org.uk/ol/rel/193"
-	DOWNLOADMAIN="ol_linux_data.zip"
-	MD5SUMMAIN="b39c7de45ecfe02afa23963ccfcd13af"
+	DOWNLOADURL="https://github.com/pjbroad/other-life/releases/download/1.9.5.9"
+	DOWNLOADMAIN="otherlife-data_1.9.5.9.zip"
+	MD5SUMMAIN="8178f2b5460bbef042db56344fbf1a8f"
 	# post release updates
-	#DOWNLOADUPDATE2="x.zip"
-	#MD5SUMUPDATE2=""
+	#DOWNLOADUPDATE1=""
+	#MD5SUMUPDATE1=""
 
 	[ -f ~paul/ol/installpkg/localdownload ] && DOWNLOADURL="https://harry/~paul/ol"
 
 	mkdir -p $CACHEDIR
 	cd $CACHEDIR
-	
+
 	# remove old downloads
-	#rm -f xxx.zip
+	rm -f ol_linux_data.zip
 
 	# if we already have an archive check the md5sum is ok and remove if not
 	[ ! -f "$DOWNLOADMAIN" ] || echo "$MD5SUMMAIN  $DOWNLOADMAIN" | md5sum -c - || rm -fv $DOWNLOADMAIN
 	# post release updates
-	#[ ! -f "$DOWNLOADUPDATE2" ] || echo "$MD5SUMUPDATE2  $DOWNLOADUPDATE2" | md5sum -c - || rm -fv $DOWNLOADUPDATE2
-	
-	# Use existing file or download it 
+	#[ ! -f "$DOWNLOADUPDATE1" ] || echo "$MD5SUMUPDATE1  $DOWNLOADUPDATE1" | md5sum -c - || rm -fv $DOWNLOADUPDATE1
+
+	# Use existing file or download it
 	if [ ! -f "$DOWNLOADMAIN" ]
 	then
 		wget -P "." -v --progress="dot:mega" --no-check-certificate $DOWNLOADURL/$DOWNLOADMAIN
 		echo "$MD5SUMMAIN  $DOWNLOADMAIN" | md5sum -c -
 	fi
 	# post release updates
-	#if [ ! -f "$DOWNLOADUPDATE2" ]
+	#if [ ! -f "$DOWNLOADUPDATE1" ]
 	#then
-	#	wget -P "." -v --progress="dot:mega" --no-check-certificate $DOWNLOADURL/$DOWNLOADUPDATE2
-	#	echo "$MD5SUMUPDATE2  $DOWNLOADUPDATE2" | md5sum -c -
+	#	wget -P "." -v --progress="dot:mega" --no-check-certificate $DOWNLOADURL/$DOWNLOADUPDATE1
+	#	echo "$MD5SUMUPDATE1  $DOWNLOADUPDATE1" | md5sum -c -
 	#fi
 
 	# unnpack the archive
 	UNPACKDIR="`mktemp -d /tmp/otherlife-data.XXXXXXXXXX`"
 	cd $UNPACKDIR
 	unzip -q $CACHEDIR/$DOWNLOADMAIN
-	mv ol_linux ol_install
 	# post release updates
-	#cd ol_install
-	#unzip -q -o $CACHEDIR/$DOWNLOADUPDATE2
+	#cd ol_data
+	#unzip -q -o $CACHEDIR/$DOWNLOADUPDATE1
 
 	# fix ol.ini and server.lst, remove unneeded files and set the permissions
-	cd $UNPACKDIR/ol_install
+	cd $UNPACKDIR/ol_data
 	rm -f *.dll *.exe ol.*.bin
+	sed -i 's/^#data_dir.*$/#data_dir = \/usr\/share\/games\/OtherLife/g' ol.ini
+	sed -i 's/^#browser.*$/#browser = x-www-browser/g' ol.ini
+	sed -i 's/^#use_new_selection.*$/#use_new_selection = 1/g' ol.ini
 	grep -v ^official servers.lst > sl
 	mv sl servers.lst
 	chown -R root:root .
 	chmod -R a=rX .
-	
+
 	# make the file lists
 	FILELIST="otherlife-data.filelist"
 	DIRLIST="otherlife-data.dirlist"
@@ -84,18 +86,19 @@ case "$1" in
 	[ ! -s $FILELIST ] || cat $FILELIST | xargs rm -f || true
 	[ ! -s $DIRLIST ] || cat $DIRLIST | xargs rmdir --ignore-fail-on-non-empty > /dev/null 2>&1 || true
 	chmod -R +w .
-	cp --remove-destination -rpf $UNPACKDIR/ol_install/* .
-	
+	cp --remove-destination -rpf $UNPACKDIR/ol_data/* .
+
 	rm -rf $UNPACKDIR
-    ;;
 
-    abort-upgrade|abort-remove|abort-deconfigure)
-    ;;
+	;;
 
-    *)
-        echo "postinst called with unknown argument \`$1'" >&2
-        exit 1
-    ;;
+	abort-upgrade|abort-remove|abort-deconfigure)
+	;;
+
+	*)
+		echo "postinst called with unknown argument \`$1'" >&2
+		exit 1
+	;;
 esac
 
 # dh_installdeb will replace this with shell code automatically

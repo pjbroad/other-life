@@ -18,8 +18,10 @@ build-stamp: configure-stamp
 	dh_testdir
 
 	# Commands to compile the package.
-	$(MAKE) -f Makefile.linux release PLATFORM=""
-
+	mkdir -p build && \
+		cd build && \
+		cmake -DLOCAL_NLOHMANN_JSON=On -DOTHER-LIFE=1 -DEXEC=ol.linux.bin .. && \
+		make
 	touch $@
 
 clean:
@@ -28,15 +30,14 @@ clean:
 	rm -f build-stamp configure-stamp
 
 	# Commands to clean up after the build process.
-	$(MAKE) -f Makefile.linux clean
-	rm -f .depend ol.x86.linux.bin glinfo make.conf
+	rm -rf build
 
 	dh_clean 
 
 install: build
 	dh_testdir
 	dh_testroot
-	dh_clean -k 
+	dh_prep
 	dh_installdirs
 
 # Build architecture-independent files here.
@@ -52,7 +53,7 @@ binary-arch: build install
 	dh_installexamples
 	dh_install
 	dh_installmenu
-	dh_installman ol_pkgfiles/otherlife.6 ol_pkgfiles/ol.x86.linux.bin.6
+	dh_installman ol_pkgfiles/otherlife.6 ol_pkgfiles/ol.linux.bin.6
 	dh_link
 	dh_strip
 	dh_compress

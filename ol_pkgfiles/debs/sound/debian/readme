@@ -14,7 +14,7 @@
 # Now we're ready:
 
 # Set the version number
-olver="1.9.3"
+olver="1.9.5.9"
 packagename="otherlife-sound"
 debdir="sound"
 
@@ -32,9 +32,8 @@ mkdir ${packagename}-${olver}
 # Copy packaging files:
 cp -a ../../$debdir/debian/ ${packagename}-${olver}/
 
-# Append the licence file and clean up:
-wget -O - http://www.eternal-lands.com/page/license.txt | fmt -w 79 >> ${packagename}-${olver}/debian/copyright
-less ${packagename}-${olver}/debian/copyright
+# Copy the licence file
+cp /usr/share/games/OtherLife/license.txt ${packagename}-${olver}/debian/copyright
 
 # Save the source archive:
 tar cfz ${packagename}_${olver}.orig.tar.gz ${packagename}-${olver}

@@ -26,7 +26,7 @@ case "$1" in
 		[ ! -s otherlife-data.dirlist ] || cat otherlife-data.dirlist | xargs rmdir --ignore-fail-on-non-empty || true
 	fi
 
-    ;;
+	;;
 
     failed-upgrade)
     ;;
