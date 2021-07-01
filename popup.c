@@ -1282,7 +1282,7 @@ static void popup_send_to_server( popup_t *popup )
             break;
 		}
 	}
-	my_tcp_send(my_socket, buffer, bptr-buffer);
+	my_tcp_send(buffer, bptr-buffer);
 
 #if 0
 	fprintf(stderr,"Sending packet: \n");

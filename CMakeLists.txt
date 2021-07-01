@@ -22,6 +22,10 @@
 #
 # Example build other-life
 #   cmake -DOTHER-LIFE=1
+#
+# Example for FreeBSD (sorry about the iconv hack)
+#	cmake -DLOCAL_NLOHMANN_JSON=On ../Eternal-Lands/ -DIconv_LIBRARIES="-L/usr/local/lib -liconv"
+#
 
 cmake_minimum_required(VERSION 3.5.0)
 
@@ -125,7 +129,7 @@ find_package(OpenAL REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(PNG REQUIRED)
 find_package(LibXml2 REQUIRED)
-if (CMAKE_SYSTEM_NAME MATCHES "Linux")
+if (CMAKE_SYSTEM_NAME MATCHES "Linux" OR CMAKE_SYSTEM_NAME MATCHES "FreeBSD")
 	find_package(X11 REQUIRED)
 endif()
 if (CMAKE_SYSTEM_NAME MATCHES "Windows")
@@ -268,6 +272,15 @@ elseif (CMAKE_SYSTEM_NAME MATCHES "Windows")
 	set(EXTRA_LD_FLAGS "${EXTRA_LD_FLAGS} -mwindows")
 	set(SOURCES ${SOURCES} ${SD}elc_private.rc)
 	set(CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> -i <SOURCE> <DEFINES> -o <OBJECT>")
+elseif (CMAKE_SYSTEM_NAME MATCHES "FreeBSD")
+	if (NOT EXEC)
+		if (OTHER-LIFE)
+			set(EXEC "ol.bsd.bin")
+		else()
+			set(EXEC "el.bsd.bin")
+		endif()
+	endif()
+	add_definitions(-DBSD)
 else()
 	message( FATAL_ERROR "Unknown platform [${CMAKE_SYSTEM_NAME}]" )
 endif()
