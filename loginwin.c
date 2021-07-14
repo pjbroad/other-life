@@ -328,7 +328,8 @@ static int display_login_handler (window_info *win)
 
 	draw_console_pic(login_text);
 #ifdef OTHER_LIFE
-	draw_string_shadowed_zoomed((int)((window_width - strlen(license_str) * win->default_font_max_len_x) / 2), window_height - 2 * win->default_font_len_y, (unsigned char *)license_str, 1, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, win->current_scale);
+	draw_string_zoomed_centered(win->len_x/2, window_height - 2 * win->default_font_len_y,
+		(const unsigned char*)license_str, 1, win->current_scale);
 #endif
 	// ok, start drawing the interface...
 	draw_text(username_text_x, username_text_y, (const unsigned char*)login_username_str,
