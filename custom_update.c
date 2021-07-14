@@ -29,7 +29,11 @@ static UpdateThreaData_t update_thread_data[2];
 
 static const char* update_names[2] =
 {
+#ifdef OTHER_LIFE
+	"OL", "Unofficial"
+#else
 	"EL", "Unofficial"
+#endif
 };
 
 static const char* zip_names[2] =
